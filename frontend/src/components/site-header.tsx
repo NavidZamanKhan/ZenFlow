@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ZenFlowLogo } from '@/components/zenflow-logo'
 import { cn } from '@/lib/utils'
@@ -51,11 +52,15 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
+            render={<Link href="/login" />}
             className="hidden rounded-full text-sm text-muted-foreground hover:bg-accent/60 hover:text-foreground sm:inline-flex"
           >
             Login
           </Button>
-          <Button className="rounded-full px-5 text-sm shadow-sm transition-transform hover:-translate-y-0.5">
+          <Button
+            render={<Link href="/register" />}
+            className="rounded-full px-5 text-sm shadow-sm transition-transform hover:-translate-y-0.5"
+          >
             Sign Up
           </Button>
         </div>

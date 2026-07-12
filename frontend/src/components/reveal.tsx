@@ -22,7 +22,8 @@ export function Reveal({
     if (!el) return
 
     if (typeof IntersectionObserver === 'undefined') {
-      setVisible(true)
+      // No observer support: reveal immediately via the DOM to avoid a re-render
+      el.classList.add('is-visible')
       return
     }
 
