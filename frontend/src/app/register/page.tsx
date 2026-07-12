@@ -1,7 +1,11 @@
+import type { Metadata } from 'next'
+import { AuthPage } from '@/components/auth/AuthPage'
+
+export const metadata: Metadata = {
+  title: 'Sign up — ZenFlow',
+  description: 'A few details and your quiet workspace is ready.',
+}
+
 export default function RegisterPage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <h1 className="text-2xl font-semibold text-muted-foreground">Register — Coming Soon</h1>
-    </div>
-  )
+  return <AuthPage defaultTab="signup" />
 }

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Reveal } from '@/components/reveal'
@@ -21,6 +22,7 @@ export function CallToAction() {
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Button
               size="lg"
+              render={<Link href="/register" />}
               className="rounded-full px-7 text-base shadow-sm transition-transform hover:-translate-y-0.5"
             >
               Create Account
@@ -29,6 +31,7 @@ export function CallToAction() {
             <Button
               size="lg"
               variant="outline"
+              render={<Link href="/login" />}
               className="rounded-full border-border/70 bg-card/50 px-7 text-base backdrop-blur transition-transform hover:-translate-y-0.5 hover:bg-accent/60"
             >
               Login
