@@ -106,9 +106,11 @@ export function AuthPage({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
                 {(['login', 'signup'] as const).map((value) => (
                   <button
                     key={value}
+                    id={`tab-${value}`}
                     type="button"
                     role="tab"
                     aria-selected={tab === value}
+                    aria-controls="auth-tabpanel"
                     onClick={() => setTab(value)}
                     className={cn(
                       'relative z-10 rounded-full py-2.5 text-sm transition-colors duration-150',
@@ -125,7 +127,12 @@ export function AuthPage({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
               </h1>
               <p className="mt-1.5 text-sm text-slate-500">{subheading}</p>
 
-              <div className="mt-5 min-[480px]:mt-6">
+              <div
+                id="auth-tabpanel"
+                role="tabpanel"
+                aria-labelledby={`tab-${tab}`}
+                className="mt-5 min-[480px]:mt-6"
+              >
                 {tab === 'login' ? <LoginForm /> : <SignupForm />}
               </div>
 
