@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import {
   Grid3x3,
   LayoutDashboard,
@@ -19,16 +20,19 @@ const navItems = [
     label: 'Overview',
     icon: LayoutDashboard,
     id: 'overview',
+    href: '/dashboard',
   },
   {
     label: 'Tasks',
     icon: CheckSquare2,
     id: 'tasks',
+    href: '/dashboard/tasks',
   },
   {
     label: 'Calendar',
     icon: Calendar,
     id: 'calendar',
+    href: '/dashboard/calendar',
   },
   {
     label: 'Expenses',
@@ -48,7 +52,7 @@ const navItems = [
 ]
 
 export function Sidebar() {
-  const [activeItem, setActiveItem] = useState('overview')
+  const pathname = usePathname()
   const { logout } = useAuth()
 
   return (
@@ -89,20 +93,30 @@ export function Sidebar() {
         <div className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = activeItem === item.id
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveItem(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 ${
-                  isActive
-                    ? 'bg-[#E2EEFC] text-[#1D70E8]'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
-                }`}
-              >
+            const isActive = item.href
+              ? item.href === '/dashboard'
+                ? pathname === '/dashboard'
+                : pathname.startsWith(item.href)
+              : false
+            const itemClass = `w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 ${
+              isActive
+                ? 'bg-[#E2EEFC] text-[#1D70E8]'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+            }`
+            const inner = (
+              <>
                 <Icon size={18} className={isActive ? 'text-[#1D70E8]' : 'text-slate-400'} />
                 <span className="text-sm font-medium">{item.label}</span>
+              </>
+            )
+
+            return item.href ? (
+              <Link key={item.id} href={item.href} className={itemClass}>
+                {inner}
+              </Link>
+            ) : (
+              <button key={item.id} className={itemClass}>
+                {inner}
               </button>
             )
           })}
