@@ -38,16 +38,19 @@ const navItems = [
     label: 'Expenses',
     icon: Wallet,
     id: 'expenses',
+    href: '/dashboard/expenses',
   },
   {
     label: 'Insights',
     icon: BarChart3,
     id: 'insights',
+    href: '/dashboard/insights',
   },
   {
     label: 'Settings',
     icon: Settings,
     id: 'settings',
+    href: '/dashboard/settings',
   },
 ]
 
