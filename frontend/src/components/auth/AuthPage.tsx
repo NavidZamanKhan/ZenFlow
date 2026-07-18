@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/auth'
 import { ZenFlowLogo } from '@/components/zenflow-logo'
 import { cn } from '@/lib/utils'
 import { DashboardPreview } from './DashboardPreview'
@@ -73,6 +75,25 @@ function GitHubIcon() {
 export function AuthPage({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
   const [tab, setTab] = useState<AuthTab>(defaultTab)
   const { badge, heading, subheading, footerPrompt, footerAction } = copy[tab]
+  const { isAuthenticated, loading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, loading, router])
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-medium text-slate-500">Connecting...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen">

@@ -5,6 +5,7 @@ import { Lock, Mail, User } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { FormInput } from './FormInput'
+import { useAuth } from '@/lib/auth'
 
 const signupSchema = z
   .object({
@@ -22,9 +23,11 @@ const signupSchema = z
 type SignupValues = z.infer<typeof signupSchema>
 
 export function SignupForm() {
+  const { signup } = useAuth()
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
@@ -32,9 +35,13 @@ export function SignupForm() {
     defaultValues: { terms: false },
   })
 
-  const onSubmit = (values: SignupValues) => {
-    // TODO: wire to the authentication API
-    console.log('signup', values)
+  const onSubmit = async (values: SignupValues) => {
+    try {
+      await signup(values.fullName, values.email, values.password)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Signup failed'
+      setError('confirmPassword', { type: 'manual', message })
+    }
   }
 
   return (

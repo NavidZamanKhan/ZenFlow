@@ -5,6 +5,7 @@ import { Lock, Mail } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { FormInput } from './FormInput'
+import { useAuth } from '@/lib/auth'
 
 const loginSchema = z.object({
   email: z.email('Enter a valid email address'),
@@ -14,18 +15,24 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>
 
 export function LoginForm() {
+  const { login } = useAuth()
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     mode: 'onTouched',
   })
 
-  const onSubmit = (values: LoginValues) => {
-    // TODO: wire to the authentication API
-    console.log('login', values)
+  const onSubmit = async (values: LoginValues) => {
+    try {
+      await login(values.email, values.password)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Login failed'
+      setError('password', { type: 'manual', message })
+    }
   }
 
   return (
