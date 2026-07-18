@@ -1,0 +1,97 @@
+/* FullCalendar restyled to match the ZenFlow dashboard design system. */
+
+.zenflow-calendar .fc {
+  --fc-border-color: #f1f5f9;
+  --fc-today-bg-color: rgba(226, 238, 252, 0.35);
+  --fc-page-bg-color: #ffffff;
+  --fc-neutral-bg-color: #f8fafc;
+  --fc-now-indicator-color: #1d70e8;
+  --fc-highlight-color: rgba(226, 238, 252, 0.5);
+  font-family: inherit;
+}
+
+.zenflow-calendar .fc a {
+  text-decoration: none;
+}
+
+.zenflow-calendar .fc .fc-col-header-cell-cushion {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 4px;
+}
+
+.zenflow-calendar .fc .fc-daygrid-day-number {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 8px;
+}
+
+.zenflow-calendar .fc .fc-day-today .fc-daygrid-day-number {
+  color: #1d70e8;
+}
+
+.zenflow-calendar .fc .fc-timegrid-slot-label-cushion,
+.zenflow-calendar .fc .fc-timegrid-axis-cushion {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.zenflow-calendar .fc .fc-event {
+  border: none;
+  border-radius: 8px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.zenflow-calendar .fc .fc-daygrid-event-dot {
+  display: none;
+}
+
+/* Standalone calendar events — primary blue */
+.zenflow-calendar .fc .zenflow-event {
+  background: #1d70e8;
+  color: #ffffff;
+}
+
+.zenflow-calendar .fc .zenflow-event .fc-event-main {
+  color: #ffffff;
+}
+
+.zenflow-calendar .fc .zenflow-event:hover {
+  background: #1660cc;
+}
+
+/* Task due dates — soft teal, visually distinct from events */
+.zenflow-calendar .fc .zenflow-task-event {
+  background: #e2f6f4;
+  color: #0d9488;
+  cursor: default;
+}
+
+.zenflow-calendar .fc .zenflow-task-event .fc-event-main {
+  color: #0d9488;
+}
+
+.zenflow-calendar .fc .fc-event .fc-event-time {
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.zenflow-calendar .fc .fc-scrollgrid {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.zenflow-calendar .fc .fc-more-link {
+  color: #1d70e8;
+  font-size: 11px;
+  font-weight: 600;
+}
