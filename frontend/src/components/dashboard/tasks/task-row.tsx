@@ -34,7 +34,7 @@ export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
         type="button"
         onClick={() => onToggle(task)}
         aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
-        className="flex-shrink-0"
+        className="zf-tap relative flex-shrink-0"
       >
         {task.completed ? (
           <CheckCircle2 size={18} className="text-[#1D70E8]" />
@@ -80,12 +80,12 @@ export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
+      <div className="zf-row-actions flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
         <button
           type="button"
           onClick={() => onEdit(task)}
           aria-label={`Edit ${task.title}`}
-          className="p-1.5 rounded-lg text-slate-500 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
         >
           <Pencil size={14} />
         </button>
@@ -93,7 +93,7 @@ export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
           type="button"
           onClick={() => onDelete(task)}
           aria-label={`Delete ${task.title}`}
-          className="p-1.5 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-500 transition-colors"
         >
           <Trash2 size={14} />
         </button>

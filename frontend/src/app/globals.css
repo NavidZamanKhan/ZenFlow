@@ -149,6 +149,53 @@
   }
 }
 
+/* Phase 4 mobile fixes ------------------------------------------------- */
+
+/* iOS Safari auto-zooms the page when a focused input's font-size is under
+   16px. Below the desktop breakpoint, force form controls to 16px. Scoped
+   with !important because Tailwind text-xs/text-sm classes otherwise win. */
+@media (max-width: 1023px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Full-height that tracks iOS Safari's collapsing URL bar. Falls back to
+   100vh where dvh is unsupported. */
+.zf-screen-h {
+  height: 100vh;
+  height: 100dvh;
+}
+.zf-screen-min-h {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Hover-revealed row actions (edit/delete) stay visible on devices without
+   hover (tablets/phones), where group-hover can never fire. */
+@media (hover: none) {
+  .zf-row-actions {
+    opacity: 1 !important;
+  }
+}
+
+/* Expands an interactive control's hit area to at least 44x44px on touch
+   devices without changing its visual size. The element must be positioned
+   (pair with Tailwind's `relative` unless it is already absolute). */
+@media (pointer: coarse) {
+  .zf-tap::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}
+
 /* Phase 2 motion layer — all gated behind prefers-reduced-motion. */
 @media (prefers-reduced-motion: no-preference) {
   /* Tactile press feedback on every button (subtle, instant press-down). */

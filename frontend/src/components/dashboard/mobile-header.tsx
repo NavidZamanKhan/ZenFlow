@@ -16,14 +16,14 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
   const [searchOpen, setSearchOpen] = useState(false)
 
   return (
-    <header className="lg:hidden flex-shrink-0 border-b border-slate-100 bg-white">
+    <header className="lg:hidden flex-shrink-0 border-b border-slate-100 bg-white pt-[env(safe-area-inset-top)]">
       <div className="flex h-14 items-center gap-3 px-4">
         <button
           type="button"
           onClick={onMenuClick}
           aria-label="Open navigation menu"
           aria-expanded={menuOpen}
-          className="-ml-2 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
+          className="zf-tap relative -ml-2 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
         >
           <Menu size={20} aria-hidden="true" />
         </button>
@@ -42,7 +42,7 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
           onClick={() => setSearchOpen((open) => !open)}
           aria-label={searchOpen ? 'Close search' : 'Open search'}
           aria-expanded={searchOpen}
-          className="-mr-2 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
+          className="zf-tap relative -mr-2 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
         >
           {searchOpen ? (
             <X size={20} aria-hidden="true" />

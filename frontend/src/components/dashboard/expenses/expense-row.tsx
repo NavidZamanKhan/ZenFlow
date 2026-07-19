@@ -54,12 +54,12 @@ export function ExpenseRow({ expense, onEdit, onDelete }: ExpenseRowProps) {
         {formatCurrency(expense.amount)}
       </p>
 
-      <div className="flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
+      <div className="zf-row-actions flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
         <button
           type="button"
           onClick={() => onEdit(expense)}
           aria-label={`Edit ${expense.title}`}
-          className="p-1.5 rounded-lg text-slate-500 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
         >
           <Pencil size={14} />
         </button>
@@ -67,7 +67,7 @@ export function ExpenseRow({ expense, onEdit, onDelete }: ExpenseRowProps) {
           type="button"
           onClick={() => onDelete(expense)}
           aria-label={`Delete ${expense.title}`}
-          className="p-1.5 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-500 transition-colors"
         >
           <Trash2 size={14} />
         </button>

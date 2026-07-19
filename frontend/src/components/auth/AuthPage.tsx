@@ -99,7 +99,7 @@ export function AuthPage({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="zf-screen-min-h flex">
       <a href="#auth-main" className="zf-skip-link">
         Skip to authentication form
       </a>

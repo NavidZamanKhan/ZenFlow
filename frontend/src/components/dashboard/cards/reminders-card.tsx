@@ -205,7 +205,7 @@ export function RemindersCard({
                     disabled={pendingId === item.id}
                     onClick={() => completeTask(item.task)}
                     aria-label={`Mark ${item.title} complete`}
-                    className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-[#E2EEFC] hover:text-[#1D70E8] disabled:pointer-events-none disabled:opacity-60"
+                    className="zf-tap relative rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-[#E2EEFC] hover:text-[#1D70E8] disabled:pointer-events-none disabled:opacity-60"
                   >
                     <Check size={14} />
                   </button>
@@ -215,7 +215,7 @@ export function RemindersCard({
                   disabled={pendingId === item.id}
                   onClick={() => snooze(item)}
                   aria-label={`Snooze ${item.title} by one day`}
-                  className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:pointer-events-none disabled:opacity-60"
+                  className="zf-tap relative rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:pointer-events-none disabled:opacity-60"
                 >
                   <Clock3 size={14} />
                 </button>

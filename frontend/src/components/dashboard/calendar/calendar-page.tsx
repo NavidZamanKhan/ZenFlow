@@ -156,7 +156,7 @@ export function CalendarPage() {
   }
 
   const toolbarButton =
-    'p-2 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors'
+    'zf-tap relative p-2 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors'
 
   return (
     <div className="px-4 sm:px-8 py-8 max-w-6xl">

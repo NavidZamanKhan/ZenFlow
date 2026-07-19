@@ -29,7 +29,7 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
     // respect the OS-level prefers-reduced-motion setting (transforms disabled,
     // opacity fades kept).
     <MotionConfig reducedMotion="user">
-      <div className="flex h-screen w-screen overflow-hidden bg-white font-sans">
+      <div className="zf-screen-h flex w-full overflow-hidden bg-white font-sans pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
         <a href="#main-content" className="zf-skip-link">
           Skip to main content
         </a>
@@ -55,7 +55,10 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
             menuOpen={mobileNavOpen}
             onMenuClick={() => setOpenForPath(pathname)}
           />
-          <main id="main-content" className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <main
+            id="main-content"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]"
+          >
             {children ?? <MainContent />}
           </main>
         </div>

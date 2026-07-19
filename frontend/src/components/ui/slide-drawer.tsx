@@ -80,7 +80,10 @@ export function SlideDrawer({
             tabIndex={-1}
             className={cn(
               'absolute top-0 bottom-0 flex w-72 max-w-[85vw] flex-col bg-white shadow-xl outline-none',
-              side === 'left' ? 'left-0' : 'right-0',
+              'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]',
+              side === 'left'
+                ? 'left-0 pl-[env(safe-area-inset-left)]'
+                : 'right-0 pr-[env(safe-area-inset-right)]',
               className,
             )}
             initial={{ x: offscreenX }}
