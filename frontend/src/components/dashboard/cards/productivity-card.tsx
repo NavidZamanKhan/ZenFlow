@@ -7,6 +7,7 @@ import {
   weekOverWeekChange,
   weekProductivity,
 } from '@/lib/productivity'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { Task } from '@/types/task'
 
 type ProductivityCardProps = {
@@ -35,6 +36,25 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
         ? `${thisWeek.completed} completed this week`
         : 'Complete tasks due this week to score'
 
+  if (loading) {
+    return (
+      <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <LineChart size={18} className="text-[#1D70E8]" aria-hidden="true" />
+          <h2 className="text-base font-bold text-slate-800">Productivity</h2>
+        </div>
+        <Skeleton className="mb-2 h-3 w-40" />
+        <Skeleton className="mb-4 h-9 w-24" />
+        <Skeleton className="h-36 w-full rounded-2xl" />
+        <div className="mt-3 flex justify-between px-4">
+          {Array.from({ length: 7 }).map((_, index) => (
+            <Skeleton key={index} className="h-3 w-3" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md">
       <div className="mb-4">
@@ -52,7 +72,7 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
 
       <div className="mb-1 flex flex-wrap items-end gap-3">
         <p className="text-3xl font-extrabold tracking-tight text-slate-800 tabular-nums">
-          {loading || thisWeek.score === null ? '—' : `${thisWeek.score}%`}
+          {thisWeek.score === null ? '—' : `${thisWeek.score}%`}
         </p>
         <p className="pb-1 text-xs font-medium text-slate-400">{subtitle}</p>
       </div>

@@ -35,6 +35,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useExpenses } from '@/hooks/use-expenses'
+import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
+import { Skeleton } from '@/components/ui/skeleton'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
 import { formatCurrency, formatDisplayDate } from '@/lib/format'
 import { buildInsightsAnalytics, type SpendingPoint } from '@/lib/insights-stats'
@@ -88,10 +90,26 @@ function hasSpending(points: SpendingPoint[]): boolean {
 }
 
 export function InsightsPage() {
-  const { expenses, loading } = useExpenses()
+  const { expenses, loading, error, reload } = useExpenses()
   const analytics = useMemo(() => buildInsightsAnalytics(expenses), [expenses])
 
   if (loading) return <InsightsLoading />
+
+  if (error) {
+    return (
+      <div className="max-w-5xl px-4 py-8 sm:px-8">
+        <div className="mb-6">
+          <p className="mb-0.5 text-sm font-medium text-slate-400">
+            Understand your spending patterns
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-800">
+            Insights
+          </h1>
+        </div>
+        <ErrorState description={error} onRetry={reload} />
+      </div>
+    )
+  }
 
   return (
     <div className="px-4 sm:px-8 py-8 max-w-5xl">
@@ -595,46 +613,44 @@ function monthComparisonText(change: number | null): string {
 function EmptyInsights() {
   return (
     <div className={`${CARD_CLASS} p-6`}>
-      <div className="flex flex-col items-center py-14 text-center">
-        <div className="w-12 h-12 rounded-2xl bg-[#E2EEFC] flex items-center justify-center mb-4">
-          <BarChart3 size={22} className="text-[#1D70E8]" />
-        </div>
-        <p className="text-sm font-semibold text-slate-700 mb-1">No insights yet</p>
-        <p className="text-xs text-slate-400 mb-5 max-w-[280px]">
-          Your spending patterns will take shape as you add expenses.
-        </p>
-        <Link
-          href="/dashboard/expenses"
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1D70E8] hover:bg-[#1660CC] transition-colors"
-        >
-          <Wallet size={16} />
-          Go to Expenses
-        </Link>
-      </div>
+      <EmptyState
+        icon={BarChart3}
+        title="No insights yet"
+        description="Your spending patterns will take shape as you add expenses."
+        action={
+          <Link
+            href="/dashboard/expenses"
+            className="flex items-center gap-1.5 rounded-xl bg-[#1D70E8] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1660CC]"
+          >
+            <Wallet size={16} />
+            Go to Expenses
+          </Link>
+        }
+      />
     </div>
   )
 }
 
 function InsightsLoading() {
   return (
-    <div className="px-4 sm:px-8 py-8 max-w-5xl" aria-label="Loading insights">
-      <div className="mb-6">
-        <div className="h-3 w-48 rounded-full bg-slate-100 animate-pulse mb-2" />
-        <div className="h-7 w-24 rounded-lg bg-slate-100 animate-pulse" />
+    <div className="max-w-5xl px-4 py-8 sm:px-8" aria-label="Loading insights">
+      <div className="mb-6 space-y-2">
+        <Skeleton className="h-3 w-48 rounded-full" />
+        <Skeleton className="h-7 w-24 rounded-lg" />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 7 }, (_, index) => (
           <div key={index} className={`${CARD_CLASS} p-5`}>
-            <div className="h-4 w-28 rounded-full bg-slate-100 animate-pulse mb-4" />
-            <div className="h-7 w-32 rounded-lg bg-slate-100 animate-pulse" />
+            <Skeleton className="mb-4 h-4 w-28 rounded-full" />
+            <Skeleton className="h-7 w-32 rounded-lg" />
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {[0, 1].map((index) => (
-          <div key={index} className={`${CARD_CLASS} p-5 h-[350px]`}>
-            <div className="h-4 w-36 rounded-full bg-slate-100 animate-pulse mb-5" />
-            <div className="h-[260px] rounded-2xl bg-slate-50 animate-pulse" />
+          <div key={index} className={`${CARD_CLASS} h-[350px] p-5`}>
+            <Skeleton className="mb-5 h-4 w-36 rounded-full" />
+            <Skeleton className="h-[260px] rounded-2xl" />
           </div>
         ))}
       </div>

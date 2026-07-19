@@ -100,6 +100,8 @@ export function useBudget() {
   const [budget, setBudget] = useState<Budget>(createDefaultBudget)
   const [loading, setLoading] = useState(true)
   const [hasBudget, setHasBudget] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
   const budgetRef = useRef(budget)
 
   useEffect(() => {
@@ -107,6 +109,9 @@ export function useBudget() {
 
     let cancelled = false
     queueMicrotask(() => {
+      if (cancelled) return
+      setLoading(true)
+      setError(null)
       try {
         const raw = localStorage.getItem(budgetStorageKey(userEmail))
         const next = normalizeBudget(raw ? JSON.parse(raw) : null)
@@ -114,6 +119,7 @@ export function useBudget() {
           budgetRef.current = next
           setBudget(next)
           setHasBudget(raw !== null)
+          setError(null)
         }
       } catch {
         const next = createDefaultBudget()
@@ -121,6 +127,7 @@ export function useBudget() {
           budgetRef.current = next
           setBudget(next)
           setHasBudget(false)
+          setError('Could not load your budget.')
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -130,7 +137,11 @@ export function useBudget() {
     return () => {
       cancelled = true
     }
-  }, [userEmail])
+  }, [userEmail, reloadKey])
+
+  const reload = useCallback(() => {
+    setReloadKey((key) => key + 1)
+  }, [])
 
   const persist = useCallback(
     (next: Budget): boolean => {
@@ -211,6 +222,8 @@ export function useBudget() {
     budget,
     hasBudget,
     loading,
+    error,
+    reload,
     setMonthlyTotal,
     setCategoryBudget,
     recordThresholdAlerts,

@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import { ListTodo, Plus, Search } from 'lucide-react'
 import { useTasks } from '@/hooks/use-tasks'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
+import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
+import { Skeleton } from '@/components/ui/skeleton'
 import { TaskFormModal } from './task-form-modal'
 import { TaskRow } from './task-row'
 import type { Task, TaskSortKey, TaskStatusFilter } from '@/types/task'
@@ -14,7 +16,16 @@ const selectClass =
   'px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#1D70E8]/30 focus:border-transparent transition-all'
 
 export function TasksPage() {
-  const { tasks, loading, createTask, updateTask, deleteTask, toggleTask } = useTasks()
+  const {
+    tasks,
+    loading,
+    error,
+    reload,
+    createTask,
+    updateTask,
+    deleteTask,
+    toggleTask,
+  } = useTasks()
 
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<TaskStatusFilter>('all')
@@ -80,15 +91,18 @@ export function TasksPage() {
   }
 
   return (
-    <div className="px-4 sm:px-8 py-8 max-w-5xl">
-      {/* Page header */}
-      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+    <div className="max-w-5xl px-4 py-8 sm:px-8">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-slate-400 text-sm font-medium mb-0.5">Stay on top of your day</p>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Tasks</h1>
+          <p className="mb-0.5 text-sm font-medium text-slate-400">
+            Stay on top of your day
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-800">
+            Tasks
+          </h1>
         </div>
         <div className="flex items-center gap-3">
-          <div className="bg-[#E2EEFC] px-3.5 py-1 rounded-full">
+          <div className="rounded-full bg-[#E2EEFC] px-3.5 py-1">
             <span className="text-xs font-semibold text-[#1D70E8]">
               {remaining} {remaining === 1 ? 'task' : 'tasks'} left
             </span>
@@ -96,7 +110,7 @@ export function TasksPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1D70E8] hover:bg-[#1660CC] shadow-sm transition-colors"
+            className="flex items-center gap-1.5 rounded-xl bg-[#1D70E8] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1660CC]"
           >
             <Plus size={16} />
             New task
@@ -104,9 +118,8 @@ export function TasksPage() {
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="flex items-center gap-2 mb-6 flex-wrap">
-        <div className="relative min-w-0 flex-1 max-w-xs basis-full sm:basis-auto sm:min-w-[180px]">
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <div className="relative min-w-0 max-w-xs flex-1 basis-full sm:basis-auto sm:min-w-[180px]">
           <Search
             size={14}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -117,7 +130,7 @@ export function TasksPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tasks..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1D70E8]/30 focus:border-transparent transition-all"
+            className="w-full rounded-xl border border-slate-100 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1D70E8]/30"
           />
         </div>
         <select
@@ -126,7 +139,7 @@ export function TasksPage() {
           aria-label="Filter by status"
           className={selectClass}
         >
-          <option value="all">All statuses</option>
+          <option value="all">All</option>
           <option value="active">Active</option>
           <option value="completed">Completed</option>
         </select>
@@ -137,9 +150,9 @@ export function TasksPage() {
           className={selectClass}
         >
           <option value="all">All categories</option>
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
+          {categories.map((item) => (
+            <option key={item} value={item}>
+              {item}
             </option>
           ))}
         </select>
@@ -149,60 +162,62 @@ export function TasksPage() {
           aria-label="Sort tasks"
           className={selectClass}
         >
-          <option value="createdAt">Newest first</option>
-          <option value="dueDate">By due date</option>
-          <option value="priority">By priority</option>
+          <option value="createdAt">Newest</option>
+          <option value="dueDate">Due date</option>
+          <option value="priority">Priority</option>
         </select>
       </div>
 
-      {/* Task list card */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-100/80 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
+      <div className="rounded-3xl border border-slate-100/80 bg-white p-4 shadow-sm sm:p-6">
+        <div className="mb-4 flex items-center gap-2">
           <ListTodo size={18} className="text-[#1D70E8]" />
           <h2 className="text-base font-bold text-slate-800">
-            {status === 'completed' ? 'Completed' : status === 'active' ? 'Active' : 'All tasks'}
+            {status === 'completed'
+              ? 'Completed'
+              : status === 'active'
+                ? 'Active'
+                : 'All tasks'}
           </h2>
         </div>
 
-        {loading ? (
+        {error && !loading ? (
+          <ErrorState
+            description={error}
+            onRetry={reload}
+            className="border-0 bg-transparent py-10"
+          />
+        ) : loading ? (
           <div className="space-y-3 py-1" aria-label="Loading tasks">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-3 py-2 px-2">
-                <div className="w-[18px] h-[18px] rounded-full bg-slate-100 animate-pulse" />
-                <div className="h-3.5 rounded-full bg-slate-100 animate-pulse flex-1 max-w-[240px]" />
-                <div className="h-5 w-16 rounded-full bg-slate-50 animate-pulse hidden sm:block" />
+              <div key={i} className="flex items-center gap-3 px-2 py-2">
+                <Skeleton className="h-[18px] w-[18px] rounded-full" />
+                <Skeleton className="h-3.5 max-w-[240px] flex-1" />
+                <Skeleton className="hidden h-5 w-16 rounded-full sm:block" />
               </div>
             ))}
           </div>
         ) : visibleTasks.length === 0 ? (
-          <div className="flex flex-col items-center py-14 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-[#E2EEFC] flex items-center justify-center mb-4">
-              <ListTodo size={22} className="text-[#1D70E8]" />
-            </div>
-            {tasks.length === 0 ? (
-              <>
-                <p className="text-sm font-semibold text-slate-700 mb-1">No tasks yet</p>
-                <p className="text-xs text-slate-400 mb-5 max-w-[240px]">
-                  A clear list is a calm mind. Add your first task to get started.
-                </p>
+          <EmptyState
+            icon={ListTodo}
+            title={tasks.length === 0 ? 'No tasks yet' : 'Nothing matches'}
+            description={
+              tasks.length === 0
+                ? 'A clear list is a calm mind. Add your first task to get started.'
+                : 'Try a different search or clear the filters.'
+            }
+            action={
+              tasks.length === 0 ? (
                 <button
                   type="button"
                   onClick={openCreate}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1D70E8] hover:bg-[#1660CC] transition-colors"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#1D70E8] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1660CC]"
                 >
                   <Plus size={16} />
                   Create your first task
                 </button>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-semibold text-slate-700 mb-1">Nothing matches</p>
-                <p className="text-xs text-slate-400 max-w-[240px]">
-                  Try a different search or clear the filters.
-                </p>
-              </>
-            )}
-          </div>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="space-y-1">
             {visibleTasks.map((task) => (

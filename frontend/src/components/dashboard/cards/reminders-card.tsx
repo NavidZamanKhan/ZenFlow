@@ -3,8 +3,8 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Check, Clock3 } from 'lucide-react'
-import { toast } from 'sonner'
 import { formatDate, formatTime, todayISODate, toISODate } from '@/lib/dates'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { CalendarEvent } from '@/types/event'
 import type { Task } from '@/types/task'
 
@@ -122,26 +122,23 @@ export function RemindersCard({
 
   const completeTask = async (task: Task) => {
     setPendingId(`task:${task.id}`)
-    const ok = await onToggleTask(task)
+    await onToggleTask(task)
     setPendingId(null)
-    if (ok) toast.success('Reminder completed')
   }
 
   const snooze = async (item: ReminderItem) => {
     setPendingId(item.id)
-    let ok = false
     if (item.kind === 'task' && item.task.dueDate) {
-      ok = await onUpdateTask(item.task.id, {
+      await onUpdateTask(item.task.id, {
         dueDate: addDaysISO(item.task.dueDate, 1),
       })
     } else if (item.kind === 'event') {
-      ok = await onUpdateEvent(item.event.id, {
+      await onUpdateEvent(item.event.id, {
         start: addDaysDateTime(item.event.start, 1),
         end: addDaysDateTime(item.event.end, 1),
       })
     }
     setPendingId(null)
-    if (ok) toast.success('Snoozed by 1 day')
   }
 
   const navigate = (item: ReminderItem) => {
@@ -158,10 +155,14 @@ export function RemindersCard({
       <div className="space-y-3 px-1">
         {loading ? (
           Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-12 animate-pulse rounded-xl bg-slate-50"
-            />
+            <div key={index} className="flex items-center gap-3 py-1">
+              <Skeleton className="mt-1 h-2.5 w-2.5 rounded-full" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-3.5 w-2/3 max-w-[180px]" />
+                <Skeleton className="h-2.5 w-24" />
+              </div>
+              <Skeleton className="h-7 w-14 rounded-lg" />
+            </div>
           ))
         ) : reminders.length === 0 ? (
           <p className="py-6 text-center text-sm text-slate-400">

@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { useExpenses } from '@/hooks/use-expenses'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
+import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
+import { Skeleton } from '@/components/ui/skeleton'
 import { monthlySpending, todaysSpending, totalExpenses } from '@/lib/expense-stats'
 import { formatCurrency } from '@/lib/format'
 import { todayISODate } from '@/lib/dates'
@@ -38,7 +40,15 @@ function monthBounds(monthValue: string): { start: string; end: string } | null 
 }
 
 export function ExpensesPage() {
-  const { expenses, loading, createExpense, updateExpense, deleteExpense } = useExpenses()
+  const {
+    expenses,
+    loading,
+    error,
+    reload,
+    createExpense,
+    updateExpense,
+    deleteExpense,
+  } = useExpenses()
 
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<'all' | ExpenseCategory>('all')
@@ -275,45 +285,44 @@ export function ExpensesPage() {
           </h2>
         </div>
 
-        {loading ? (
+        {error && !loading ? (
+          <ErrorState
+            description={error}
+            onRetry={reload}
+            className="border-0 bg-transparent py-10"
+          />
+        ) : loading ? (
           <div className="space-y-3 py-1" aria-label="Loading expenses">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-3 py-2 px-2">
-                <div className="w-9 h-9 rounded-xl bg-slate-100 animate-pulse" />
-                <div className="h-3.5 rounded-full bg-slate-100 animate-pulse flex-1 max-w-[240px]" />
-                <div className="h-4 w-16 rounded-full bg-slate-50 animate-pulse" />
+              <div key={i} className="flex items-center gap-3 px-2 py-2">
+                <Skeleton className="h-9 w-9 rounded-xl" />
+                <Skeleton className="h-3.5 max-w-[240px] flex-1" />
+                <Skeleton className="h-4 w-16 rounded-full" />
               </div>
             ))}
           </div>
         ) : visibleExpenses.length === 0 ? (
-          <div className="flex flex-col items-center py-14 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-[#E2EEFC] flex items-center justify-center mb-4">
-              <Wallet size={22} className="text-[#1D70E8]" />
-            </div>
-            {expenses.length === 0 ? (
-              <>
-                <p className="text-sm font-semibold text-slate-700 mb-1">No expenses yet</p>
-                <p className="text-xs text-slate-400 mb-5 max-w-[260px]">
-                  Quiet books start empty. Add your first expense to begin tracking calmly.
-                </p>
+          <EmptyState
+            icon={Wallet}
+            title={expenses.length === 0 ? 'No expenses yet' : 'Nothing matches'}
+            description={
+              expenses.length === 0
+                ? 'Quiet books start empty. Add your first expense to begin tracking calmly.'
+                : 'Try a different search or clear the filters.'
+            }
+            action={
+              expenses.length === 0 ? (
                 <button
                   type="button"
                   onClick={openCreate}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1D70E8] hover:bg-[#1660CC] transition-colors"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#1D70E8] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1660CC]"
                 >
                   <Plus size={16} />
                   Add your first expense
                 </button>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-semibold text-slate-700 mb-1">Nothing matches</p>
-                <p className="text-xs text-slate-400 max-w-[240px]">
-                  Try a different search or clear the filters.
-                </p>
-              </>
-            )}
-          </div>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="space-y-1">
             {visibleExpenses.map((expense) => (

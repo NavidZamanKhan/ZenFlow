@@ -4,9 +4,9 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CalendarDays, CheckCircle2, ListTodo, Plus } from 'lucide-react'
-import { toast } from 'sonner'
 import { formatDate, isOverdue } from '@/lib/dates'
 import { TaskFormModal } from '@/components/dashboard/tasks/task-form-modal'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { Task, TaskInput, TaskPriority } from '@/types/task'
 
 const priorityDot: Record<TaskPriority, string> = {
@@ -45,11 +45,8 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
 
   const handleToggle = async (task: Task) => {
     setPendingId(task.id)
-    const ok = await onToggle(task)
+    await onToggle(task)
     setPendingId(null)
-    if (ok) {
-      toast.success(task.completed ? 'Task marked incomplete' : 'Task completed')
-    }
   }
 
   return (
@@ -83,11 +80,15 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
 
       <div className="space-y-1">
         {loading ? (
-          Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-10 animate-pulse rounded-xl bg-slate-50"
-            />
+          Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="flex items-center gap-3 px-2 py-2.5">
+              <Skeleton className="h-[18px] w-[18px] rounded-full" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-3.5 w-3/4 max-w-[200px]" />
+                <Skeleton className="h-2.5 w-20" />
+              </div>
+              <Skeleton className="hidden h-5 w-14 rounded-full sm:block" />
+            </div>
           ))
         ) : visibleTasks.length === 0 ? (
           <p className="px-2 py-6 text-center text-sm text-slate-400">

@@ -5,6 +5,7 @@ import { TasksCard } from './cards/tasks-card'
 import { ProductivityCard } from './cards/productivity-card'
 import { RemindersCard } from './cards/reminders-card'
 import { ExpensesCard } from './cards/expenses-card'
+import { ErrorState } from '@/components/shared/state-blocks'
 import { useTasks } from '@/hooks/use-tasks'
 import { useEvents } from '@/hooks/use-events'
 import { useExpenses } from '@/hooks/use-expenses'
@@ -19,6 +20,8 @@ export function ContentGrid() {
   const {
     tasks,
     loading: tasksLoading,
+    error: tasksError,
+    reload: reloadTasks,
     createTask,
     updateTask,
     toggleTask,
@@ -26,16 +29,39 @@ export function ContentGrid() {
   const {
     events,
     loading: eventsLoading,
+    error: eventsError,
+    reload: reloadEvents,
     updateEvent,
   } = useEvents()
-  const { expenses, loading: expensesLoading } = useExpenses()
+  const {
+    expenses,
+    loading: expensesLoading,
+    error: expensesError,
+    reload: reloadExpenses,
+  } = useExpenses()
   const { budget, hasBudget, loading: budgetLoading } = useBudget()
 
   const remainingTasks = tasks.filter((task) => !task.completed).length
+  const loadError = tasksError || eventsError || expensesError
+
+  const retryAll = () => {
+    if (tasksError) reloadTasks()
+    if (eventsError) reloadEvents()
+    if (expensesError) reloadExpenses()
+  }
 
   return (
     <div className="max-w-full px-4 py-8 sm:px-8">
       <Greeting remainingTasks={remainingTasks} loading={tasksLoading} />
+
+      {loadError && !tasksLoading && !eventsLoading && !expensesLoading ? (
+        <div className="mb-6">
+          <ErrorState
+            description={loadError}
+            onRetry={retryAll}
+          />
+        </div>
+      ) : null}
 
       <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
         <TasksCard
@@ -52,8 +78,12 @@ export function ContentGrid() {
           events={events}
           loading={tasksLoading || eventsLoading}
           onToggleTask={toggleTask}
-          onUpdateTask={updateTask}
-          onUpdateEvent={updateEvent}
+          onUpdateTask={(id, patch) =>
+            updateTask(id, patch, { successMessage: 'Snoozed by 1 day' })
+          }
+          onUpdateEvent={(id, patch) =>
+            updateEvent(id, patch, { successMessage: 'Snoozed by 1 day' })
+          }
         />
 
         <ExpensesCard

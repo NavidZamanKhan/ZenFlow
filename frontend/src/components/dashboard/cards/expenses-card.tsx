@@ -7,6 +7,7 @@ import { todayISODate } from '@/lib/dates'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
 import { spendingByCategory } from '@/lib/expense-stats'
 import { formatCurrency } from '@/lib/format'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { Budget } from '@/types/budget'
 import type { Expense } from '@/types/expense'
 
@@ -83,7 +84,14 @@ export function ExpensesCard({
       </div>
 
       {loading ? (
-        <div className="mb-6 h-16 animate-pulse rounded-2xl bg-slate-50" />
+        <div className="mb-6 space-y-3">
+          <Skeleton className="h-9 w-36" />
+          <Skeleton className="h-3 w-28" />
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-16 rounded-2xl" />
+            <Skeleton className="h-16 rounded-2xl" />
+          </div>
+        </div>
       ) : showBudget ? (
         <div className="mb-6 space-y-3">
           <div>
