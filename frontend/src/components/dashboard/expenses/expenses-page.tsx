@@ -133,7 +133,7 @@ export function ExpensesPage() {
     <div className="px-4 sm:px-8 py-8 max-w-5xl">
       <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
         <div>
-          <p className="text-slate-400 text-sm font-medium mb-0.5">Track where your money goes</p>
+          <p className="text-slate-500 text-sm font-medium mb-0.5">Track where your money goes</p>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Expenses</h1>
         </div>
         <button
@@ -169,7 +169,7 @@ export function ExpensesPage() {
             <h2 className="text-sm font-bold text-slate-800">Remaining budget</h2>
           </div>
           <p className="text-sm font-semibold text-slate-700 mb-1">Set a budget</p>
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-xs text-slate-500 leading-relaxed">
             Budgets are coming soon. This card is ready for when you define monthly limits.
           </p>
         </div>
@@ -178,13 +178,17 @@ export function ExpensesPage() {
       {/* Toolbar */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         <div className="relative min-w-0 flex-1 max-w-xs basis-full sm:basis-auto sm:min-w-[180px]">
+          <label htmlFor="expenses-search" className="sr-only">
+            Search expenses
+          </label>
           <Search
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
             aria-hidden="true"
           />
           <input
-            type="text"
+            id="expenses-search"
+            type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search expenses..."

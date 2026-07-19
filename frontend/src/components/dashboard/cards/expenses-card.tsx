@@ -98,19 +98,19 @@ export function ExpensesCard({
             <p className="text-3xl font-extrabold tracking-tight text-slate-800 tabular-nums">
               {formatCurrency(spent)}
             </p>
-            <p className="mt-0.5 text-xs font-semibold text-slate-400">
+            <p className="mt-0.5 text-xs font-semibold text-slate-500">
               Spent this month
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-slate-50 px-3 py-2.5">
-              <p className="text-[11px] font-medium text-slate-400">Budget</p>
+              <p className="text-[11px] font-medium text-slate-500">Budget</p>
               <p className="mt-0.5 text-sm font-bold text-slate-800 tabular-nums">
                 {formatCurrency(budget.monthlyTotal)}
               </p>
             </div>
             <div className="rounded-2xl bg-slate-50 px-3 py-2.5">
-              <p className="text-[11px] font-medium text-slate-400">Remaining</p>
+              <p className="text-[11px] font-medium text-slate-500">Remaining</p>
               <p
                 className={`mt-0.5 text-sm font-bold tabular-nums ${
                   remaining < 0 ? 'text-rose-600' : 'text-slate-800'
@@ -126,7 +126,7 @@ export function ExpensesCard({
           <p className="text-3xl font-extrabold tracking-tight text-slate-800 tabular-nums">
             {formatCurrency(spent)}
           </p>
-          <p className="mt-0.5 text-xs font-semibold text-slate-400">
+          <p className="mt-0.5 text-xs font-semibold text-slate-500">
             Spent this month
           </p>
         </div>
@@ -154,7 +154,7 @@ export function ExpensesCard({
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
         {segments.length === 0 ? (
-          <p className="text-xs font-semibold text-slate-400">
+          <p className="text-xs font-semibold text-slate-500">
             No spending recorded this month
           </p>
         ) : (
@@ -164,7 +164,7 @@ export function ExpensesCard({
                 className={`h-2.5 w-2.5 rounded-full ${segment.color ?? ''}`}
                 style={{ backgroundColor: segment.hex }}
               />
-              <p className="text-xs font-semibold text-slate-400">
+              <p className="text-xs font-semibold text-slate-500">
                 {segment.name}
               </p>
             </div>

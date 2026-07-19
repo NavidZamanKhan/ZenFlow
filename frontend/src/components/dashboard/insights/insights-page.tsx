@@ -102,7 +102,7 @@ export function InsightsPage() {
     return (
       <div className="max-w-5xl px-4 py-8 sm:px-8">
         <div className="mb-6">
-          <p className="mb-0.5 text-sm font-medium text-slate-400">
+          <p className="mb-0.5 text-sm font-medium text-slate-500">
             Understand your spending patterns
           </p>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">
@@ -117,7 +117,7 @@ export function InsightsPage() {
   return (
     <div className="px-4 sm:px-8 py-8 max-w-5xl">
       <div className="mb-6">
-        <p className="text-slate-400 text-sm font-medium mb-0.5">
+        <p className="text-slate-500 text-sm font-medium mb-0.5">
           Understand your spending patterns
         </p>
         <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Insights</h1>
@@ -379,7 +379,7 @@ export function InsightsPage() {
                       <div className="flex items-center justify-between gap-3 mb-1.5">
                         <p className="text-sm font-medium text-slate-700 truncate">{item.category}</p>
                         <div className="flex items-center gap-3 flex-shrink-0">
-                          <span className="text-xs font-medium text-slate-400 tabular-nums">
+                          <span className="text-xs font-medium text-slate-500 tabular-nums">
                             {item.percentage.toFixed(1)}%
                           </span>
                           <span className="text-sm font-bold text-slate-800 tabular-nums">
@@ -534,7 +534,7 @@ function ChartCard({
         <Icon size={18} className="text-[#1D70E8] mt-0.5 flex-shrink-0" />
         <div>
           <h3 className="text-sm font-bold text-slate-800">{title}</h3>
-          <p className="text-xs text-slate-400 mt-0.5">{description}</p>
+          <p className="text-xs text-slate-500 mt-0.5">{description}</p>
         </div>
       </div>
       <div className="h-[270px]" role="img" aria-label={title}>
@@ -550,7 +550,7 @@ function ChartEmpty({ message }: { message: string }) {
       <div className="w-10 h-10 rounded-2xl bg-[#E2EEFC] flex items-center justify-center mb-3">
         <BarChart3 size={18} className="text-[#1D70E8]" />
       </div>
-      <p className="text-xs text-slate-400 leading-relaxed max-w-[240px]">{message}</p>
+      <p className="text-xs text-slate-500 leading-relaxed max-w-[240px]">{message}</p>
     </div>
   )
 }
@@ -603,10 +603,10 @@ function TrendCard({
     <div className={`${CARD_CLASS} p-5`}>
       <div className="flex items-center gap-2 mb-3">
         <Icon size={17} className="text-[#1D70E8]" />
-        <p className="text-xs font-semibold text-slate-400">{label}</p>
+        <p className="text-xs font-semibold text-slate-500">{label}</p>
       </div>
       <p className="text-sm font-bold text-slate-800 truncate" title={value}>{value}</p>
-      <p className="text-xs text-slate-400 mt-1 tabular-nums">{detail}</p>
+      <p className="text-xs text-slate-500 mt-1 tabular-nums">{detail}</p>
     </div>
   )
 }

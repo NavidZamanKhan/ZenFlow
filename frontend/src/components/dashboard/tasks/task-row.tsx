@@ -47,7 +47,7 @@ export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
       <div className="flex-1 min-w-0">
         <p
           className={`text-sm font-medium truncate transition-all ${
-            task.completed ? 'line-through text-slate-400' : 'text-slate-700'
+            task.completed ? 'line-through text-slate-500' : 'text-slate-700'
           }`}
         >
           {task.title}
@@ -55,7 +55,7 @@ export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
         {task.dueDate && (
           <p
             className={`flex items-center gap-1 text-xs mt-0.5 font-medium ${
-              overdue ? 'text-rose-500' : 'text-slate-400'
+              overdue ? 'text-rose-500' : 'text-slate-500'
             }`}
           >
             <CalendarDays size={12} aria-hidden="true" />
@@ -85,7 +85,7 @@ export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
           type="button"
           onClick={() => onEdit(task)}
           aria-label={`Edit ${task.title}`}
-          className="p-1.5 rounded-lg text-slate-400 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
+          className="p-1.5 rounded-lg text-slate-500 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
         >
           <Pencil size={14} />
         </button>
@@ -93,7 +93,7 @@ export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
           type="button"
           onClick={() => onDelete(task)}
           aria-label={`Delete ${task.title}`}
-          className="p-1.5 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+          className="p-1.5 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-500 transition-colors"
         >
           <Trash2 size={14} />
         </button>

@@ -30,6 +30,10 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
     // opacity fades kept).
     <MotionConfig reducedMotion="user">
       <div className="flex h-screen w-screen overflow-hidden bg-white font-sans">
+        <a href="#main-content" className="zf-skip-link">
+          Skip to main content
+        </a>
+
         {/* Desktop sidebar — unchanged at lg+ */}
         <div className="hidden h-full flex-shrink-0 lg:flex">
           <Sidebar />
@@ -40,6 +44,7 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
           open={mobileNavOpen}
           onClose={closeMobileNav}
           rootClassName="lg:hidden"
+          label="Main navigation"
         >
           <Sidebar onNavigate={closeMobileNav} className="border-r-0" />
         </SlideDrawer>
@@ -50,9 +55,11 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
             menuOpen={mobileNavOpen}
             onMenuClick={() => setOpenForPath(pathname)}
           />
-          {children ?? <MainContent />}
+          <main id="main-content" className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            {children ?? <MainContent />}
+          </main>
         </div>
-        <Toaster position="bottom-right" richColors />
+        <Toaster position="bottom-right" richColors closeButton />
       </div>
     </MotionConfig>
   )

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DashboardMockup } from '@/components/dashboard-mockup'
@@ -34,6 +35,7 @@ export function Hero() {
               <Button
                 size="lg"
                 className="rounded-full px-7 text-base shadow-sm transition-transform hover:-translate-y-0.5"
+                render={<Link href="/register" />}
               >
                 Get Started
                 <ArrowRight className="size-4" aria-hidden="true" />
@@ -42,6 +44,7 @@ export function Hero() {
                 size="lg"
                 variant="outline"
                 className="rounded-full border-border/70 bg-card/50 px-7 text-base backdrop-blur transition-transform hover:-translate-y-0.5 hover:bg-accent/60"
+                render={<Link href="#features" />}
               >
                 Learn More
               </Button>

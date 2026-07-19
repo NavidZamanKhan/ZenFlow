@@ -96,28 +96,33 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
 
         {/* Search Bar */}
         <div className="relative flex-1">
+          <label htmlFor="sidebar-zenflow-search" className="sr-only">
+            Search ZenFlow
+          </label>
           <Search
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 transform text-slate-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 transform text-slate-500"
+            aria-hidden="true"
           />
           <input
-            type="text"
+            id="sidebar-zenflow-search"
+            type="search"
             placeholder="Search ZenFlow..."
             className="w-full rounded-xl border border-slate-100 bg-slate-50 py-1.5 pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1D70E8]"
           />
         </div>
       </div>
 
-      {/* Logo */}
+      {/* Logo — brand mark, not a page heading (pages own the sole <h1>) */}
       <div className="flex items-center gap-3 px-6 py-4">
         <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#1D70E8] shadow-sm">
-          <Grid3x3 size={18} className="text-white" />
+          <Grid3x3 size={18} className="text-white" aria-hidden="true" />
         </div>
-        <h1 className="text-lg font-bold tracking-tight text-slate-800">ZenFlow</h1>
+        <p className="text-lg font-bold tracking-tight text-slate-800">ZenFlow</p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4">
+      <nav className="flex-1 px-3 py-4" aria-label="Main">
         <div className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon
@@ -128,7 +133,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
             const itemClass = `w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 ${
               isActive
                 ? 'bg-[#E2EEFC] text-[#1D70E8]'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
             }`
 
             return (
@@ -137,10 +142,12 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                   href={item.href}
                   className={itemClass}
                   onClick={onNavigate}
+                  aria-current={isActive && !item.children ? 'page' : undefined}
                 >
                   <Icon
                     size={18}
-                    className={isActive ? 'text-[#1D70E8]' : 'text-slate-400'}
+                    className={isActive ? 'text-[#1D70E8]' : 'text-slate-500'}
+                    aria-hidden="true"
                   />
                   <span className="text-sm font-medium">{item.label}</span>
                 </Link>
@@ -159,7 +166,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                             'block rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
                             childActive
                               ? 'bg-[#F5F9FE] text-[#1D70E8]'
-                              : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700',
+                              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700',
                           )}
                         >
                           {child.label}
@@ -177,13 +184,14 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
       {/* Logout button at the bottom */}
       <div className="border-t border-slate-50 p-4">
         <button
+          type="button"
           onClick={() => {
             onNavigate?.()
             logout()
           }}
           className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-red-600 transition-all duration-150 hover:bg-red-50 hover:text-red-700"
         >
-          <LogOut size={18} />
+          <LogOut size={18} aria-hidden="true" />
           <span>Log out</span>
         </button>
       </div>

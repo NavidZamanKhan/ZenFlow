@@ -101,6 +101,32 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Visible focus rings for custom buttons/links that omit component styles.
+     Inputs keep their own focus:ring via Tailwind; this targets controls that
+     previously had no focus-visible treatment at all. */
+  :where(button, a, [role='button'], [role='tab'], summary):focus-visible {
+    outline: 2px solid #1d70e8;
+    outline-offset: 2px;
+  }
+  /* Skip link: visually hidden until focused via keyboard. */
+  .zf-skip-link {
+    position: absolute;
+    left: 1rem;
+    top: 0;
+    z-index: 100;
+    transform: translateY(-120%);
+    border-radius: 0.75rem;
+    background: #1d70e8;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .zf-skip-link:focus {
+    transform: translateY(0.75rem);
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
 }
 
 @layer utilities {

@@ -28,8 +28,8 @@ export function EmptyState({
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E2EEFC]">
         <Icon size={22} className="text-[#1D70E8]" aria-hidden="true" />
       </div>
-      <p className="mb-1 text-sm font-semibold text-slate-700">{title}</p>
-      <p className="mb-5 max-w-[260px] text-xs leading-relaxed text-slate-400">
+      <h2 className="mb-1 text-sm font-semibold text-slate-700">{title}</h2>
+      <p className="mb-5 max-w-[260px] text-xs leading-relaxed text-slate-500">
         {description}
       </p>
       {action}
@@ -62,8 +62,8 @@ export function ErrorState({
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100">
         <AlertCircle size={22} className="text-rose-500" aria-hidden="true" />
       </div>
-      <p className="mb-1 text-sm font-semibold text-slate-700">{title}</p>
-      <p className="mb-5 max-w-[260px] text-xs leading-relaxed text-slate-400">
+      <h2 className="mb-1 text-sm font-semibold text-slate-700">{title}</h2>
+      <p className="mb-5 max-w-[260px] text-xs leading-relaxed text-slate-500">
         {description}
       </p>
       {onRetry ? (

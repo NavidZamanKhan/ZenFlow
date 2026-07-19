@@ -57,7 +57,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
           <ListTodo size={18} className="text-[#1D70E8]" aria-hidden="true" />
           <h2 className="text-base font-bold text-slate-800">Tasks</h2>
         </div>
-        <p className="text-xs font-medium text-slate-400 tabular-nums">
+        <p className="text-xs font-medium text-slate-500 tabular-nums">
           {loading ? '…' : `${completedCount}/${tasks.length} completed`}
         </p>
       </div>
@@ -92,7 +92,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
             </div>
           ))
         ) : visibleTasks.length === 0 ? (
-          <p className="px-2 py-6 text-center text-sm text-slate-400">
+          <p className="px-2 py-6 text-center text-sm text-slate-500">
             No tasks yet. Add one to get started.
           </p>
         ) : (
@@ -139,7 +139,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                     <p
                       className={`truncate text-sm font-medium transition-all ${
                         task.completed
-                          ? 'text-slate-400 line-through'
+                          ? 'text-slate-500 line-through'
                           : 'text-slate-700'
                       }`}
                     >
@@ -154,7 +154,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                       {task.dueDate ? (
                         <span
                           className={`inline-flex items-center gap-1 text-[11px] font-medium ${
-                            overdue ? 'text-rose-500' : 'text-slate-400'
+                            overdue ? 'text-rose-500' : 'text-slate-500'
                           }`}
                         >
                           <CalendarDays size={11} aria-hidden="true" />

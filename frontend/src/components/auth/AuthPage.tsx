@@ -86,10 +86,13 @@ export function AuthPage({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50" role="status">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-medium text-slate-500">Connecting...</p>
+          <div
+            className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
+            aria-hidden="true"
+          />
+          <p className="text-sm font-medium text-slate-600">Connecting...</p>
         </div>
       </div>
     )
@@ -97,8 +100,14 @@ export function AuthPage({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
 
   return (
     <div className="flex min-h-screen">
+      <a href="#auth-main" className="zf-skip-link">
+        Skip to authentication form
+      </a>
       {/* LEFT — auth panel */}
-      <div className="flex w-full flex-col bg-slate-50 px-6 py-8 sm:px-12 lg:w-[45%] lg:px-14 lg:py-10">
+      <main
+        id="auth-main"
+        className="flex w-full flex-col bg-slate-50 px-6 py-8 sm:px-12 lg:w-[45%] lg:px-14 lg:py-10"
+      >
         {/* logo */}
         <Link href="/" className="flex w-fit items-center gap-2.5" aria-label="ZenFlow home">
           <ZenFlowLogo className="size-8 rounded-full bg-blue-500 text-white" />
@@ -164,23 +173,32 @@ export function AuthPage({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
                 <span className="h-px flex-1 bg-slate-200" />
               </div>
 
-              {/* social buttons */}
+              {/* social buttons — placeholder OAuth; not wired yet */}
               <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2">
                 <button
                   type="button"
-                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 transition-colors duration-150 hover:bg-slate-50"
+                  disabled
+                  aria-disabled="true"
+                  title="Coming soon"
+                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 opacity-60"
                 >
                   <GoogleIcon />
                   Google
                 </button>
                 <button
                   type="button"
-                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 transition-colors duration-150 hover:bg-slate-50"
+                  disabled
+                  aria-disabled="true"
+                  title="Coming soon"
+                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 opacity-60"
                 >
                   <GitHubIcon />
                   GitHub
                 </button>
               </div>
+              <p className="mt-2 text-center text-xs text-slate-500">
+                Social sign-in coming soon
+              </p>
 
               <p className="mt-5 text-center text-sm text-slate-500 min-[480px]:mt-6">
                 {footerPrompt}{' '}
@@ -197,19 +215,19 @@ export function AuthPage({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
         </div>
 
         {/* footer */}
-        <footer className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-400">
+        <footer className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500">
           <span>© 2026 ZenFlow</span>
-          <a href="#" className="transition-colors duration-150 hover:text-slate-600">
+          <a href="#" className="transition-colors duration-150 hover:text-slate-700">
             Terms
           </a>
-          <a href="#" className="transition-colors duration-150 hover:text-slate-600">
+          <a href="#" className="transition-colors duration-150 hover:text-slate-700">
             Privacy
           </a>
-          <a href="#" className="transition-colors duration-150 hover:text-slate-600">
+          <a href="#" className="transition-colors duration-150 hover:text-slate-700">
             Help center
           </a>
         </footer>
-      </div>
+      </main>
 
       {/* RIGHT — decorative panel */}
       <div className="hidden w-[55%] flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-16 lg:flex">

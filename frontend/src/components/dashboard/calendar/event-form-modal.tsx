@@ -113,15 +113,21 @@ function EventForm({
           id="event-title"
           type="text"
           placeholder="e.g. Client sync — Northwind"
+          aria-invalid={errors.title ? true : undefined}
+          aria-describedby={errors.title ? 'event-title-error' : undefined}
           className={inputClass}
           {...register('title')}
         />
-        {errors.title && <p className="mt-1.5 text-xs text-red-500">{errors.title.message}</p>}
+        {errors.title ? (
+          <p id="event-title-error" role="alert" className="mt-1.5 text-xs text-red-600">
+            {errors.title.message}
+          </p>
+        ) : null}
       </div>
 
       <div>
         <label htmlFor="event-description" className={labelClass}>
-          Description <span className="text-slate-400 font-normal">(optional)</span>
+          Description <span className="text-slate-500 font-normal">(optional)</span>
         </label>
         <textarea
           id="event-description"
@@ -132,8 +138,9 @@ function EventForm({
         />
       </div>
 
-      <label className="flex items-center gap-2.5 text-sm text-slate-600 font-medium">
+      <label htmlFor="event-all-day" className="flex items-center gap-2.5 text-sm text-slate-600 font-medium">
         <input
+          id="event-all-day"
           type="checkbox"
           className="w-4 h-4 rounded border-slate-300 accent-[#1D70E8]"
           {...register('allDay')}
@@ -146,15 +153,37 @@ function EventForm({
           <label htmlFor="event-start" className={labelClass}>
             Starts
           </label>
-          <input id="event-start" type={dateInputType} className={inputClass} {...register('start')} />
-          {errors.start && <p className="mt-1.5 text-xs text-red-500">{errors.start.message}</p>}
+          <input
+            id="event-start"
+            type={dateInputType}
+            aria-invalid={errors.start ? true : undefined}
+            aria-describedby={errors.start ? 'event-start-error' : undefined}
+            className={inputClass}
+            {...register('start')}
+          />
+          {errors.start ? (
+            <p id="event-start-error" role="alert" className="mt-1.5 text-xs text-red-600">
+              {errors.start.message}
+            </p>
+          ) : null}
         </div>
         <div>
           <label htmlFor="event-end" className={labelClass}>
             Ends
           </label>
-          <input id="event-end" type={dateInputType} className={inputClass} {...register('end')} />
-          {errors.end && <p className="mt-1.5 text-xs text-red-500">{errors.end.message}</p>}
+          <input
+            id="event-end"
+            type={dateInputType}
+            aria-invalid={errors.end ? true : undefined}
+            aria-describedby={errors.end ? 'event-end-error' : undefined}
+            className={inputClass}
+            {...register('end')}
+          />
+          {errors.end ? (
+            <p id="event-end-error" role="alert" className="mt-1.5 text-xs text-red-600">
+              {errors.end.message}
+            </p>
+          ) : null}
         </div>
       </div>
 

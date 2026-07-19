@@ -163,10 +163,10 @@ export function CalendarPage() {
       {/* Page header */}
       <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
         <div>
-          <p className="text-slate-400 text-sm font-medium mb-0.5">Plan your time with intent</p>
+          <p className="text-slate-500 text-sm font-medium mb-0.5">Plan your time with intent</p>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Calendar</h1>
         </div>
-        <div className="flex items-center gap-4 text-xs font-medium text-slate-400">
+        <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#1D70E8]" aria-hidden="true" />
             Events
@@ -289,7 +289,7 @@ export function CalendarPage() {
       </div>
 
       {/* Hint */}
-      <p className="flex items-center gap-1.5 text-xs text-slate-400 font-medium mt-4">
+      <p className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mt-4">
         <CheckCircle2 size={13} aria-hidden="true" />
         Click a date to add an event, or click an event to edit it. Drag to reschedule.
       </p>

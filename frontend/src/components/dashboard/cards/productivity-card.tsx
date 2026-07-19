@@ -67,7 +67,7 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
           <LineChart size={18} className="text-[#1D70E8]" aria-hidden="true" />
           <h2 className="text-base font-bold text-slate-800">Productivity</h2>
         </div>
-        <p className="text-xs font-medium text-slate-400">
+        <p className="text-xs font-medium text-slate-500">
           Week of {weekLabel}
           {delta !== null
             ? ` · ${delta > 0 ? '+' : ''}${delta}% vs last week`
@@ -79,9 +79,9 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
         <p className="text-3xl font-extrabold tracking-tight text-slate-800 tabular-nums">
           {thisWeek.score === null ? '—' : `${thisWeek.score}%`}
         </p>
-        <p className="pb-1 text-xs font-medium text-slate-400">{subtitle}</p>
+        <p className="pb-1 text-xs font-medium text-slate-500">{subtitle}</p>
       </div>
-      <p className="mb-4 text-[11px] leading-relaxed text-slate-400">
+      <p className="mb-4 text-[11px] leading-relaxed text-slate-500">
         Score = tasks completed ÷ tasks due this week
         {thisWeek.due === 0
           ? ' (falls back to completions ÷ active tasks when nothing is due).'
@@ -142,7 +142,7 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
         </svg>
       </div>
 
-      <div className="mt-3 flex justify-between px-4 text-xs font-semibold text-slate-400">
+      <div className="mt-3 flex justify-between px-4 text-xs font-semibold text-slate-500">
         <span>M</span>
         <span>T</span>
         <span>W</span>

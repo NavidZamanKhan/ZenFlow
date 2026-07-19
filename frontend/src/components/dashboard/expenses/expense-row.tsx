@@ -28,7 +28,7 @@ export function ExpenseRow({ expense, onEdit, onDelete }: ExpenseRowProps) {
 
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-slate-700 truncate">{expense.title}</p>
-        <p className="flex items-center gap-1.5 text-xs mt-0.5 font-medium text-slate-400">
+        <p className="flex items-center gap-1.5 text-xs mt-0.5 font-medium text-slate-500">
           <span>{formatDisplayDate(expense.date)}</span>
           <span aria-hidden="true">·</span>
           <span>{expense.paymentMethod}</span>
@@ -59,7 +59,7 @@ export function ExpenseRow({ expense, onEdit, onDelete }: ExpenseRowProps) {
           type="button"
           onClick={() => onEdit(expense)}
           aria-label={`Edit ${expense.title}`}
-          className="p-1.5 rounded-lg text-slate-400 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
+          className="p-1.5 rounded-lg text-slate-500 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
         >
           <Pencil size={14} />
         </button>
@@ -67,7 +67,7 @@ export function ExpenseRow({ expense, onEdit, onDelete }: ExpenseRowProps) {
           type="button"
           onClick={() => onDelete(expense)}
           aria-label={`Delete ${expense.title}`}
-          className="p-1.5 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+          className="p-1.5 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-500 transition-colors"
         >
           <Trash2 size={14} />
         </button>

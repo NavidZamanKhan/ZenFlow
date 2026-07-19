@@ -166,7 +166,7 @@ export function RemindersCard({
             </div>
           ))
         ) : reminders.length === 0 ? (
-          <p className="py-6 text-center text-sm text-slate-400">
+          <p className="py-6 text-center text-sm text-slate-500">
             Nothing due in the next 7 days. Upcoming tasks and events will
             appear here.
           </p>
@@ -192,7 +192,7 @@ export function RemindersCard({
                   <p className="truncate text-sm font-medium text-slate-700">
                     {item.title}
                   </p>
-                  <p className="mt-0.5 text-xs font-medium text-slate-400">
+                  <p className="mt-0.5 text-xs font-medium text-slate-500">
                     {item.whenLabel}
                   </p>
                 </div>
@@ -205,7 +205,7 @@ export function RemindersCard({
                     disabled={pendingId === item.id}
                     onClick={() => completeTask(item.task)}
                     aria-label={`Mark ${item.title} complete`}
-                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-[#E2EEFC] hover:text-[#1D70E8] disabled:pointer-events-none disabled:opacity-60"
+                    className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-[#E2EEFC] hover:text-[#1D70E8] disabled:pointer-events-none disabled:opacity-60"
                   >
                     <Check size={14} />
                   </button>
@@ -215,7 +215,7 @@ export function RemindersCard({
                   disabled={pendingId === item.id}
                   onClick={() => snooze(item)}
                   aria-label={`Snooze ${item.title} by one day`}
-                  className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:pointer-events-none disabled:opacity-60"
+                  className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:pointer-events-none disabled:opacity-60"
                 >
                   <Clock3 size={14} />
                 </button>
@@ -227,7 +227,7 @@ export function RemindersCard({
       </div>
 
       {!loading && reminders.length > 0 ? (
-        <p className="mt-4 text-[11px] text-slate-400">
+        <p className="mt-4 text-[11px] text-slate-500">
           Blue = task due dates · Teal = calendar events. Events can be snoozed
           but not marked complete (no completion field on events).
         </p>

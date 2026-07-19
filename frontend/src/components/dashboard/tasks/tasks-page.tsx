@@ -95,7 +95,7 @@ export function TasksPage() {
     <div className="max-w-5xl px-4 py-8 sm:px-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="mb-0.5 text-sm font-medium text-slate-400">
+          <p className="mb-0.5 text-sm font-medium text-slate-500">
             Stay on top of your day
           </p>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">
@@ -121,13 +121,17 @@ export function TasksPage() {
 
       <div className="mb-6 flex flex-wrap items-center gap-2">
         <div className="relative min-w-0 max-w-xs flex-1 basis-full sm:basis-auto sm:min-w-[180px]">
+          <label htmlFor="tasks-search" className="sr-only">
+            Search tasks
+          </label>
           <Search
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
             aria-hidden="true"
           />
           <input
-            type="text"
+            id="tasks-search"
+            type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tasks..."

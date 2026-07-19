@@ -186,7 +186,7 @@ export function BudgetPage() {
                 Monthly budget
               </h2>
             </div>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500">
               {Math.round(overallPercentage)}% used this month
             </p>
           </div>
@@ -219,7 +219,7 @@ export function BudgetPage() {
           >
             Category budgets
           </h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-500">
             Limits and spending are calculated for the current calendar month.
           </p>
         </div>
@@ -252,7 +252,7 @@ export function BudgetPage() {
 function PageHeading() {
   return (
     <div className="mb-6">
-      <p className="mb-0.5 text-sm font-medium text-slate-400">
+      <p className="mb-0.5 text-sm font-medium text-slate-500">
         Plan spending with confidence
       </p>
       <h1 className="text-2xl font-bold tracking-tight text-slate-800">
@@ -297,7 +297,7 @@ const MonthlyBudgetForm = function MonthlyBudgetForm({
       </label>
       <div className="relative min-w-0 flex-1">
         <span
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500"
           aria-hidden="true"
         >
           $
@@ -385,6 +385,7 @@ function CategoryBudgetRow({
               </h3>
               {threshold !== null ? (
                 <span
+                  role="status"
                   className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                     threshold >= 100
                       ? 'bg-rose-50 text-rose-600'
@@ -396,7 +397,7 @@ function CategoryBudgetRow({
                 </span>
               ) : null}
             </div>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500">
               Budget {formatCurrency(budgetAmount)} · Spent {formatCurrency(spent)}
               {' · '}Remaining {formatCurrency(remaining)}
             </p>
@@ -412,7 +413,7 @@ function CategoryBudgetRow({
           </label>
           <div className="relative min-w-0 sm:w-36">
             <span
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500"
               aria-hidden="true"
             >
               $
@@ -462,7 +463,7 @@ function SummaryStat({
 }) {
   return (
     <div className={`${CARD_CLASS} p-5`}>
-      <p className="text-xs font-medium text-slate-400">{label}</p>
+      <p className="text-xs font-medium text-slate-500">{label}</p>
       <p
         className={`mt-1 truncate text-2xl font-extrabold tracking-tight tabular-nums ${
           warning ? 'text-rose-600' : 'text-slate-800'
