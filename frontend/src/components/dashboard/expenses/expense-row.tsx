@@ -9,15 +9,28 @@ interface ExpenseRowProps {
   expense: Expense
   onEdit: (expense: Expense) => void
   onDelete: (expense: Expense) => void
+  highlighted?: boolean
 }
 
 /** Row layout matching Tasks TaskRow: icon, title/meta, right amount, hover actions. */
-export function ExpenseRow({ expense, onEdit, onDelete }: ExpenseRowProps) {
+export function ExpenseRow({
+  expense,
+  onEdit,
+  onDelete,
+  highlighted = false,
+}: ExpenseRowProps) {
   const meta = EXPENSE_CATEGORY_META[expense.category]
   const Icon = meta.icon
 
   return (
-    <div className="group flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-slate-50/50 transition-colors">
+    <div
+      data-highlight-id={expense.id}
+      className={`group flex items-center gap-3 py-2.5 px-2 rounded-xl transition-colors ${
+        highlighted
+          ? 'bg-[#E2EEFC] ring-2 ring-[#1D70E8]/35'
+          : 'hover:bg-slate-50/50'
+      }`}
+    >
       <div
         className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
         style={{ backgroundColor: meta.softBg, color: meta.color }}

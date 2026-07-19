@@ -11,11 +11,11 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Search,
   type LucideIcon,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
+import { ZenflowSearch } from './zenflow-search'
 
 type NavItem = {
   label: string
@@ -95,22 +95,11 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
         </div>
 
         {/* Search Bar */}
-        <div className="relative flex-1">
-          <label htmlFor="sidebar-zenflow-search" className="sr-only">
-            Search ZenFlow
-          </label>
-          <Search
-            size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 transform text-slate-500"
-            aria-hidden="true"
-          />
-          <input
-            id="sidebar-zenflow-search"
-            type="search"
-            placeholder="Search ZenFlow..."
-            className="w-full rounded-xl border border-slate-100 bg-slate-50 py-1.5 pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1D70E8]"
-          />
-        </div>
+        <ZenflowSearch
+          id="sidebar-zenflow-search"
+          className="flex-1"
+          onNavigate={onNavigate}
+        />
       </div>
 
       {/* Logo — brand mark, not a page heading (pages own the sole <h1>) */}

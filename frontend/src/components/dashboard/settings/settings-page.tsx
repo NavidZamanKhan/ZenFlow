@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useSettings } from '@/hooks/use-settings'
 import { ErrorState } from '@/components/shared/state-blocks'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -10,6 +11,17 @@ import { SETTINGS_CARD_CLASS } from './settings-section'
 
 export function SettingsPage() {
   const { settings, loading, error, reload, updateSection } = useSettings()
+
+  // Honor hash deep-links from global search (e.g. /dashboard/settings#profile).
+  useEffect(() => {
+    if (loading) return
+    const id = window.location.hash.replace(/^#/, '')
+    if (!id) return
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [loading])
 
   if (loading) return <SettingsLoading />
 

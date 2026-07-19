@@ -21,14 +21,28 @@ interface TaskRowProps {
   onToggle: (task: Task) => void
   onEdit: (task: Task) => void
   onDelete: (task: Task) => void
+  highlighted?: boolean
 }
 
 /** Task row matching the Overview TasksCard visual pattern, extended for the full page. */
-export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
+export function TaskRow({
+  task,
+  onToggle,
+  onEdit,
+  onDelete,
+  highlighted = false,
+}: TaskRowProps) {
   const overdue = !task.completed && task.dueDate !== null && isOverdue(task.dueDate)
 
   return (
-    <div className="group flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-slate-50/50 transition-colors">
+    <div
+      data-highlight-id={task.id}
+      className={`group flex items-center gap-3 py-2.5 px-2 rounded-xl transition-colors ${
+        highlighted
+          ? 'bg-[#E2EEFC] ring-2 ring-[#1D70E8]/35'
+          : 'hover:bg-slate-50/50'
+      }`}
+    >
       {/* Checkbox */}
       <button
         type="button"

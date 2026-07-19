@@ -10,6 +10,7 @@ import {
   Wallet,
 } from 'lucide-react'
 import { useExpenses } from '@/hooks/use-expenses'
+import { useHighlightParam } from '@/hooks/use-highlight-param'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
 import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
@@ -50,6 +51,7 @@ export function ExpensesPage() {
     updateExpense,
     deleteExpense,
   } = useExpenses()
+  const highlightId = useHighlightParam()
 
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<'all' | ExpenseCategory>('all')
@@ -337,6 +339,7 @@ export function ExpensesPage() {
                     expense={expense}
                     onEdit={openEdit}
                     onDelete={setDeleting}
+                    highlighted={highlightId === expense.id}
                   />
                 </AnimatedItem>
               ))}

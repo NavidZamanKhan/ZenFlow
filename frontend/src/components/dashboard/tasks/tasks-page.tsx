@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { ListTodo, Plus, Search } from 'lucide-react'
 import { useTasks } from '@/hooks/use-tasks'
+import { useHighlightParam } from '@/hooks/use-highlight-param'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
 import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
@@ -27,6 +28,7 @@ export function TasksPage() {
     deleteTask,
     toggleTask,
   } = useTasks()
+  const highlightId = useHighlightParam()
 
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<TaskStatusFilter>('all')
@@ -233,6 +235,7 @@ export function TasksPage() {
                     onToggle={toggleTask}
                     onEdit={openEdit}
                     onDelete={setDeleting}
+                    highlighted={highlightId === task.id}
                   />
                 </AnimatedItem>
               ))}

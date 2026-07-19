@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Grid3x3, Menu, Search, X } from 'lucide-react'
+import { ZenflowSearch } from './zenflow-search'
 
 type MobileHeaderProps = {
   onMenuClick: () => void
@@ -54,23 +55,12 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
 
       {searchOpen ? (
         <div className="px-4 pb-3">
-          <label htmlFor="mobile-zenflow-search" className="sr-only">
-            Search ZenFlow
-          </label>
-          <div className="relative">
-            <Search
-              size={14}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
-              aria-hidden="true"
-            />
-            <input
-              id="mobile-zenflow-search"
-              type="search"
-              placeholder="Search ZenFlow..."
-              autoFocus
-              className="w-full rounded-xl border border-slate-100 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1D70E8]"
-            />
-          </div>
+          <ZenflowSearch
+            id="mobile-zenflow-search"
+            autoFocus
+            inputClassName="py-2 text-sm"
+            onNavigate={() => setSearchOpen(false)}
+          />
         </div>
       ) : null}
     </header>
