@@ -2,28 +2,34 @@
 
 import { useAuth } from '@/lib/auth'
 
-export function Greeting() {
+type GreetingProps = {
+  remainingTasks?: number
+  loading?: boolean
+}
+
+export function Greeting({ remainingTasks = 0, loading = false }: GreetingProps) {
   const { user } = useAuth()
   const displayName = user?.fullName ? user.fullName.split(' ')[0] : 'Maya'
+  const badgeLabel = loading
+    ? '…'
+    : `${remainingTasks} ${remainingTasks === 1 ? 'task' : 'tasks'}`
 
   return (
-    <div className="flex items-center justify-between mb-6">
-      <div>
-        <p className="text-slate-400 text-sm font-medium mb-0.5">
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="min-w-0">
+        <p className="mb-0.5 text-sm font-medium text-slate-400">
           Good morning, {displayName}
         </p>
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-800">
           Today&apos;s focus
         </h1>
       </div>
 
-      {/* Tasks Badge */}
-      <div className="bg-[#E2EEFC] px-3.5 py-1 rounded-full">
-        <span className="text-xs font-semibold text-[#1D70E8]">
-          4 tasks
+      <div className="rounded-full bg-[#E2EEFC] px-3.5 py-1">
+        <span className="text-xs font-semibold text-[#1D70E8] tabular-nums">
+          {badgeLabel}
         </span>
       </div>
     </div>
   )
 }
-

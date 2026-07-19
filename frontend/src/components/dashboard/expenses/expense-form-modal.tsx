@@ -141,7 +141,7 @@ function ExpenseForm({
         {errors.title && <p className="mt-1.5 text-xs text-red-500">{errors.title.message}</p>}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label htmlFor="expense-amount" className={labelClass}>
             Amount
@@ -166,7 +166,7 @@ function ExpenseForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label htmlFor="expense-category" className={labelClass}>
             Category
