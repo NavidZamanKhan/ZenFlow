@@ -166,7 +166,7 @@ export function ExpensesPage() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <div className="relative flex-1 min-w-[180px] max-w-xs">
+        <div className="relative min-w-0 flex-1 max-w-xs basis-full sm:basis-auto sm:min-w-[180px]">
           <Search
             size={14}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
