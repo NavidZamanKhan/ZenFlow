@@ -4,9 +4,10 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CalendarDays, CheckCircle2, ListTodo, Plus } from 'lucide-react'
-import { toast } from 'sonner'
 import { formatDate, isOverdue } from '@/lib/dates'
 import { TaskFormModal } from '@/components/dashboard/tasks/task-form-modal'
+import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { Task, TaskInput, TaskPriority } from '@/types/task'
 
 const priorityDot: Record<TaskPriority, string> = {
@@ -45,21 +46,18 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
 
   const handleToggle = async (task: Task) => {
     setPendingId(task.id)
-    const ok = await onToggle(task)
+    await onToggle(task)
     setPendingId(null)
-    if (ok) {
-      toast.success(task.completed ? 'Task marked incomplete' : 'Task completed')
-    }
   }
 
   return (
-    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md">
+    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ListTodo size={18} className="text-[#1D70E8]" aria-hidden="true" />
           <h2 className="text-base font-bold text-slate-800">Tasks</h2>
         </div>
-        <p className="text-xs font-medium text-slate-400 tabular-nums">
+        <p className="text-xs font-medium text-slate-500 tabular-nums">
           {loading ? '…' : `${completedCount}/${tasks.length} completed`}
         </p>
       </div>
@@ -83,23 +81,28 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
 
       <div className="space-y-1">
         {loading ? (
-          Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-10 animate-pulse rounded-xl bg-slate-50"
-            />
+          Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="flex items-center gap-3 px-2 py-2.5">
+              <Skeleton className="h-[18px] w-[18px] rounded-full" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-3.5 w-3/4 max-w-[200px]" />
+                <Skeleton className="h-2.5 w-20" />
+              </div>
+              <Skeleton className="hidden h-5 w-14 rounded-full sm:block" />
+            </div>
           ))
         ) : visibleTasks.length === 0 ? (
-          <p className="px-2 py-6 text-center text-sm text-slate-400">
+          <p className="px-2 py-6 text-center text-sm text-slate-500">
             No tasks yet. Add one to get started.
           </p>
         ) : (
-          visibleTasks.map((task) => {
+          <AnimatedList>
+          {visibleTasks.map((task) => {
             const overdue =
               !task.completed && task.dueDate !== null && isOverdue(task.dueDate)
             return (
+              <AnimatedItem key={task.id}>
               <button
-                key={task.id}
                 type="button"
                 disabled={pendingId === task.id}
                 onClick={() => handleToggle(task)}
@@ -136,7 +139,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                     <p
                       className={`truncate text-sm font-medium transition-all ${
                         task.completed
-                          ? 'text-slate-400 line-through'
+                          ? 'text-slate-500 line-through'
                           : 'text-slate-700'
                       }`}
                     >
@@ -151,7 +154,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                       {task.dueDate ? (
                         <span
                           className={`inline-flex items-center gap-1 text-[11px] font-medium ${
-                            overdue ? 'text-rose-500' : 'text-slate-400'
+                            overdue ? 'text-rose-500' : 'text-slate-500'
                           }`}
                         >
                           <CalendarDays size={11} aria-hidden="true" />
@@ -168,8 +171,10 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                   </span>
                 ) : null}
               </button>
+              </AnimatedItem>
             )
-          })
+          })}
+          </AnimatedList>
         )}
       </div>
 

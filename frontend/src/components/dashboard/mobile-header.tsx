@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Grid3x3, Menu, Search, X } from 'lucide-react'
+import { ZenflowSearch } from './zenflow-search'
 
 type MobileHeaderProps = {
   onMenuClick: () => void
@@ -16,14 +17,14 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
   const [searchOpen, setSearchOpen] = useState(false)
 
   return (
-    <header className="lg:hidden flex-shrink-0 border-b border-slate-100 bg-white">
+    <header className="lg:hidden flex-shrink-0 border-b border-slate-100 bg-white pt-[env(safe-area-inset-top)]">
       <div className="flex h-14 items-center gap-3 px-4">
         <button
           type="button"
           onClick={onMenuClick}
           aria-label="Open navigation menu"
           aria-expanded={menuOpen}
-          className="-ml-2 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
+          className="zf-tap relative -ml-2 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
         >
           <Menu size={20} aria-hidden="true" />
         </button>
@@ -42,7 +43,7 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
           onClick={() => setSearchOpen((open) => !open)}
           aria-label={searchOpen ? 'Close search' : 'Open search'}
           aria-expanded={searchOpen}
-          className="-mr-2 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
+          className="zf-tap relative -mr-2 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
         >
           {searchOpen ? (
             <X size={20} aria-hidden="true" />
@@ -54,23 +55,12 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
 
       {searchOpen ? (
         <div className="px-4 pb-3">
-          <label htmlFor="mobile-zenflow-search" className="sr-only">
-            Search ZenFlow
-          </label>
-          <div className="relative">
-            <Search
-              size={14}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-              aria-hidden="true"
-            />
-            <input
-              id="mobile-zenflow-search"
-              type="search"
-              placeholder="Search ZenFlow..."
-              autoFocus
-              className="w-full rounded-xl border border-slate-100 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1D70E8]"
-            />
-          </div>
+          <ZenflowSearch
+            id="mobile-zenflow-search"
+            autoFocus
+            inputClassName="py-2 text-sm"
+            onNavigate={() => setSearchOpen(false)}
+          />
         </div>
       ) : null}
     </header>

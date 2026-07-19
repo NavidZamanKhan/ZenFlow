@@ -11,6 +11,8 @@ import { spendingByCategory } from '@/lib/expense-stats'
 import { formatCurrency } from '@/lib/format'
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from '@/types/expense'
 import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
 
 const CARD_CLASS =
   'rounded-3xl border border-slate-100/80 bg-white shadow-sm'
@@ -49,11 +51,18 @@ export function BudgetPage() {
     budget,
     hasBudget,
     loading: budgetLoading,
+    error: budgetError,
+    reload: reloadBudget,
     setMonthlyTotal,
     setCategoryBudget,
     recordThresholdAlerts,
   } = useBudget()
-  const { expenses, loading: expensesLoading } = useExpenses()
+  const {
+    expenses,
+    loading: expensesLoading,
+    error: expensesError,
+    reload: reloadExpenses,
+  } = useExpenses()
   const month = todayISODate().slice(0, 7)
 
   const currentMonthExpenses = useMemo(
@@ -101,36 +110,50 @@ export function BudgetPage() {
 
   if (budgetLoading || expensesLoading) return <BudgetLoading />
 
+  const loadError = budgetError || expensesError
+  if (loadError) {
+    return (
+      <div className="max-w-5xl px-4 py-8 sm:px-8">
+        <PageHeading />
+        <ErrorState
+          description={loadError}
+          onRetry={() => {
+            if (budgetError) reloadBudget()
+            if (expensesError) reloadExpenses()
+          }}
+        />
+      </div>
+    )
+  }
+
   if (!hasBudget) {
     return (
       <div className="max-w-5xl px-4 py-8 sm:px-8">
         <PageHeading />
-        <section
-          className={`${CARD_CLASS} flex flex-col items-center px-5 py-12 text-center sm:px-8`}
-        >
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E2EEFC] text-[#1D70E8]">
-            <PiggyBank size={22} aria-hidden="true" />
-          </div>
-          <h2 className="text-base font-bold text-slate-800">
-            Give every dollar a plan
-          </h2>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-400">
-            Set a monthly budget first, then add category limits to track
-            spending and receive timely alerts.
-          </p>
-          <div className="mt-6 w-full max-w-sm">
-            <MonthlyBudgetForm
-              value={0}
-              onSave={(amount) => {
-                const saved = setMonthlyTotal(amount)
-                toast[saved ? 'success' : 'error'](
-                  saved ? 'Monthly budget saved' : 'Could not save your budget.',
-                )
-                return saved
-              }}
-              submitLabel="Set monthly budget"
-            />
-          </div>
+        <section className={`${CARD_CLASS} px-5 py-4 sm:px-8`}>
+          <EmptyState
+            icon={PiggyBank}
+            title="Give every dollar a plan"
+            description="Set a monthly budget first, then add category limits to track spending and receive timely alerts."
+            action={
+              <div className="w-full max-w-sm">
+                <MonthlyBudgetForm
+                  value={0}
+                  onSave={(amount) => {
+                    const saved = setMonthlyTotal(amount)
+                    toast[saved ? 'success' : 'error'](
+                      saved
+                        ? 'Monthly budget saved'
+                        : 'Could not save your budget.',
+                    )
+                    return saved
+                  }}
+                  submitLabel="Set monthly budget"
+                />
+              </div>
+            }
+            className="py-8"
+          />
         </section>
       </div>
     )
@@ -163,7 +186,7 @@ export function BudgetPage() {
                 Monthly budget
               </h2>
             </div>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500">
               {Math.round(overallPercentage)}% used this month
             </p>
           </div>
@@ -196,7 +219,7 @@ export function BudgetPage() {
           >
             Category budgets
           </h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-500">
             Limits and spending are calculated for the current calendar month.
           </p>
         </div>
@@ -229,7 +252,7 @@ export function BudgetPage() {
 function PageHeading() {
   return (
     <div className="mb-6">
-      <p className="mb-0.5 text-sm font-medium text-slate-400">
+      <p className="mb-0.5 text-sm font-medium text-slate-500">
         Plan spending with confidence
       </p>
       <h1 className="text-2xl font-bold tracking-tight text-slate-800">
@@ -274,7 +297,7 @@ const MonthlyBudgetForm = function MonthlyBudgetForm({
       </label>
       <div className="relative min-w-0 flex-1">
         <span
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500"
           aria-hidden="true"
         >
           $
@@ -362,6 +385,7 @@ function CategoryBudgetRow({
               </h3>
               {threshold !== null ? (
                 <span
+                  role="status"
                   className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                     threshold >= 100
                       ? 'bg-rose-50 text-rose-600'
@@ -373,7 +397,7 @@ function CategoryBudgetRow({
                 </span>
               ) : null}
             </div>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500">
               Budget {formatCurrency(budgetAmount)} · Spent {formatCurrency(spent)}
               {' · '}Remaining {formatCurrency(remaining)}
             </p>
@@ -389,7 +413,7 @@ function CategoryBudgetRow({
           </label>
           <div className="relative min-w-0 sm:w-36">
             <span
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500"
               aria-hidden="true"
             >
               $
@@ -439,7 +463,7 @@ function SummaryStat({
 }) {
   return (
     <div className={`${CARD_CLASS} p-5`}>
-      <p className="text-xs font-medium text-slate-400">{label}</p>
+      <p className="text-xs font-medium text-slate-500">{label}</p>
       <p
         className={`mt-1 truncate text-2xl font-extrabold tracking-tight tabular-nums ${
           warning ? 'text-rose-600' : 'text-slate-800'
@@ -458,21 +482,15 @@ function BudgetLoading() {
       className="max-w-5xl px-4 py-8 sm:px-8"
       aria-label="Loading budget"
     >
-      <div className="mb-6 h-12 w-40 animate-pulse rounded-xl bg-slate-100" />
+      <Skeleton className="mb-6 h-12 w-40 rounded-xl" />
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[0, 1, 2].map((item) => (
-          <div
-            key={item}
-            className="h-24 animate-pulse rounded-3xl bg-slate-50"
-          />
+          <Skeleton key={item} className="h-24 rounded-3xl" />
         ))}
       </div>
       <div className="space-y-3">
         {[0, 1, 2, 3].map((item) => (
-          <div
-            key={item}
-            className="h-28 animate-pulse rounded-3xl bg-slate-50"
-          />
+          <Skeleton key={item} className="h-28 rounded-3xl" />
         ))}
       </div>
     </div>

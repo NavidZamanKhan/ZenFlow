@@ -8,28 +8,51 @@ import type { CalendarEvent, CalendarEventInput } from '@/types/event'
 
 const eventStore = createClientStore<CalendarEventInput, CalendarEvent>('events')
 
+type MutationOptions = {
+  silent?: boolean
+  successMessage?: string
+}
+
 export function useEvents() {
   const { user } = useAuth()
   const userEmail = user?.email ?? ''
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     if (!userEmail) return
     let cancelled = false
+    /* eslint-disable react-hooks/set-state-in-effect -- reset load flags before async list */
+    setLoading(true)
+    setError(null)
+    /* eslint-enable react-hooks/set-state-in-effect */
     eventStore
       .list(userEmail)
       .then((records) => {
-        if (!cancelled) setEvents(records)
+        if (!cancelled) {
+          setEvents(records)
+          setError(null)
+        }
       })
-      .catch(() => toast.error('Could not load your events.'))
+      .catch(() => {
+        if (!cancelled) {
+          setError('Could not load your events.')
+          toast.error('Could not load your events.')
+        }
+      })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true
     }
-  }, [userEmail])
+  }, [userEmail, reloadKey])
+
+  const reload = useCallback(() => {
+    setReloadKey((key) => key + 1)
+  }, [])
 
   const createEvent = useCallback(
     async (input: CalendarEventInput) => {
@@ -47,10 +70,17 @@ export function useEvents() {
   )
 
   const updateEvent = useCallback(
-    async (id: string, patch: Partial<CalendarEventInput>) => {
+    async (
+      id: string,
+      patch: Partial<CalendarEventInput>,
+      options?: MutationOptions,
+    ) => {
       try {
         const updated = await eventStore.update(userEmail, id, patch)
         setEvents((prev) => prev.map((e) => (e.id === id ? updated : e)))
+        if (!options?.silent) {
+          toast.success(options?.successMessage ?? 'Event updated')
+        }
         return true
       } catch {
         toast.error('Could not update the event.')
@@ -75,5 +105,13 @@ export function useEvents() {
     [userEmail],
   )
 
-  return { events, loading, createEvent, updateEvent, deleteEvent }
+  return {
+    events,
+    loading,
+    error,
+    reload,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+  }
 }

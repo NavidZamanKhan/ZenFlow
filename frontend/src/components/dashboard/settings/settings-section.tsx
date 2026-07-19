@@ -1,5 +1,7 @@
+'use client'
+
+import { useId, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
 import {
   Select,
   SelectContent,
@@ -39,7 +41,7 @@ export function SettingsSection({
             {title}
           </h2>
           {description && (
-            <p className="text-xs text-slate-400 mt-0.5">{description}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{description}</p>
           )}
         </div>
       </div>
@@ -59,6 +61,8 @@ export function SettingsField({
   helper?: string
   children: ReactNode
 }) {
+  const errorId = useId()
+
   return (
     <label className="block">
       <span className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -66,9 +70,11 @@ export function SettingsField({
       </span>
       {children}
       {error ? (
-        <span className="block mt-1.5 text-xs text-red-500">{error}</span>
+        <span id={errorId} role="alert" className="block mt-1.5 text-xs text-red-600">
+          {error}
+        </span>
       ) : helper ? (
-        <span className="block mt-1.5 text-xs text-slate-400">{helper}</span>
+        <span className="block mt-1.5 text-xs text-slate-500">{helper}</span>
       ) : null}
     </label>
   )

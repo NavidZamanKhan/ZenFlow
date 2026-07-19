@@ -21,20 +21,34 @@ interface TaskRowProps {
   onToggle: (task: Task) => void
   onEdit: (task: Task) => void
   onDelete: (task: Task) => void
+  highlighted?: boolean
 }
 
 /** Task row matching the Overview TasksCard visual pattern, extended for the full page. */
-export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
+export function TaskRow({
+  task,
+  onToggle,
+  onEdit,
+  onDelete,
+  highlighted = false,
+}: TaskRowProps) {
   const overdue = !task.completed && task.dueDate !== null && isOverdue(task.dueDate)
 
   return (
-    <div className="group flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-slate-50/50 transition-colors">
+    <div
+      data-highlight-id={task.id}
+      className={`group flex items-center gap-3 py-2.5 px-2 rounded-xl transition-colors ${
+        highlighted
+          ? 'bg-[#E2EEFC] ring-2 ring-[#1D70E8]/35'
+          : 'hover:bg-slate-50/50'
+      }`}
+    >
       {/* Checkbox */}
       <button
         type="button"
         onClick={() => onToggle(task)}
         aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
-        className="flex-shrink-0"
+        className="zf-tap relative flex-shrink-0"
       >
         {task.completed ? (
           <CheckCircle2 size={18} className="text-[#1D70E8]" />
@@ -47,7 +61,7 @@ export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
       <div className="flex-1 min-w-0">
         <p
           className={`text-sm font-medium truncate transition-all ${
-            task.completed ? 'line-through text-slate-400' : 'text-slate-700'
+            task.completed ? 'line-through text-slate-500' : 'text-slate-700'
           }`}
         >
           {task.title}
@@ -55,7 +69,7 @@ export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
         {task.dueDate && (
           <p
             className={`flex items-center gap-1 text-xs mt-0.5 font-medium ${
-              overdue ? 'text-rose-500' : 'text-slate-400'
+              overdue ? 'text-rose-500' : 'text-slate-500'
             }`}
           >
             <CalendarDays size={12} aria-hidden="true" />
@@ -80,12 +94,12 @@ export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
+      <div className="zf-row-actions flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
         <button
           type="button"
           onClick={() => onEdit(task)}
           aria-label={`Edit ${task.title}`}
-          className="p-1.5 rounded-lg text-slate-400 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
         >
           <Pencil size={14} />
         </button>
@@ -93,7 +107,7 @@ export function TaskRow({ task, onToggle, onEdit, onDelete }: TaskRowProps) {
           type="button"
           onClick={() => onDelete(task)}
           aria-label={`Delete ${task.title}`}
-          className="p-1.5 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-500 transition-colors"
         >
           <Trash2 size={14} />
         </button>

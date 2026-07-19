@@ -8,28 +8,51 @@ import type { Task, TaskInput } from '@/types/task'
 
 const taskStore = createClientStore<TaskInput, Task>('tasks')
 
+type MutationOptions = {
+  silent?: boolean
+  successMessage?: string
+}
+
 export function useTasks() {
   const { user } = useAuth()
   const userEmail = user?.email ?? ''
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     if (!userEmail) return
     let cancelled = false
+    /* eslint-disable react-hooks/set-state-in-effect -- reset load flags before async list */
+    setLoading(true)
+    setError(null)
+    /* eslint-enable react-hooks/set-state-in-effect */
     taskStore
       .list(userEmail)
       .then((records) => {
-        if (!cancelled) setTasks(records)
+        if (!cancelled) {
+          setTasks(records)
+          setError(null)
+        }
       })
-      .catch(() => toast.error('Could not load your tasks.'))
+      .catch(() => {
+        if (!cancelled) {
+          setError('Could not load your tasks.')
+          toast.error('Could not load your tasks.')
+        }
+      })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true
     }
-  }, [userEmail])
+  }, [userEmail, reloadKey])
+
+  const reload = useCallback(() => {
+    setReloadKey((key) => key + 1)
+  }, [])
 
   const createTask = useCallback(
     async (input: TaskInput) => {
@@ -47,10 +70,13 @@ export function useTasks() {
   )
 
   const updateTask = useCallback(
-    async (id: string, patch: Partial<TaskInput>) => {
+    async (id: string, patch: Partial<TaskInput>, options?: MutationOptions) => {
       try {
         const updated = await taskStore.update(userEmail, id, patch)
         setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
+        if (!options?.silent) {
+          toast.success(options?.successMessage ?? 'Task updated')
+        }
         return true
       } catch {
         toast.error('Could not update the task.')
@@ -76,9 +102,27 @@ export function useTasks() {
   )
 
   const toggleTask = useCallback(
-    (task: Task) => updateTask(task.id, { completed: !task.completed }),
+    (task: Task) =>
+      updateTask(
+        task.id,
+        { completed: !task.completed },
+        {
+          successMessage: task.completed
+            ? 'Task marked incomplete'
+            : 'Task completed',
+        },
+      ),
     [updateTask],
   )
 
-  return { tasks, loading, createTask, updateTask, deleteTask, toggleTask }
+  return {
+    tasks,
+    loading,
+    error,
+    reload,
+    createTask,
+    updateTask,
+    deleteTask,
+    toggleTask,
+  }
 }

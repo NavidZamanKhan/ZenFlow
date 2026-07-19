@@ -181,8 +181,8 @@ export function ProfileSettingsSection({
             <p className="text-sm font-bold text-slate-800">
               {profile.fullName || 'ZenFlow user'}
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">{profile.email}</p>
-            <p className="text-xs text-slate-400 mt-1.5">
+            <p className="text-xs text-slate-500 mt-0.5">{profile.email}</p>
+            <p className="text-xs text-slate-500 mt-1.5">
               Avatar previews last for this browser session only.
             </p>
           </div>

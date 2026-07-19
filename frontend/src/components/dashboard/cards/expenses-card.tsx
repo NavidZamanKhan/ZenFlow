@@ -7,6 +7,7 @@ import { todayISODate } from '@/lib/dates'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
 import { spendingByCategory } from '@/lib/expense-stats'
 import { formatCurrency } from '@/lib/format'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { Budget } from '@/types/budget'
 import type { Expense } from '@/types/expense'
 
@@ -68,7 +69,7 @@ export function ExpensesCard({
   }, [monthExpenses, spent])
 
   return (
-    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md">
+    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5">
       <div className="mb-4 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <CreditCard size={18} className="text-[#1D70E8]" aria-hidden="true" />
@@ -83,26 +84,33 @@ export function ExpensesCard({
       </div>
 
       {loading ? (
-        <div className="mb-6 h-16 animate-pulse rounded-2xl bg-slate-50" />
+        <div className="mb-6 space-y-3">
+          <Skeleton className="h-9 w-36" />
+          <Skeleton className="h-3 w-28" />
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-16 rounded-2xl" />
+            <Skeleton className="h-16 rounded-2xl" />
+          </div>
+        </div>
       ) : showBudget ? (
         <div className="mb-6 space-y-3">
           <div>
             <p className="text-3xl font-extrabold tracking-tight text-slate-800 tabular-nums">
               {formatCurrency(spent)}
             </p>
-            <p className="mt-0.5 text-xs font-semibold text-slate-400">
+            <p className="mt-0.5 text-xs font-semibold text-slate-500">
               Spent this month
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-slate-50 px-3 py-2.5">
-              <p className="text-[11px] font-medium text-slate-400">Budget</p>
+              <p className="text-[11px] font-medium text-slate-500">Budget</p>
               <p className="mt-0.5 text-sm font-bold text-slate-800 tabular-nums">
                 {formatCurrency(budget.monthlyTotal)}
               </p>
             </div>
             <div className="rounded-2xl bg-slate-50 px-3 py-2.5">
-              <p className="text-[11px] font-medium text-slate-400">Remaining</p>
+              <p className="text-[11px] font-medium text-slate-500">Remaining</p>
               <p
                 className={`mt-0.5 text-sm font-bold tabular-nums ${
                   remaining < 0 ? 'text-rose-600' : 'text-slate-800'
@@ -118,7 +126,7 @@ export function ExpensesCard({
           <p className="text-3xl font-extrabold tracking-tight text-slate-800 tabular-nums">
             {formatCurrency(spent)}
           </p>
-          <p className="mt-0.5 text-xs font-semibold text-slate-400">
+          <p className="mt-0.5 text-xs font-semibold text-slate-500">
             Spent this month
           </p>
         </div>
@@ -146,7 +154,7 @@ export function ExpensesCard({
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
         {segments.length === 0 ? (
-          <p className="text-xs font-semibold text-slate-400">
+          <p className="text-xs font-semibold text-slate-500">
             No spending recorded this month
           </p>
         ) : (
@@ -156,7 +164,7 @@ export function ExpensesCard({
                 className={`h-2.5 w-2.5 rounded-full ${segment.color ?? ''}`}
                 style={{ backgroundColor: segment.hex }}
               />
-              <p className="text-xs font-semibold text-slate-400">
+              <p className="text-xs font-semibold text-slate-500">
                 {segment.name}
               </p>
             </div>

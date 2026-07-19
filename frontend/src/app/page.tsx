@@ -9,8 +9,11 @@ import { SiteFooter } from '@/components/site-footer'
 export default function Page() {
   return (
     <div className="page-canvas min-h-screen">
+      <a href="#main-content" className="zf-skip-link">
+        Skip to main content
+      </a>
       <SiteHeader />
-      <main>
+      <main id="main-content">
         <Hero />
         <Features />
         <WhyZenFlow />

@@ -41,12 +41,17 @@ export function useSettings() {
     createDefaultSettings(),
   )
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     if (!userEmail) return
 
     let cancelled = false
     queueMicrotask(() => {
+      if (cancelled) return
+      setLoading(true)
+      setError(null)
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
       const defaults = createDefaultSettings(
         userEmail,
@@ -57,9 +62,15 @@ export function useSettings() {
       try {
         const raw = localStorage.getItem(settingsStorageKey(userEmail))
         const stored: unknown = raw ? JSON.parse(raw) : null
-        if (!cancelled) setSettings(mergeStoredSettings(stored, defaults))
+        if (!cancelled) {
+          setSettings(mergeStoredSettings(stored, defaults))
+          setError(null)
+        }
       } catch {
-        if (!cancelled) setSettings(defaults)
+        if (!cancelled) {
+          setSettings(defaults)
+          setError('Could not load your saved settings.')
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -68,7 +79,11 @@ export function useSettings() {
     return () => {
       cancelled = true
     }
-  }, [userEmail, user?.fullName])
+  }, [userEmail, user?.fullName, reloadKey])
+
+  const reload = useCallback(() => {
+    setReloadKey((key) => key + 1)
+  }, [])
 
   const updateSection = useCallback(
     <Section extends keyof ZenFlowSettings>(
@@ -89,5 +104,5 @@ export function useSettings() {
     [settings, userEmail],
   )
 
-  return { settings, loading, updateSection }
+  return { settings, loading, error, reload, updateSection }
 }

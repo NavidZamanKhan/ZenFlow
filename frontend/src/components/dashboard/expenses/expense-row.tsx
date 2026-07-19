@@ -9,15 +9,28 @@ interface ExpenseRowProps {
   expense: Expense
   onEdit: (expense: Expense) => void
   onDelete: (expense: Expense) => void
+  highlighted?: boolean
 }
 
 /** Row layout matching Tasks TaskRow: icon, title/meta, right amount, hover actions. */
-export function ExpenseRow({ expense, onEdit, onDelete }: ExpenseRowProps) {
+export function ExpenseRow({
+  expense,
+  onEdit,
+  onDelete,
+  highlighted = false,
+}: ExpenseRowProps) {
   const meta = EXPENSE_CATEGORY_META[expense.category]
   const Icon = meta.icon
 
   return (
-    <div className="group flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-slate-50/50 transition-colors">
+    <div
+      data-highlight-id={expense.id}
+      className={`group flex items-center gap-3 py-2.5 px-2 rounded-xl transition-colors ${
+        highlighted
+          ? 'bg-[#E2EEFC] ring-2 ring-[#1D70E8]/35'
+          : 'hover:bg-slate-50/50'
+      }`}
+    >
       <div
         className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
         style={{ backgroundColor: meta.softBg, color: meta.color }}
@@ -28,7 +41,7 @@ export function ExpenseRow({ expense, onEdit, onDelete }: ExpenseRowProps) {
 
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-slate-700 truncate">{expense.title}</p>
-        <p className="flex items-center gap-1.5 text-xs mt-0.5 font-medium text-slate-400">
+        <p className="flex items-center gap-1.5 text-xs mt-0.5 font-medium text-slate-500">
           <span>{formatDisplayDate(expense.date)}</span>
           <span aria-hidden="true">·</span>
           <span>{expense.paymentMethod}</span>
@@ -54,12 +67,12 @@ export function ExpenseRow({ expense, onEdit, onDelete }: ExpenseRowProps) {
         {formatCurrency(expense.amount)}
       </p>
 
-      <div className="flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
+      <div className="zf-row-actions flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
         <button
           type="button"
           onClick={() => onEdit(expense)}
           aria-label={`Edit ${expense.title}`}
-          className="p-1.5 rounded-lg text-slate-400 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
         >
           <Pencil size={14} />
         </button>
@@ -67,7 +80,7 @@ export function ExpenseRow({ expense, onEdit, onDelete }: ExpenseRowProps) {
           type="button"
           onClick={() => onDelete(expense)}
           aria-label={`Delete ${expense.title}`}
-          className="p-1.5 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-500 transition-colors"
         >
           <Trash2 size={14} />
         </button>
