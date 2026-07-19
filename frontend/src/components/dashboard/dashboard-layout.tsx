@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { MotionConfig } from 'framer-motion'
 import { Toaster } from 'sonner'
 import { SlideDrawer } from '@/components/ui/slide-drawer'
 import { MobileHeader } from './mobile-header'
@@ -24,30 +25,35 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
   const closeMobileNav = () => setOpenForPath(null)
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-white font-sans">
-      {/* Desktop sidebar — unchanged at lg+ */}
-      <div className="hidden h-full flex-shrink-0 lg:flex">
-        <Sidebar />
-      </div>
+    // reducedMotion="user" makes every framer-motion animation in the dashboard
+    // respect the OS-level prefers-reduced-motion setting (transforms disabled,
+    // opacity fades kept).
+    <MotionConfig reducedMotion="user">
+      <div className="flex h-screen w-screen overflow-hidden bg-white font-sans">
+        {/* Desktop sidebar — unchanged at lg+ */}
+        <div className="hidden h-full flex-shrink-0 lg:flex">
+          <Sidebar />
+        </div>
 
-      {/* Mobile / tablet drawer */}
-      <SlideDrawer
-        open={mobileNavOpen}
-        onClose={closeMobileNav}
-        rootClassName="lg:hidden"
-      >
-        <Sidebar onNavigate={closeMobileNav} className="border-r-0" />
-      </SlideDrawer>
+        {/* Mobile / tablet drawer */}
+        <SlideDrawer
+          open={mobileNavOpen}
+          onClose={closeMobileNav}
+          rootClassName="lg:hidden"
+        >
+          <Sidebar onNavigate={closeMobileNav} className="border-r-0" />
+        </SlideDrawer>
 
-      {/* Content column — full width when drawer is closed */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <MobileHeader
-          menuOpen={mobileNavOpen}
-          onMenuClick={() => setOpenForPath(pathname)}
-        />
-        {children ?? <MainContent />}
+        {/* Content column — full width when drawer is closed */}
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <MobileHeader
+            menuOpen={mobileNavOpen}
+            onMenuClick={() => setOpenForPath(pathname)}
+          />
+          {children ?? <MainContent />}
+        </div>
+        <Toaster position="bottom-right" richColors />
       </div>
-      <Toaster position="bottom-right" richColors />
-    </div>
+    </MotionConfig>
   )
 }

@@ -1,12 +1,14 @@
 'use client'
 
 import { LineChart } from 'lucide-react'
+import { motion } from 'framer-motion'
 import {
   dailyCountsToPath,
   weekBounds,
   weekOverWeekChange,
   weekProductivity,
 } from '@/lib/productivity'
+import { usePrefersReducedMotion } from '@/hooks/use-reduced-motion'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Task } from '@/types/task'
 
@@ -16,6 +18,9 @@ type ProductivityCardProps = {
 }
 
 export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
+  // pathLength isn't a transform, so MotionConfig's reducedMotion="user"
+  // doesn't cover it — gate explicitly.
+  const reducedMotion = usePrefersReducedMotion()
   const thisWeek = weekProductivity(tasks)
   const lastWeekRef = new Date()
   lastWeekRef.setDate(lastWeekRef.getDate() - 7)
@@ -56,7 +61,7 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
   }
 
   return (
-    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md">
+    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5">
       <div className="mb-4">
         <div className="mb-1 flex items-center gap-2">
           <LineChart size={18} className="text-[#1D70E8]" aria-hidden="true" />
@@ -105,14 +110,23 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
 
           {pathD ? (
             <>
-              <path d={areaD} fill="url(#chart-grad)" />
-              <path
+              <motion.path
+                d={areaD}
+                fill="url(#chart-grad)"
+                initial={reducedMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.3, ease: 'easeOut' }}
+              />
+              <motion.path
                 d={pathD}
                 fill="none"
                 stroke="#1D70E8"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                initial={reducedMotion ? false : { pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
               />
               <circle cx={endX} cy={endY} r="4" fill="#1D70E8" />
               <circle

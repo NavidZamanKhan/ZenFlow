@@ -57,6 +57,7 @@ export function SlideDrawer({
         >
           <motion.button
             type="button"
+            data-no-press
             aria-label="Close navigation"
             className="absolute inset-0 bg-slate-900/40"
             initial={{ opacity: 0 }}

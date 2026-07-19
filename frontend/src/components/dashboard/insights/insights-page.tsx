@@ -35,6 +35,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useExpenses } from '@/hooks/use-expenses'
+import { usePrefersReducedMotion } from '@/hooks/use-reduced-motion'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
@@ -92,6 +93,8 @@ function hasSpending(points: SpendingPoint[]): boolean {
 export function InsightsPage() {
   const { expenses, loading, error, reload } = useExpenses()
   const analytics = useMemo(() => buildInsightsAnalytics(expenses), [expenses])
+  // Recharts animates entrances by default — disable under prefers-reduced-motion.
+  const animateCharts = !usePrefersReducedMotion()
 
   if (loading) return <InsightsLoading />
 
@@ -179,6 +182,7 @@ export function InsightsPage() {
                       type="monotone"
                       dataKey="amount"
                       name="Spending"
+                      isAnimationActive={animateCharts}
                       stroke={PRIMARY_BLUE}
                       strokeWidth={2.5}
                       dot={{ r: 3, fill: '#FFFFFF', stroke: PRIMARY_BLUE, strokeWidth: 2 }}
@@ -207,6 +211,7 @@ export function InsightsPage() {
                           data={analytics.categoryBreakdown}
                           dataKey="amount"
                           nameKey="category"
+                          isAnimationActive={animateCharts}
                           innerRadius="58%"
                           outerRadius="82%"
                           paddingAngle={2}
@@ -251,7 +256,7 @@ export function InsightsPage() {
                       contentStyle={TOOLTIP_STYLE}
                       cursor={{ fill: '#F5F8FC' }}
                     />
-                    <Bar dataKey="amount" name="Spending" fill={SOFT_BLUE} radius={[7, 7, 2, 2]} maxBarSize={34} />
+                    <Bar dataKey="amount" name="Spending" isAnimationActive={animateCharts} fill={SOFT_BLUE} radius={[7, 7, 2, 2]} maxBarSize={34} />
                   </BarChart>
                 </ResponsiveContainer>
               </ChartCard>
@@ -291,6 +296,7 @@ export function InsightsPage() {
                       type="monotone"
                       dataKey="amount"
                       name="Spending"
+                      isAnimationActive={animateCharts}
                       stroke={SOFT_TEAL}
                       strokeWidth={2.5}
                       fill="url(#dailySpendingFill)"
@@ -319,6 +325,7 @@ export function InsightsPage() {
                           data={analytics.paymentDistribution}
                           dataKey="amount"
                           nameKey="paymentMethod"
+                          isAnimationActive={animateCharts}
                           innerRadius="52%"
                           outerRadius="80%"
                           paddingAngle={2}

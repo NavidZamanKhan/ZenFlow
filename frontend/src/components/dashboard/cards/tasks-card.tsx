@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { CalendarDays, CheckCircle2, ListTodo, Plus } from 'lucide-react'
 import { formatDate, isOverdue } from '@/lib/dates'
 import { TaskFormModal } from '@/components/dashboard/tasks/task-form-modal'
+import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Task, TaskInput, TaskPriority } from '@/types/task'
 
@@ -50,7 +51,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
   }
 
   return (
-    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md">
+    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ListTodo size={18} className="text-[#1D70E8]" aria-hidden="true" />
@@ -95,12 +96,13 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
             No tasks yet. Add one to get started.
           </p>
         ) : (
-          visibleTasks.map((task) => {
+          <AnimatedList>
+          {visibleTasks.map((task) => {
             const overdue =
               !task.completed && task.dueDate !== null && isOverdue(task.dueDate)
             return (
+              <AnimatedItem key={task.id}>
               <button
-                key={task.id}
                 type="button"
                 disabled={pendingId === task.id}
                 onClick={() => handleToggle(task)}
@@ -169,8 +171,10 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                   </span>
                 ) : null}
               </button>
+              </AnimatedItem>
             )
-          })
+          })}
+          </AnimatedList>
         )}
       </div>
 

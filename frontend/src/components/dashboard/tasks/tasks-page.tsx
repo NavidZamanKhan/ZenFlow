@@ -5,6 +5,7 @@ import { ListTodo, Plus, Search } from 'lucide-react'
 import { useTasks } from '@/hooks/use-tasks'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
+import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TaskFormModal } from './task-form-modal'
 import { TaskRow } from './task-row'
@@ -220,15 +221,18 @@ export function TasksPage() {
           />
         ) : (
           <div className="space-y-1">
-            {visibleTasks.map((task) => (
-              <TaskRow
-                key={task.id}
-                task={task}
-                onToggle={toggleTask}
-                onEdit={openEdit}
-                onDelete={setDeleting}
-              />
-            ))}
+            <AnimatedList>
+              {visibleTasks.map((task) => (
+                <AnimatedItem key={task.id}>
+                  <TaskRow
+                    task={task}
+                    onToggle={toggleTask}
+                    onEdit={openEdit}
+                    onDelete={setDeleting}
+                  />
+                </AnimatedItem>
+              ))}
+            </AnimatedList>
           </div>
         )}
       </div>

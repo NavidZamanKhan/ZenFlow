@@ -123,6 +123,25 @@
   }
 }
 
+/* Phase 2 motion layer — all gated behind prefers-reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Tactile press feedback on every button (subtle, instant press-down). */
+  button:active:not(:disabled):not([data-no-press]) {
+    transform: scale(0.98);
+  }
+
+  /* Subtle fade when navigating between dashboard routes (see app/dashboard/template.tsx). */
+  .zf-route-fade {
+    animation: zf-fade-in 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+}
+
+@keyframes zf-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes reveal-up {
   from {
     opacity: 0;

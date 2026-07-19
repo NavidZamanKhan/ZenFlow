@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Check, Clock3 } from 'lucide-react'
 import { formatDate, formatTime, todayISODate, toISODate } from '@/lib/dates'
+import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { CalendarEvent } from '@/types/event'
 import type { Task } from '@/types/task'
@@ -146,7 +147,7 @@ export function RemindersCard({
   }
 
   return (
-    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md">
+    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5">
       <div className="mb-6 flex items-center gap-2">
         <Bell size={18} className="text-[#1D70E8]" aria-hidden="true" />
         <h2 className="text-base font-bold text-slate-800">Reminders</h2>
@@ -170,8 +171,9 @@ export function RemindersCard({
             appear here.
           </p>
         ) : (
-          reminders.map((item) => (
-            <div
+          <AnimatedList>
+            {reminders.map((item) => (
+            <AnimatedItem
               key={item.id}
               className="group flex items-start justify-between gap-3 rounded-xl py-1"
             >
@@ -218,8 +220,9 @@ export function RemindersCard({
                   <Clock3 size={14} />
                 </button>
               </div>
-            </div>
-          ))
+            </AnimatedItem>
+            ))}
+          </AnimatedList>
         )}
       </div>
 

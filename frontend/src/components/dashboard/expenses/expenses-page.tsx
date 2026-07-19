@@ -12,6 +12,7 @@ import {
 import { useExpenses } from '@/hooks/use-expenses'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
+import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
 import { Skeleton } from '@/components/ui/skeleton'
 import { monthlySpending, todaysSpending, totalExpenses } from '@/lib/expense-stats'
 import { formatCurrency } from '@/lib/format'
@@ -325,14 +326,17 @@ export function ExpensesPage() {
           />
         ) : (
           <div className="space-y-1">
-            {visibleExpenses.map((expense) => (
-              <ExpenseRow
-                key={expense.id}
-                expense={expense}
-                onEdit={openEdit}
-                onDelete={setDeleting}
-              />
-            ))}
+            <AnimatedList>
+              {visibleExpenses.map((expense) => (
+                <AnimatedItem key={expense.id}>
+                  <ExpenseRow
+                    expense={expense}
+                    onEdit={openEdit}
+                    onDelete={setDeleting}
+                  />
+                </AnimatedItem>
+              ))}
+            </AnimatedList>
           </div>
         )}
       </div>
