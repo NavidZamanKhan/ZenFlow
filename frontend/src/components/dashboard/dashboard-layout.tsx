@@ -12,5 +12,3 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
     </div>
   )
 }
-
-

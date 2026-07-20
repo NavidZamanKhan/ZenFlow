@@ -27,6 +27,7 @@ Bring clarity, order, and calm to your workday. ZenFlow is a sleek, modern perso
 ## Core Principles & Design Philosophy
 
 ZenFlow was built on the foundation of **cognitive-load reduction**. Modern professional dashboards are often crowded with notifications, alerts, complex menus, and overwhelming visual noise. ZenFlow takes the opposite approach by using:
+
 1. **Curated Color Palettes**: Clean typography paired with soft borders (`border-slate-100/80`) and subtle contrasts that reduce eye strain.
 2. **Horizontal and Vertical Alignment**: Every widget is laid out using a strict 2x2 grid spacing (`gap-6`) that automatically scales to the user's screen.
 3. **Painless Interactions**: Quick toggles, smooth transition animations, and a cohesive design language that ensures ease of use.
@@ -49,41 +50,51 @@ ZenFlow was built on the foundation of **cognitive-load reduction**. Modern prof
 
 ZenFlow utilizes a modern frontend stack designed for speed, flexibility, and maintainability:
 
-* **Framework**: [Next.js](https://nextjs.org/) (App Router structure using React 19)
-* **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) (using base utility layers and native theme variables)
-* **Icons**: [Lucide React](https://lucide.dev/) (consistent geometric outlines)
-* **State Management**: React Context Provider for global authentication tracking
+- **Framework**: [Next.js](https://nextjs.org/) (App Router structure using React 19)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) (using base utility layers and native theme variables)
+- **Icons**: [Lucide React](https://lucide.dev/) (consistent geometric outlines)
+- **State Management**: React Context Provider for global authentication tracking
 
 ---
 
 ## Detailed Component Guide
 
 ### Sidebar Navigation
+
 Located in `frontend/src/components/dashboard/sidebar.tsx`, the sidebar acts as the central control area:
+
 - **macOS Window Controls**: Styled indicators mimicking close, minimize, and zoom controls.
 - **Search Bar**: Quick-filter input with responsive hover/focus border rings.
 - **Logo & Title**: Simple clean icon and title tracking.
 - **Menu Options**: Navigation items (Overview, Tasks, Calendar, Expenses, Insights, Settings) with active state rendering (`bg-[#E2EEFC] text-[#1D70E8]`).
 
 ### Tasks Widget
+
 Located in `frontend/src/components/dashboard/cards/tasks-card.tsx`:
+
 - List items are rendered without boxing backgrounds to maximize space.
 - Includes a toggle handler that shifts completion status, adding strike-through formatting and changing unchecked icons into check icons.
 - Category tags use an elegant, universal light-gray style (`bg-[#F1F3F5] text-slate-500`) to prevent visual overload.
 
 ### Productivity Graph
+
 Located in `frontend/src/components/dashboard/cards/productivity-card.tsx`:
+
 - Uses an inline SVG element (`viewBox="0 0 320 120"`) to build an animated curved path.
 - Smooth cubic bezier command syntax (`C`) handles point connections.
 - Bottom coordinates map cleanly to the horizontal labels `M T W T F S S`.
 
 ### Reminders List
+
 Located in `frontend/src/components/dashboard/cards/reminders-card.tsx`:
+
 - A simple, structured feed of tasks displaying descriptions and precise completion times.
 - Anchored with blue notification points (`bg-[#1D70E8]`) that align text blocks vertically.
 
 ### Expenses Tracker
+
 Located in `frontend/src/components/dashboard/cards/expenses-card.tsx`:
+
 - Segmented bar chart rendering values relative to overall percentages.
 - Layout places currency amounts directly below the title header.
 - Categories Software, Travel, and Other are rendered as custom bullet points in a single horizontal footer line.
@@ -118,12 +129,14 @@ Ensure you have **Node.js** (v18.0.0 or higher) and **npm** installed.
 ### Installation
 
 1. Clone the repository and navigate to the project directory:
+
    ```bash
    git clone https://github.com/NavidZamanKhan/ZenFlow.git
    cd ZenFlow
    ```
 
 2. Move into the frontend workspace:
+
    ```bash
    cd frontend
    ```
@@ -136,13 +149,14 @@ Ensure you have **Node.js** (v18.0.0 or higher) and **npm** installed.
 ### Running the Application
 
 1. Launch the development server:
+
    ```bash
    npm run dev
    ```
 
 2. Open your browser and navigate to:
-   * **Dashboard Workspace**: [http://localhost:3000/dashboard](http://localhost:3000/dashboard) (protected route)
-   * **User Registration**: [http://localhost:3000/register](http://localhost:3000/register)
+   - **Dashboard Workspace**: [http://localhost:3000/dashboard](http://localhost:3000/dashboard) (protected route)
+   - **User Registration**: [http://localhost:3000/register](http://localhost:3000/register)
 
 3. Log in or register. The credentials will save locally in your browser storage.
 
