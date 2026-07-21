@@ -20,3 +20,10 @@ frontend/.env.local
 .DS_Store
 Thumbs.db
 ZenFlowAIDevelopmentRules.md
+
+venv/
+.env
+db.sqlite3
+__pycache__/
+*.pyc
+media/

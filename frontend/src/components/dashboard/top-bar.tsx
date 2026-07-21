@@ -15,12 +15,17 @@ export function TopBar() {
       {/* Search Bar */}
       <div className="flex-1 max-w-sm mx-auto">
         <div className="relative">
+          <label htmlFor="topbar-zenflow-search" className="sr-only">
+            Search ZenFlow
+          </label>
           <Search
             size={16}
             className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zenflow-text-secondary"
+            aria-hidden="true"
           />
           <input
-            type="text"
+            id="topbar-zenflow-search"
+            type="search"
             placeholder="Search ZenFlow..."
             className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-zenflow-bg border border-zenflow-border text-sm text-zenflow-text placeholder:text-zenflow-text-secondary focus:outline-none focus:ring-2 focus:ring-zenflow-primary focus:border-transparent"
           />

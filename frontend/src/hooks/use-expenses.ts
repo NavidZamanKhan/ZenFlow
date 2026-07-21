@@ -18,23 +18,41 @@ export function useExpenses() {
   const userEmail = user?.email ?? ''
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     if (!userEmail) return
     let cancelled = false
+    /* eslint-disable react-hooks/set-state-in-effect -- reset load flags before async list */
+    setLoading(true)
+    setError(null)
+    /* eslint-enable react-hooks/set-state-in-effect */
     expenseStore
       .list(userEmail)
       .then((records) => {
-        if (!cancelled) setExpenses(records)
+        if (!cancelled) {
+          setExpenses(records)
+          setError(null)
+        }
       })
-      .catch(() => toast.error('Could not load your expenses.'))
+      .catch(() => {
+        if (!cancelled) {
+          setError('Could not load your expenses.')
+          toast.error('Could not load your expenses.')
+        }
+      })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true
     }
-  }, [userEmail])
+  }, [userEmail, reloadKey])
+
+  const reload = useCallback(() => {
+    setReloadKey((key) => key + 1)
+  }, [])
 
   const createExpense = useCallback(
     async (input: ExpenseInput) => {
@@ -81,5 +99,13 @@ export function useExpenses() {
     [userEmail],
   )
 
-  return { expenses, loading, createExpense, updateExpense, deleteExpense }
+  return {
+    expenses,
+    loading,
+    error,
+    reload,
+    createExpense,
+    updateExpense,
+    deleteExpense,
+  }
 }

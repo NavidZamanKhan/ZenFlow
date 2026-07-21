@@ -208,7 +208,7 @@ export function ExpensePreferenceSettingsSection({
                 />
               )}
             />
-            <span className="flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-400">
+            <span className="flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-500">
               <span
                 className="w-6 h-6 rounded-lg flex items-center justify-center"
                 style={{
@@ -226,7 +226,7 @@ export function ExpensePreferenceSettingsSection({
         <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 mt-5">
           <div>
             <p className="text-sm font-semibold text-slate-700">24-hour time</p>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Store times as 24-hour instead of 12-hour display.
             </p>
           </div>

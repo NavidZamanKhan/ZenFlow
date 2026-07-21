@@ -85,15 +85,21 @@ function TaskForm({
           id="task-title"
           type="text"
           placeholder="e.g. Finalize Q3 roadmap"
+          aria-invalid={errors.title ? true : undefined}
+          aria-describedby={errors.title ? 'task-title-error' : undefined}
           className={inputClass}
           {...register('title')}
         />
-        {errors.title && <p className="mt-1.5 text-xs text-red-500">{errors.title.message}</p>}
+        {errors.title ? (
+          <p id="task-title-error" role="alert" className="mt-1.5 text-xs text-red-600">
+            {errors.title.message}
+          </p>
+        ) : null}
       </div>
 
       <div>
         <label htmlFor="task-description" className={labelClass}>
-          Description <span className="text-slate-400 font-normal">(optional)</span>
+          Description <span className="text-slate-500 font-normal">(optional)</span>
         </label>
         <textarea
           id="task-description"
@@ -104,7 +110,7 @@ function TaskForm({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label htmlFor="task-due-date" className={labelClass}>
             Due date
@@ -127,7 +133,7 @@ function TaskForm({
 
       <div>
         <label htmlFor="task-category" className={labelClass}>
-          Category <span className="text-slate-400 font-normal">(optional)</span>
+          Category <span className="text-slate-500 font-normal">(optional)</span>
         </label>
         <input
           id="task-category"

@@ -118,7 +118,7 @@ export function AppearanceSettingsSection({
                           <Icon size={15} className="text-[#1D70E8]" />
                           {option.label}
                         </span>
-                        <span className="block text-xs leading-relaxed text-slate-400 mt-1">
+                        <span className="block text-xs leading-relaxed text-slate-500 mt-1">
                           {option.description}
                         </span>
                       </span>

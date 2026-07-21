@@ -101,6 +101,32 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Visible focus rings for custom buttons/links that omit component styles.
+     Inputs keep their own focus:ring via Tailwind; this targets controls that
+     previously had no focus-visible treatment at all. */
+  :where(button, a, [role='button'], [role='tab'], summary):focus-visible {
+    outline: 2px solid #1d70e8;
+    outline-offset: 2px;
+  }
+  /* Skip link: visually hidden until focused via keyboard. */
+  .zf-skip-link {
+    position: absolute;
+    left: 1rem;
+    top: 0;
+    z-index: 100;
+    transform: translateY(-120%);
+    border-radius: 0.75rem;
+    background: #1d70e8;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .zf-skip-link:focus {
+    transform: translateY(0.75rem);
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
 }
 
 @layer utilities {
@@ -120,6 +146,72 @@
       radial-gradient(60rem 40rem at 78% -8%, oklch(0.9 0.05 238 / 0.55), transparent 60%),
       radial-gradient(48rem 34rem at 4% 12%, oklch(0.92 0.04 258 / 0.4), transparent 55%),
       var(--background);
+  }
+}
+
+/* Phase 4 mobile fixes ------------------------------------------------- */
+
+/* iOS Safari auto-zooms the page when a focused input's font-size is under
+   16px. Below the desktop breakpoint, force form controls to 16px. Scoped
+   with !important because Tailwind text-xs/text-sm classes otherwise win. */
+@media (max-width: 1023px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Full-height that tracks iOS Safari's collapsing URL bar. Falls back to
+   100vh where dvh is unsupported. */
+.zf-screen-h {
+  height: 100vh;
+  height: 100dvh;
+}
+.zf-screen-min-h {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Hover-revealed row actions (edit/delete) stay visible on devices without
+   hover (tablets/phones), where group-hover can never fire. */
+@media (hover: none) {
+  .zf-row-actions {
+    opacity: 1 !important;
+  }
+}
+
+/* Expands an interactive control's hit area to at least 44x44px on touch
+   devices without changing its visual size. The element must be positioned
+   (pair with Tailwind's `relative` unless it is already absolute). */
+@media (pointer: coarse) {
+  .zf-tap::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Phase 2 motion layer — all gated behind prefers-reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Tactile press feedback on every button (subtle, instant press-down). */
+  button:active:not(:disabled):not([data-no-press]) {
+    transform: scale(0.98);
+  }
+
+  /* Subtle fade when navigating between dashboard routes (see app/dashboard/template.tsx). */
+  .zf-route-fade {
+    animation: zf-fade-in 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+}
+
+@keyframes zf-fade-in {
+  from {
+    opacity: 0;
   }
 }
 

@@ -135,13 +135,19 @@ function ExpenseForm({
           id="expense-title"
           type="text"
           placeholder="e.g. Groceries at FreshMart"
+          aria-invalid={errors.title ? true : undefined}
+          aria-describedby={errors.title ? 'expense-title-error' : undefined}
           className={inputClass}
           {...register('title')}
         />
-        {errors.title && <p className="mt-1.5 text-xs text-red-500">{errors.title.message}</p>}
+        {errors.title ? (
+          <p id="expense-title-error" role="alert" className="mt-1.5 text-xs text-red-600">
+            {errors.title.message}
+          </p>
+        ) : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label htmlFor="expense-amount" className={labelClass}>
             Amount
@@ -152,21 +158,38 @@ function ExpenseForm({
             min="0"
             step="0.01"
             placeholder="0.00"
+            aria-invalid={errors.amount ? true : undefined}
+            aria-describedby={errors.amount ? 'expense-amount-error' : undefined}
             className={inputClass}
             {...register('amount')}
           />
-          {errors.amount && <p className="mt-1.5 text-xs text-red-500">{errors.amount.message}</p>}
+          {errors.amount ? (
+            <p id="expense-amount-error" role="alert" className="mt-1.5 text-xs text-red-600">
+              {errors.amount.message}
+            </p>
+          ) : null}
         </div>
         <div>
           <label htmlFor="expense-date" className={labelClass}>
             Date
           </label>
-          <input id="expense-date" type="date" className={inputClass} {...register('date')} />
-          {errors.date && <p className="mt-1.5 text-xs text-red-500">{errors.date.message}</p>}
+          <input
+            id="expense-date"
+            type="date"
+            aria-invalid={errors.date ? true : undefined}
+            aria-describedby={errors.date ? 'expense-date-error' : undefined}
+            className={inputClass}
+            {...register('date')}
+          />
+          {errors.date ? (
+            <p id="expense-date-error" role="alert" className="mt-1.5 text-xs text-red-600">
+              {errors.date.message}
+            </p>
+          ) : null}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label htmlFor="expense-category" className={labelClass}>
             Category
@@ -195,7 +218,7 @@ function ExpenseForm({
 
       <div>
         <label htmlFor="expense-notes" className={labelClass}>
-          Notes <span className="text-slate-400 font-normal">(optional)</span>
+          Notes <span className="text-slate-500 font-normal">(optional)</span>
         </label>
         <textarea
           id="expense-notes"
@@ -208,7 +231,7 @@ function ExpenseForm({
 
       <div>
         <label htmlFor="expense-tags" className={labelClass}>
-          Tags <span className="text-slate-400 font-normal">(comma-separated, optional)</span>
+          Tags <span className="text-slate-500 font-normal">(comma-separated, optional)</span>
         </label>
         <input
           id="expense-tags"
@@ -221,7 +244,7 @@ function ExpenseForm({
 
       <div>
         <label htmlFor="expense-receipt" className={labelClass}>
-          Receipt URL <span className="text-slate-400 font-normal">(optional)</span>
+          Receipt URL <span className="text-slate-500 font-normal">(optional)</span>
         </label>
         <input
           id="expense-receipt"

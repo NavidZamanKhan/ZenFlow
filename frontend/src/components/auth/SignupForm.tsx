@@ -91,9 +91,12 @@ export function SignupForm() {
         {...register('confirmPassword')}
       />
       <div>
-        <label className="flex items-start gap-2.5 text-sm text-slate-500">
+        <label htmlFor="signup-terms" className="flex items-start gap-2.5 text-sm text-slate-600">
           <input
+            id="signup-terms"
             type="checkbox"
+            aria-invalid={errors.terms ? true : undefined}
+            aria-describedby={errors.terms ? 'signup-terms-error' : undefined}
             className="mt-0.5 size-4 shrink-0 rounded border-slate-300 accent-blue-500"
             {...register('terms')}
           />
@@ -101,21 +104,25 @@ export function SignupForm() {
             I agree to the{' '}
             <a
               href="#"
-              className="text-blue-500 transition-colors duration-150 hover:text-blue-600"
+              className="text-blue-600 transition-colors duration-150 hover:text-blue-700"
             >
               Terms
             </a>{' '}
             and{' '}
             <a
               href="#"
-              className="text-blue-500 transition-colors duration-150 hover:text-blue-600"
+              className="text-blue-600 transition-colors duration-150 hover:text-blue-700"
             >
               Privacy Policy
             </a>
             .
           </span>
         </label>
-        {errors.terms && <p className="mt-1.5 text-xs text-red-500">{errors.terms.message}</p>}
+        {errors.terms ? (
+          <p id="signup-terms-error" role="alert" className="mt-1.5 text-xs text-red-600">
+            {errors.terms.message}
+          </p>
+        ) : null}
       </div>
       <button
         type="submit"
