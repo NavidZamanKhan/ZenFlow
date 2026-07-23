@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { FormInput } from './FormInput'
 import { useAuth } from '@/lib/auth'
+import { ApiError } from '@/lib/api'
 
 const loginSchema = z.object({
   email: z.email('Enter a valid email address'),
@@ -30,8 +31,14 @@ export function LoginForm() {
     try {
       await login(values.email, values.password)
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Login failed'
-      setError('password', { type: 'manual', message })
+      if (e instanceof ApiError) {
+        // Backend returns generic "Invalid email or password." — show on password field
+        const msg = Array.isArray(e.errors) ? e.errors[0] : Object.values(e.errors).flat()[0]
+        setError('password', { type: 'manual', message: msg ?? 'Login failed' })
+      } else {
+        const message = e instanceof Error ? e.message : 'Login failed'
+        setError('password', { type: 'manual', message })
+      }
     }
   }
 
@@ -74,7 +81,7 @@ export function LoginForm() {
         disabled={isSubmitting}
         className="h-12 w-full rounded-xl bg-blue-500 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-600 disabled:pointer-events-none disabled:opacity-60"
       >
-        Log in
+        {isSubmitting ? 'Logging in…' : 'Log in'}
       </button>
     </form>
   )

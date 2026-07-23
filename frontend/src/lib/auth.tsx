@@ -1,23 +1,76 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import type { User } from '@/types/auth'
+import { toUser } from '@/types/auth'
+import {
+  apiLogin,
+  apiLogout,
+  apiMe,
+  apiRegister,
+  apiResendOtp,
+  apiVerifyEmail,
+  ApiError,
+  clearTokens,
+  getStoredTokens,
+  storeTokens,
+} from './api'
 
-interface User {
-  email: string
-  fullName?: string
+// ---------------------------------------------------------------------------
+// Context type
+// ---------------------------------------------------------------------------
+
+interface SignupResult {
+  pendingRegistrationId: string
 }
 
 interface AuthContextType {
   isAuthenticated: boolean
   user: User | null
-  login: (email: string, password: string) => Promise<boolean>
-  signup: (fullName: string, email: string, password: string) => Promise<boolean>
-  logout: () => void
   loading: boolean
+
+  login: (email: string, password: string) => Promise<void>
+  signup: (fullName: string, email: string, password: string, confirmPassword: string) => Promise<SignupResult>
+  verifyEmail: (pendingRegistrationId: string, otp: string) => Promise<void>
+  resendOtp: (pendingRegistrationId: string) => Promise<void>
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+// ---------------------------------------------------------------------------
+// User persistence (separate from token storage)
+// ---------------------------------------------------------------------------
+
+const USER_KEY = 'zenflow:user'
+
+function getStoredUser(): User | null {
+  try {
+    const raw = localStorage.getItem(USER_KEY)
+    return raw ? (JSON.parse(raw) as User) : null
+  } catch {
+    return null
+  }
+}
+
+function storeUser(user: User): void {
+  localStorage.setItem(USER_KEY, JSON.stringify(user))
+}
+
+function clearUser(): void {
+  localStorage.removeItem(USER_KEY)
+}
+
+// Also clear legacy keys from the old localStorage-simulation auth
+function clearLegacyAuth(): void {
+  localStorage.removeItem('isAuthenticated')
+  localStorage.removeItem('user')
+}
+
+// ---------------------------------------------------------------------------
+// Provider
+// ---------------------------------------------------------------------------
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
@@ -25,70 +78,133 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true)
   const router = useRouter()
 
-  /* eslint-disable react-hooks/set-state-in-effect */
+  // Hydrate session on mount — check for stored tokens, validate with /me
   useEffect(() => {
-    // Check localStorage on client side mount
-    const authFlag = localStorage.getItem('isAuthenticated') === 'true'
-    const storedUserStr = localStorage.getItem('user')
+    let cancelled = false
 
-    if (authFlag && storedUserStr) {
+    async function hydrate() {
+      clearLegacyAuth()
+
+      const tokens = getStoredTokens()
+      if (!tokens) {
+        setLoading(false)
+        return
+      }
+
+      // Optimistic: show stored user instantly while validating
+      const cached = getStoredUser()
+      if (cached) {
+        setUser(cached)
+        setIsAuthenticated(true)
+      }
+
       try {
-        const storedUser = JSON.parse(storedUserStr)
+        const apiUser = await apiMe()
+        if (cancelled) return
+        const freshUser = toUser(apiUser)
+        setUser(freshUser)
         setIsAuthenticated(true)
-        setUser({ email: storedUser.email, fullName: storedUser.fullName })
+        storeUser(freshUser)
       } catch {
-        // Clear broken localStorage data
-        localStorage.removeItem('isAuthenticated')
+        if (cancelled) return
+        // Token is invalid/expired — clear everything
+        clearTokens()
+        clearUser()
+        setIsAuthenticated(false)
+        setUser(null)
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     }
-    setLoading(false)
+
+    hydrate()
+    return () => { cancelled = true }
   }, [])
-  /* eslint-enable react-hooks/set-state-in-effect */
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    const storedUserStr = localStorage.getItem('user')
-    if (!storedUserStr) {
-      throw new Error('No registered account found. Please sign up first.')
-    }
+  // -- Login ----------------------------------------------------------------
 
-    try {
-      const storedUser = JSON.parse(storedUserStr)
-      if (storedUser.email === email && storedUser.password === password) {
-        setIsAuthenticated(true)
-        setUser({ email: storedUser.email, fullName: storedUser.fullName })
-        localStorage.setItem('isAuthenticated', 'true')
-        router.push('/dashboard')
-        return true
-      } else {
-        throw new Error('Invalid email or password.')
-      }
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        throw e
-      }
-      throw new Error('Login failed')
-    }
-  }
-
-  const signup = async (fullName: string, email: string, password: string): Promise<boolean> => {
-    const userObj = { fullName, email, password }
-    localStorage.setItem('user', JSON.stringify(userObj))
+  const login = useCallback(async (email: string, password: string): Promise<void> => {
+    const res = await apiLogin({ email, password })
+    storeTokens(res.tokens.access, res.tokens.refresh)
+    const u = toUser(res.user)
+    storeUser(u)
+    setUser(u)
     setIsAuthenticated(true)
-    setUser({ email, fullName })
-    localStorage.setItem('isAuthenticated', 'true')
     router.push('/dashboard')
-    return true
-  }
+  }, [router])
 
-  const logout = () => {
+  // -- Signup (step 1 — returns pending ID, does NOT authenticate) ----------
+
+  const signup = useCallback(async (
+    fullName: string,
+    email: string,
+    password: string,
+    confirmPassword: string,
+  ): Promise<SignupResult> => {
+    const res = await apiRegister({
+      full_name: fullName,
+      email,
+      password,
+      confirm_password: confirmPassword,
+    })
+
+    if (!res.pending_registration_id) {
+      // Backend returned generic message without an ID — email already
+      // registered but we don't reveal that to the user (anti-enumeration).
+      // We still return a fake flow so the UI shows the OTP dialog.
+      // The user won't receive an OTP email, and verify-email will fail
+      // with "Invalid or expired registration." which is acceptable UX.
+      throw new ApiError(400, ['An account with this email may already exist. Try logging in.'])
+    }
+
+    return { pendingRegistrationId: res.pending_registration_id }
+  }, [])
+
+  // -- Verify email (step 2 — authenticates on success) ---------------------
+
+  const verifyEmail = useCallback(async (
+    pendingRegistrationId: string,
+    otp: string,
+  ): Promise<void> => {
+    const res = await apiVerifyEmail({
+      pending_registration_id: pendingRegistrationId,
+      otp,
+    })
+    storeTokens(res.tokens.access, res.tokens.refresh)
+    const u = toUser(res.user)
+    storeUser(u)
+    setUser(u)
+    setIsAuthenticated(true)
+    router.push('/dashboard')
+  }, [router])
+
+  // -- Resend OTP -----------------------------------------------------------
+
+  const resendOtp = useCallback(async (pendingRegistrationId: string): Promise<void> => {
+    await apiResendOtp({ pending_registration_id: pendingRegistrationId })
+  }, [])
+
+  // -- Logout ---------------------------------------------------------------
+
+  const logout = useCallback(async (): Promise<void> => {
+    const tokens = getStoredTokens()
+    if (tokens) {
+      try {
+        await apiLogout(tokens.refresh)
+      } catch {
+        // Even if the backend call fails (e.g. token already expired),
+        // we still clear local state and redirect.
+      }
+    }
+    clearTokens()
+    clearUser()
     setIsAuthenticated(false)
     setUser(null)
-    localStorage.removeItem('isAuthenticated')
     router.push('/login')
-  }
+  }, [router])
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, signup, logout, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, loading, login, signup, verifyEmail, resendOtp, logout }}>
       {children}
     </AuthContext.Provider>
   )
