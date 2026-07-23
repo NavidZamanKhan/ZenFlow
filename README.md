@@ -32,34 +32,20 @@ Project Structure
 
 ZenFlow/
 ├── backend/
-│   ├── config/              # Core Django settings, URLs, and WSGI/ASGI configs
-│   ├── users/               # Authentication, JWT, and user management app
-│   │   ├── services/        # Auth, OTP, and email business logic
-│   │   ├── models.py        # Custom User and PendingRegistration models
-│   │   ├── serializers.py   # Auth request/response serializers
-│   │   └── views.py         # DRF authentication API views
-│   ├── tasks/               # Task management endpoints and models
-│   ├── events/              # Calendar events endpoints and models
-│   ├── expenses/            # Expense tracking endpoints and models
-│   ├── reminders/           # Reminders management app
-│   ├── analytics/           # Productivity analytics engine
-│   ├── requirements.txt     # Backend Python dependencies
-│   └── manage.py
+│   ├── analytics/
+│   ├── config/
+│   ├── events/
+│   ├── expenses/
+│   ├── reminders/
+│   ├── tasks/
+│   └── users/
 └── frontend/
-    ├── src/
-    │   ├── app/             # Next.js App Router (pages & layouts)
-    │   │   ├── dashboard/   # Protected workspace dashboard sub-routes
-    │   │   ├── login/       # Login page route
-    │   │   └── register/    # Sign up page route
-    │   ├── components/      # UI components & design system
-    │   │   ├── auth/        # Auth forms and OTP verification dialog
-    │   │   ├── dashboard/   # Dashboard widgets, header, and sidebar
-    │   │   ├── shared/      # Modals and confirmation dialogs
-    │   │   └── ui/          # Base UI primitive components
-    │   ├── hooks/           # Custom React hooks (tasks, expenses, events)
-    │   ├── lib/             # Typed API client, auth context, and store logic
-    │   └── types/           # TypeScript interfaces and domain schemas
-    └── package.json
+    └── src/
+        ├── app/
+        ├── components/
+        ├── hooks/
+        ├── lib/
+        └── types/
 
 Requirements
 - Node.js 18 or later
