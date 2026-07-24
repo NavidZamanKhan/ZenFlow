@@ -17,6 +17,7 @@ import type {
   VerifyEmailResponse,
 } from '@/types/auth'
 import type { Task, TaskInput } from '@/types/task'
+import type { Expense, ExpenseInput } from '@/types/expense'
 
 const API_BASE = 'http://localhost:8000'
 
@@ -196,3 +197,30 @@ export function apiDeleteTask(id: string): Promise<void> {
     method: 'DELETE',
   })
 }
+
+// -- Expenses endpoints ------------------------------------------------------
+
+export function apiGetExpenses(): Promise<Expense[]> {
+  return authRequest<Expense[]>('/api/expenses/')
+}
+
+export function apiCreateExpense(data: ExpenseInput): Promise<Expense> {
+  return authRequest<Expense>('/api/expenses/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function apiUpdateExpense(id: string, patch: Partial<ExpenseInput>): Promise<Expense> {
+  return authRequest<Expense>(`/api/expenses/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function apiDeleteExpense(id: string): Promise<void> {
+  return authRequest<void>(`/api/expenses/${id}/`, {
+    method: 'DELETE',
+  })
+}
+

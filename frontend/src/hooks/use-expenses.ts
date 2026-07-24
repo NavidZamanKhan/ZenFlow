@@ -2,17 +2,19 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import {
+  apiCreateExpense,
+  apiDeleteExpense,
+  apiGetExpenses,
+  apiUpdateExpense,
+} from '@/lib/api'
 import { useAuth } from '@/lib/auth'
-import { createClientStore } from '@/lib/client-store'
 import type { Expense, ExpenseInput } from '@/types/expense'
 
 /**
  * Expenses data hook.
- * Persistence currently goes through createClientStore → localStorage.
- * Swap the store internals for real API calls later without changing consumers.
+ * Backed by Django REST API endpoints (/api/expenses/).
  */
-const expenseStore = createClientStore<ExpenseInput, Expense>('expenses')
-
 export function useExpenses() {
   const { user } = useAuth()
   const userEmail = user?.email ?? ''
@@ -28,8 +30,7 @@ export function useExpenses() {
     setLoading(true)
     setError(null)
     /* eslint-enable react-hooks/set-state-in-effect */
-    expenseStore
-      .list(userEmail)
+    apiGetExpenses()
       .then((records) => {
         if (!cancelled) {
           setExpenses(records)
@@ -54,26 +55,25 @@ export function useExpenses() {
     setReloadKey((key) => key + 1)
   }, [])
 
-  const createExpense = useCallback(
-    async (input: ExpenseInput) => {
-      try {
-        const created = await expenseStore.create(userEmail, input)
-        setExpenses((prev) => [...prev, created])
-        toast.success('Expense added')
-        return true
-      } catch {
-        toast.error('Could not add the expense.')
-        return false
-      }
-    },
-    [userEmail],
-  )
+  const createExpense = useCallback(async (input: ExpenseInput) => {
+    try {
+      const created = await apiCreateExpense(input)
+      setExpenses((prev) => [...prev, created])
+      toast.success('Expense added')
+      return true
+    } catch {
+      toast.error('Could not add the expense.')
+      return false
+    }
+  }, [])
 
   const updateExpense = useCallback(
     async (id: string, patch: Partial<ExpenseInput>) => {
       try {
-        const updated = await expenseStore.update(userEmail, id, patch)
-        setExpenses((prev) => prev.map((expense) => (expense.id === id ? updated : expense)))
+        const updated = await apiUpdateExpense(id, patch)
+        setExpenses((prev) =>
+          prev.map((expense) => (expense.id === id ? updated : expense)),
+        )
         toast.success('Expense updated')
         return true
       } catch {
@@ -81,23 +81,20 @@ export function useExpenses() {
         return false
       }
     },
-    [userEmail],
+    [],
   )
 
-  const deleteExpense = useCallback(
-    async (id: string) => {
-      try {
-        await expenseStore.remove(userEmail, id)
-        setExpenses((prev) => prev.filter((expense) => expense.id !== id))
-        toast.success('Expense deleted')
-        return true
-      } catch {
-        toast.error('Could not delete the expense.')
-        return false
-      }
-    },
-    [userEmail],
-  )
+  const deleteExpense = useCallback(async (id: string) => {
+    try {
+      await apiDeleteExpense(id)
+      setExpenses((prev) => prev.filter((expense) => expense.id !== id))
+      toast.success('Expense deleted')
+      return true
+    } catch {
+      toast.error('Could not delete the expense.')
+      return false
+    }
+  }, [])
 
   return {
     expenses,
@@ -109,3 +106,4 @@ export function useExpenses() {
     deleteExpense,
   }
 }
+
