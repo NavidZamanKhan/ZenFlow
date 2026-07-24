@@ -16,6 +16,7 @@ import type {
   VerifyEmailRequest,
   VerifyEmailResponse,
 } from '@/types/auth'
+import type { Task, TaskInput } from '@/types/task'
 
 const API_BASE = 'http://localhost:8000'
 
@@ -65,12 +66,13 @@ async function request<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const { headers, ...rest } = options
   const res = await fetch(`${API_BASE}${path}`, {
+    ...rest,
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...headers,
     },
-    ...options,
   })
 
   // 204 No Content
@@ -167,4 +169,30 @@ export function apiLogout(refresh: string): Promise<LogoutResponse> {
 
 export function apiMe(): Promise<ApiUser> {
   return authRequest<ApiUser>('/api/auth/me/')
+}
+
+// -- Tasks endpoints --------------------------------------------------------
+
+export function apiGetTasks(): Promise<Task[]> {
+  return authRequest<Task[]>('/api/tasks/')
+}
+
+export function apiCreateTask(data: TaskInput): Promise<Task> {
+  return authRequest<Task>('/api/tasks/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function apiUpdateTask(id: string, patch: Partial<TaskInput>): Promise<Task> {
+  return authRequest<Task>(`/api/tasks/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function apiDeleteTask(id: string): Promise<void> {
+  return authRequest<void>(`/api/tasks/${id}/`, {
+    method: 'DELETE',
+  })
 }
