@@ -1,3 +1,5 @@
+import re
+
 from rest_framework import serializers
 
 from expenses.models import Expense
@@ -60,4 +62,22 @@ class BudgetSerializer(serializers.ModelSerializer):
                     f"Budget for '{category}' must be a non-negative number."
                 )
 
+        return value
+
+
+class RecordAlertItemSerializer(serializers.Serializer):
+    category = serializers.ChoiceField(choices=Expense.Category.choices)
+    threshold = serializers.IntegerField(min_value=1, max_value=200)
+
+
+class RecordAlertsRequestSerializer(serializers.Serializer):
+    month = serializers.CharField()
+    alerts = serializers.ListField(
+        child=RecordAlertItemSerializer(),
+        allow_empty=True,
+    )
+
+    def validate_month(self, value):
+        if not re.match(r"^\d{4}-(0[1-9]|1[0-2])$", value):
+            raise serializers.ValidationError("Month must be in YYYY-MM format.")
         return value
