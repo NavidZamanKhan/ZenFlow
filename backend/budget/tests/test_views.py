@@ -156,3 +156,190 @@ class BudgetDetailViewTests(APITestCase):
         # Confirm User A budget remains 1500.0
         res_a = self.client.get("/api/budget/")
         self.assertEqual(res_a.data["monthlyTotal"], 1500.0)
+
+
+class RecordAlertsViewTests(APITestCase):
+    """Integration tests for the RecordAlertsView API endpoint."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user_a = User.objects.create_user(
+            email="usera@example.com",
+            password="Password123!",
+            full_name="User A",
+        )
+        self.user_b = User.objects.create_user(
+            email="userb@example.com",
+            password="Password123!",
+            full_name="User B",
+        )
+        self.client.force_authenticate(user=self.user_a)
+
+    def test_record_brand_new_alerts(self):
+        """Test recording brand-new alerts returns 200, newly recorded items, and updates DB."""
+        payload = {
+            "month": "2026-07",
+            "alerts": [
+                {"category": "Food", "threshold": 50},
+                {"category": "Transportation", "threshold": 75},
+            ],
+        }
+        response = self.client.post("/api/budget/record-alerts/", data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data["recorded"],
+            [
+                {"category": "Food", "threshold": 50},
+                {"category": "Transportation", "threshold": 75},
+            ],
+        )
+
+        budget = Budget.objects.get(user=self.user_a)
+        self.assertEqual(
+            budget.alerted_thresholds,
+            {"2026-07": {"Food": [50], "Transportation": [75]}},
+        )
+
+    def test_record_duplicate_alerts(self):
+        """Test recording duplicate alerts returns 200, empty recorded array, and leaves DB unchanged."""
+        Budget.objects.create(
+            user=self.user_a,
+            alerted_thresholds={"2026-07": {"Food": [50], "Transportation": [75]}},
+        )
+        payload = {
+            "month": "2026-07",
+            "alerts": [
+                {"category": "Food", "threshold": 50},
+                {"category": "Transportation", "threshold": 75},
+            ],
+        }
+        response = self.client.post("/api/budget/record-alerts/", data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["recorded"], [])
+
+        budget = Budget.objects.get(user=self.user_a)
+        self.assertEqual(
+            budget.alerted_thresholds,
+            {"2026-07": {"Food": [50], "Transportation": [75]}},
+        )
+
+    def test_record_mixed_batch_alerts(self):
+        """Test recording a mixed batch (new + duplicate) only records new alerts."""
+        Budget.objects.create(
+            user=self.user_a,
+            alerted_thresholds={"2026-07": {"Food": [50]}},
+        )
+        payload = {
+            "month": "2026-07",
+            "alerts": [
+                {"category": "Food", "threshold": 50},
+                {"category": "Food", "threshold": 90},
+                {"category": "Bills", "threshold": 50},
+            ],
+        }
+        response = self.client.post("/api/budget/record-alerts/", data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data["recorded"],
+            [
+                {"category": "Food", "threshold": 90},
+                {"category": "Bills", "threshold": 50},
+            ],
+        )
+
+        budget = Budget.objects.get(user=self.user_a)
+        self.assertEqual(
+            budget.alerted_thresholds,
+            {"2026-07": {"Food": [50, 90], "Bills": [50]}},
+        )
+
+    def test_invalid_category_returns_400(self):
+        """Test invalid expense category returns HTTP 400 Bad Request."""
+        payload = {
+            "month": "2026-07",
+            "alerts": [{"category": "InvalidCat", "threshold": 50}],
+        }
+        response = self.client.post("/api/budget/record-alerts/", data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("alerts", response.data)
+
+    def test_invalid_month_format_returns_400(self):
+        """Test invalid month format returns HTTP 400 Bad Request."""
+        for invalid_month in ["2026-13", "bad-month", "07-2026"]:
+            payload = {
+                "month": invalid_month,
+                "alerts": [{"category": "Food", "threshold": 50}],
+            }
+            response = self.client.post("/api/budget/record-alerts/", data=payload, format="json")
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn("month", response.data)
+
+    def test_threshold_out_of_range_returns_400(self):
+        """Test threshold values outside 1-200 return HTTP 400 Bad Request."""
+        for bad_threshold in [0, -10, 201]:
+            payload = {
+                "month": "2026-07",
+                "alerts": [{"category": "Food", "threshold": bad_threshold}],
+            }
+            response = self.client.post("/api/budget/record-alerts/", data=payload, format="json")
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn("alerts", response.data)
+
+    def test_empty_alerts_array_returns_200(self):
+        """Test empty alerts array returns 200 with recorded: []."""
+        payload = {"month": "2026-07", "alerts": []}
+        response = self.client.post("/api/budget/record-alerts/", data=payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["recorded"], [])
+
+    def test_unauthenticated_request_returns_401(self):
+        """Test unauthenticated POST returns HTTP 401 Unauthorized."""
+        unauthenticated_client = APIClient()
+        response = unauthenticated_client.post(
+            "/api/budget/record-alerts/",
+            data={"month": "2026-07", "alerts": []},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_budget_isolation(self):
+        """Test User A's recorded alerts do not affect User B's alert history."""
+        self.client.post(
+            "/api/budget/record-alerts/",
+            data={
+                "month": "2026-07",
+                "alerts": [{"category": "Food", "threshold": 50}],
+            },
+            format="json",
+        )
+
+        client_b = APIClient()
+        client_b.force_authenticate(user=self.user_b)
+        res_b = client_b.get("/api/budget/")
+        self.assertEqual(res_b.data["alertedThresholds"], {})
+
+    def test_recording_alerts_across_multiple_months_coexist(self):
+        """Test recording alerts for a second month preserves previous month's history."""
+        self.client.post(
+            "/api/budget/record-alerts/",
+            data={
+                "month": "2026-07",
+                "alerts": [{"category": "Food", "threshold": 50}],
+            },
+            format="json",
+        )
+        self.client.post(
+            "/api/budget/record-alerts/",
+            data={
+                "month": "2026-08",
+                "alerts": [{"category": "Transportation", "threshold": 75}],
+            },
+            format="json",
+        )
+
+        budget = Budget.objects.get(user=self.user_a)
+        expected_history = {
+            "2026-07": {"Food": [50]},
+            "2026-08": {"Transportation": [75]},
+        }
+        self.assertEqual(budget.alerted_thresholds, expected_history)
