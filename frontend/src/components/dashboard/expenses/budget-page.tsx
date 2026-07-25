@@ -90,14 +90,15 @@ export function BudgetPage() {
         .map((threshold) => ({ category, threshold }))
     })
 
-    const recorded = recordThresholdAlerts(month, candidates)
-    for (const alert of recorded) {
-      toast.warning(
-        alert.threshold >= 100
-          ? `${alert.category} has reached its monthly budget.`
-          : `${alert.category} has used ${alert.threshold}% of its monthly budget.`,
-      )
-    }
+    recordThresholdAlerts(month, candidates).then((recorded) => {
+      for (const alert of recorded) {
+        toast.warning(
+          alert.threshold >= 100
+            ? `${alert.category} has reached its monthly budget.`
+            : `${alert.category} has used ${alert.threshold}% of its monthly budget.`,
+        )
+      }
+    })
   }, [
     budget,
     budgetLoading,
@@ -139,8 +140,8 @@ export function BudgetPage() {
               <div className="w-full max-w-sm">
                 <MonthlyBudgetForm
                   value={0}
-                  onSave={(amount) => {
-                    const saved = setMonthlyTotal(amount)
+                  onSave={async (amount) => {
+                    const saved = await setMonthlyTotal(amount)
                     toast[saved ? 'success' : 'error'](
                       saved
                         ? 'Monthly budget saved'
@@ -194,8 +195,8 @@ export function BudgetPage() {
             <MonthlyBudgetForm
               key={budget.monthlyTotal}
               value={budget.monthlyTotal}
-              onSave={(amount) => {
-                const saved = setMonthlyTotal(amount)
+              onSave={async (amount) => {
+                const saved = await setMonthlyTotal(amount)
                 toast[saved ? 'success' : 'error'](
                   saved ? 'Monthly budget updated' : 'Could not update your budget.',
                 )
@@ -232,8 +233,8 @@ export function BudgetPage() {
               budgetAmount={budget.categoryBudgets[category]}
               spent={categorySpending[category] ?? 0}
               thresholds={budget.warningThresholds}
-              onSave={(amount) => {
-                const saved = setCategoryBudget(category, amount)
+              onSave={async (amount) => {
+                const saved = await setCategoryBudget(category, amount)
                 toast[saved ? 'success' : 'error'](
                   saved
                     ? `${category} budget updated`
@@ -264,7 +265,7 @@ function PageHeading() {
 
 type MonthlyBudgetFormProps = {
   value: number
-  onSave: (amount: number) => boolean
+  onSave: (amount: number) => Promise<boolean>
   submitLabel?: string
 }
 
@@ -278,7 +279,7 @@ const MonthlyBudgetForm = function MonthlyBudgetForm({
   )
   const [saving, setSaving] = useState(false)
 
-  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const amount = parseAmount(draft)
     if (amount === null) {
@@ -286,7 +287,7 @@ const MonthlyBudgetForm = function MonthlyBudgetForm({
       return
     }
     setSaving(true)
-    onSave(amount)
+    await onSave(amount)
     setSaving(false)
   }
 
@@ -333,7 +334,7 @@ type CategoryBudgetRowProps = {
   budgetAmount: number
   spent: number
   thresholds: number[]
-  onSave: (amount: number) => boolean
+  onSave: (amount: number) => Promise<boolean>
 }
 
 function CategoryBudgetRow({
@@ -355,7 +356,7 @@ function CategoryBudgetRow({
     ? currentThreshold(percentage, thresholds)
     : null
 
-  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const amount = parseAmount(draft)
     if (amount === null) {
@@ -363,7 +364,7 @@ function CategoryBudgetRow({
       return
     }
     setSaving(true)
-    onSave(amount)
+    await onSave(amount)
     setSaving(false)
   }
 
