@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
+import { HeaderActions } from './header-actions'
 import { ZenflowSearch } from './zenflow-search'
 
 type NavItem = {
@@ -85,21 +86,14 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
         className,
       )}
     >
-      {/* macOS Controls & Search Bar Row */}
+      {/* Search + header actions */}
       <div className="flex items-center gap-4 px-6 pb-4 pt-6">
-        {/* macOS Window Controls */}
-        <div className="flex flex-shrink-0 items-center gap-1.5">
-          <div className="h-3 w-3 rounded-full bg-[#FF5F56]"></div>
-          <div className="h-3 w-3 rounded-full bg-[#FFBD2E]"></div>
-          <div className="h-3 w-3 rounded-full bg-[#27C93F]"></div>
-        </div>
-
-        {/* Search Bar */}
         <ZenflowSearch
           id="sidebar-zenflow-search"
-          className="flex-1"
+          className="min-w-0 flex-1"
           onNavigate={onNavigate}
         />
+        <HeaderActions />
       </div>
 
       {/* Logo — brand mark, not a page heading (pages own the sole <h1>) */}

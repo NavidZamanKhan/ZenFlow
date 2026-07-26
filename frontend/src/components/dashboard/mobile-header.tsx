@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Grid3x3, Menu, Search, X } from 'lucide-react'
+import { HeaderActions } from './header-actions'
 import { ZenflowSearch } from './zenflow-search'
 
 type MobileHeaderProps = {
@@ -37,6 +38,8 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
             ZenFlow
           </span>
         </div>
+
+        <HeaderActions />
 
         <button
           type="button"
