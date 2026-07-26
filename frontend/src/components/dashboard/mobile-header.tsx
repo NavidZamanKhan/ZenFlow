@@ -19,18 +19,18 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
 
   return (
     <header className="lg:hidden flex-shrink-0 border-b border-slate-100 bg-white pt-[env(safe-area-inset-top)]">
-      <div className="flex h-14 items-center gap-3 px-4">
+      <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-4">
         <button
           type="button"
           onClick={onMenuClick}
           aria-label="Open navigation menu"
           aria-expanded={menuOpen}
-          className="zf-tap relative -ml-2 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
+          className="zf-tap relative -ml-1 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8] sm:-ml-2"
         >
           <Menu size={20} aria-hidden="true" />
         </button>
 
-        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5">
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#1D70E8] shadow-sm">
             <Grid3x3 size={16} className="text-white" aria-hidden="true" />
           </div>
@@ -39,14 +39,14 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
           </span>
         </div>
 
-        <HeaderActions />
+        <HeaderActions className="gap-1.5" />
 
         <button
           type="button"
           onClick={() => setSearchOpen((open) => !open)}
           aria-label={searchOpen ? 'Close search' : 'Open search'}
           aria-expanded={searchOpen}
-          className="zf-tap relative -mr-2 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
+          className="zf-tap relative -mr-1 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8] sm:-mr-2"
         >
           {searchOpen ? (
             <X size={20} aria-hidden="true" />

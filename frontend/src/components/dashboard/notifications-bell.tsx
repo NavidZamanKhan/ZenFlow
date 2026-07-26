@@ -45,7 +45,7 @@ function NotificationRow({
         type="button"
         onClick={() => onSelect(notification.id)}
         className={cn(
-          'flex w-full items-start gap-3 rounded-xl px-2 py-2.5 text-left transition-colors',
+          'flex w-full items-start gap-3 rounded-xl px-2 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8]',
           notification.read
             ? 'hover:bg-slate-50/80'
             : 'bg-[#F5F9FE] hover:bg-[#E2EEFC]/70',
@@ -106,7 +106,7 @@ export function NotificationsBell() {
             ? `Notifications, ${unreadCount} unread`
             : 'Notifications'
         }
-        className="zf-tap relative flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
+        className="zf-tap relative flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8]"
       >
         <Bell size={18} aria-hidden="true" />
         {unreadCount > 0 ? (
@@ -120,6 +120,7 @@ export function NotificationsBell() {
         align="end"
         side="bottom"
         sideOffset={8}
+        collisionPadding={12}
         className="flex w-[min(20rem,calc(100vw-2rem))] flex-col p-0"
       >
         <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
@@ -160,7 +161,7 @@ export function NotificationsBell() {
         <div className="border-t border-slate-100 p-2">
           <button
             type="button"
-            className="w-full rounded-xl px-3 py-2 text-center text-xs font-semibold text-[#1D70E8] transition-colors hover:bg-[#E2EEFC]"
+            className="w-full rounded-xl px-3 py-2 text-center text-xs font-semibold text-[#1D70E8] transition-colors hover:bg-[#E2EEFC] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8]"
           >
             View all
           </button>

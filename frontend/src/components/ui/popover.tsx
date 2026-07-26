@@ -18,11 +18,12 @@ function PopoverContent({
   alignOffset = 0,
   side = 'bottom',
   sideOffset = 8,
+  collisionPadding = 12,
   ...props
 }: PopoverPrimitive.Popup.Props &
   Pick<
     PopoverPrimitive.Positioner.Props,
-    'align' | 'alignOffset' | 'side' | 'sideOffset'
+    'align' | 'alignOffset' | 'side' | 'sideOffset' | 'collisionPadding'
   >) {
   return (
     <PopoverPrimitive.Portal>
@@ -31,12 +32,13 @@ function PopoverContent({
         alignOffset={alignOffset}
         side={side}
         sideOffset={sideOffset}
+        collisionPadding={collisionPadding}
         className="isolate z-50"
       >
         <PopoverPrimitive.Popup
           data-slot="popover-content"
           className={cn(
-            'z-50 origin-(--transform-origin) rounded-2xl border border-slate-100 bg-white text-slate-800 shadow-lg shadow-slate-200/60 outline-hidden duration-100 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2',
+            'z-50 origin-(--transform-origin) rounded-2xl border border-slate-100 bg-white text-slate-800 shadow-lg shadow-slate-200/60 outline-hidden duration-100 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 motion-reduce:animate-none motion-reduce:transition-none',
             className,
           )}
           {...props}

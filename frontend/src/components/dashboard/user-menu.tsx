@@ -53,7 +53,7 @@ export function UserMenu({ className }: UserMenuProps) {
       <DropdownMenuTrigger
         aria-label="User menu"
         className={cn(
-          'zf-tap flex h-9 w-9 items-center justify-center rounded-full bg-[#E2EEFC] text-sm font-bold text-[#1D70E8] transition-colors hover:bg-[#D6E8FA]',
+          'zf-tap flex h-9 w-9 items-center justify-center rounded-full bg-[#E2EEFC] text-sm font-bold text-[#1D70E8] transition-colors hover:bg-[#D6E8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8]',
           className,
         )}
       >
@@ -64,7 +64,8 @@ export function UserMenu({ className }: UserMenuProps) {
         align="end"
         side="bottom"
         sideOffset={8}
-        className="w-64 min-w-56 rounded-2xl border border-slate-100 bg-white p-1.5 text-slate-800 shadow-lg shadow-slate-200/60 ring-0"
+        collisionPadding={12}
+        className="w-[min(16rem,calc(100vw-2rem))] min-w-0 rounded-2xl border border-slate-100 bg-white p-1.5 text-slate-800 shadow-lg shadow-slate-200/60 ring-0"
       >
         <DropdownMenuGroup>
           <DropdownMenuLabel className="px-2.5 py-2.5">
