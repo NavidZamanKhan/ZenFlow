@@ -69,27 +69,55 @@ async function request<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const { headers, ...rest } = options
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...rest,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
-  })
+
+  let res: Response
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...rest,
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+    })
+  } catch {
+    throw new ApiError(0, ['Cannot reach the server. Is the backend running?'])
+  }
 
   // 204 No Content
   if (res.status === 204) return undefined as T
 
-  const body = await res.json()
+  const raw = await res.text()
+  let body: unknown = null
+  if (raw) {
+    try {
+      body = JSON.parse(raw) as unknown
+    } catch {
+      throw new ApiError(res.status, [
+        res.status >= 500
+          ? 'Server error while processing the request.'
+          : 'Unexpected response from the server.',
+      ])
+    }
+  }
 
   if (!res.ok) {
-    // The backend returns errors in two shapes:
-    //   { "errors": [...] }                     — service-level errors
-    //   { "field": ["msg"], "field2": [...] }   — serializer validation errors
-    const errors: string[] | Record<string, string[]> =
-      body.errors ?? body.detail
-        ? { _general: [body.detail ?? 'Request failed'] }
-        : body
+    const record =
+      body && typeof body === 'object' ? (body as Record<string, unknown>) : null
+
+    let errors: string[] | Record<string, string[]>
+    if (record && Array.isArray(record.errors)) {
+      errors = record.errors as string[]
+    } else if (record && typeof record.detail === 'string') {
+      errors = [record.detail]
+    } else if (record && Array.isArray(record.detail)) {
+      errors = record.detail.map(String)
+    } else if (record) {
+      // DRF field-keyed validation errors, e.g. { password: ["..."] }
+      errors = record as Record<string, string[]>
+    } else {
+      errors = [`Request failed (${res.status}).`]
+    }
+
     throw new ApiError(res.status, errors)
   }
 
