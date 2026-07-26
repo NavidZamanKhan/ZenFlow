@@ -10,10 +10,8 @@ import {
   Wallet,
   BarChart3,
   Settings,
-  LogOut,
   type LucideIcon,
 } from 'lucide-react'
-import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { HeaderActions } from './header-actions'
 import { ZenflowSearch } from './zenflow-search'
@@ -77,7 +75,6 @@ type SidebarProps = {
 
 export function Sidebar({ onNavigate, className }: SidebarProps) {
   const pathname = usePathname()
-  const { logout } = useAuth()
 
   return (
     <div
@@ -163,21 +160,6 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
           })}
         </div>
       </nav>
-
-      {/* Logout button at the bottom */}
-      <div className="border-t border-slate-50 p-4">
-        <button
-          type="button"
-          onClick={() => {
-            onNavigate?.()
-            logout()
-          }}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-red-600 transition-all duration-150 hover:bg-red-50 hover:text-red-700"
-        >
-          <LogOut size={18} aria-hidden="true" />
-          <span>Log out</span>
-        </button>
-      </div>
     </div>
   )
 }
