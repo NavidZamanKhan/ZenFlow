@@ -9,7 +9,6 @@ import {
   Calendar,
   Wallet,
   BarChart3,
-  Settings,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -58,12 +57,6 @@ const navItems: NavItem[] = [
     icon: BarChart3,
     id: 'insights',
     href: '/dashboard/insights',
-  },
-  {
-    label: 'Settings',
-    icon: Settings,
-    id: 'settings',
-    href: '/dashboard/settings',
   },
 ]
 
