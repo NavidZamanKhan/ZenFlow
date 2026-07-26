@@ -1,8 +1,8 @@
 'use client'
 
-import { Bell } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
+import { NotificationsBell } from './notifications-bell'
 
 function avatarLetter(fullName?: string | null, email?: string | null): string {
   const name = fullName?.trim()
@@ -17,8 +17,7 @@ type HeaderActionsProps = {
 }
 
 /**
- * Visual-only notification + user controls for the dashboard header.
- * Dropdowns and real notification data land in later phases.
+ * Notification bell (functional) + user avatar (visual stub for a later phase).
  */
 export function HeaderActions({ className }: HeaderActionsProps) {
   const { user } = useAuth()
@@ -31,13 +30,7 @@ export function HeaderActions({ className }: HeaderActionsProps) {
         className,
       )}
     >
-      <button
-        type="button"
-        aria-label="Notifications"
-        className="zf-tap flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800"
-      >
-        <Bell size={18} aria-hidden="true" />
-      </button>
+      <NotificationsBell />
 
       <button
         type="button"
