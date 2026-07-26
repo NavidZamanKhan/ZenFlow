@@ -20,3 +20,8 @@ export type BudgetValues = Pick<
   Budget,
   'monthlyTotal' | 'categoryBudgets' | 'warningThresholds'
 >
+
+export type ThresholdAlert = {
+  category: ExpenseCategory
+  threshold: number
+}

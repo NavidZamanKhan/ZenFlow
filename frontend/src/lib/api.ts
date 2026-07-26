@@ -16,6 +16,9 @@ import type {
   VerifyEmailRequest,
   VerifyEmailResponse,
 } from '@/types/auth'
+import type { Task, TaskInput } from '@/types/task'
+import type { Expense, ExpenseInput } from '@/types/expense'
+import type { Budget, BudgetValues, ThresholdAlert } from '@/types/budget'
 
 const API_BASE = 'http://localhost:8000'
 
@@ -65,12 +68,13 @@ async function request<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const { headers, ...rest } = options
   const res = await fetch(`${API_BASE}${path}`, {
+    ...rest,
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...headers,
     },
-    ...options,
   })
 
   // 204 No Content
@@ -168,3 +172,80 @@ export function apiLogout(refresh: string): Promise<LogoutResponse> {
 export function apiMe(): Promise<ApiUser> {
   return authRequest<ApiUser>('/api/auth/me/')
 }
+
+// -- Tasks endpoints --------------------------------------------------------
+
+export function apiGetTasks(): Promise<Task[]> {
+  return authRequest<Task[]>('/api/tasks/')
+}
+
+export function apiCreateTask(data: TaskInput): Promise<Task> {
+  return authRequest<Task>('/api/tasks/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function apiUpdateTask(id: string, patch: Partial<TaskInput>): Promise<Task> {
+  return authRequest<Task>(`/api/tasks/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function apiDeleteTask(id: string): Promise<void> {
+  return authRequest<void>(`/api/tasks/${id}/`, {
+    method: 'DELETE',
+  })
+}
+
+// -- Expenses endpoints ------------------------------------------------------
+
+export function apiGetExpenses(): Promise<Expense[]> {
+  return authRequest<Expense[]>('/api/expenses/')
+}
+
+export function apiCreateExpense(data: ExpenseInput): Promise<Expense> {
+  return authRequest<Expense>('/api/expenses/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function apiUpdateExpense(id: string, patch: Partial<ExpenseInput>): Promise<Expense> {
+  return authRequest<Expense>(`/api/expenses/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function apiDeleteExpense(id: string): Promise<void> {
+  return authRequest<void>(`/api/expenses/${id}/`, {
+    method: 'DELETE',
+  })
+}
+
+// -- Budget endpoints --------------------------------------------------------
+
+export function apiGetBudget(): Promise<Budget> {
+  return authRequest<Budget>('/api/budget/')
+}
+
+export function apiUpdateBudget(patch: Partial<BudgetValues>): Promise<Budget> {
+  return authRequest<Budget>('/api/budget/', {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function apiRecordThresholdAlerts(
+  month: string,
+  alerts: ThresholdAlert[],
+): Promise<{ recorded: ThresholdAlert[] }> {
+  return authRequest<{ recorded: ThresholdAlert[] }>('/api/budget/record-alerts/', {
+    method: 'POST',
+    body: JSON.stringify({ month, alerts }),
+  })
+}
+
+
