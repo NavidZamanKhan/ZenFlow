@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.password_validation import validate_password
@@ -90,6 +91,14 @@ class AuthService:
                 "failed_attempts": 0,
             },
         )
+
+        # Always log OTP in development so it is visible even if the console
+        # email backend output is swallowed by a Windows reloader/terminal quirk.
+        if settings.DEBUG:
+            logger.info("OTP=%s email=%s", otp, email)
+            # print() survives Windows runserver reloader/terminal capture quirks
+            # where logger output can be easy to miss.
+            print(f"[ZenFlow] OTP={otp} email={email}", flush=True)
 
         # Send verification email
         self.email_service.send_verification_email(
@@ -224,6 +233,10 @@ class AuthService:
                 "failed_attempts",
             ]
         )
+
+        if settings.DEBUG:
+            logger.info("OTP=%s email=%s", otp, pending.email)
+            print(f"[ZenFlow] OTP={otp} email={pending.email}", flush=True)
 
         # Send the new OTP
         self.email_service.send_verification_email(

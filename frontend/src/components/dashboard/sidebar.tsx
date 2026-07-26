@@ -9,12 +9,10 @@ import {
   Calendar,
   Wallet,
   BarChart3,
-  Settings,
-  LogOut,
   type LucideIcon,
 } from 'lucide-react'
-import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
+import { HeaderActions } from './header-actions'
 import { ZenflowSearch } from './zenflow-search'
 
 type NavItem = {
@@ -60,12 +58,6 @@ const navItems: NavItem[] = [
     id: 'insights',
     href: '/dashboard/insights',
   },
-  {
-    label: 'Settings',
-    icon: Settings,
-    id: 'settings',
-    href: '/dashboard/settings',
-  },
 ]
 
 type SidebarProps = {
@@ -76,7 +68,6 @@ type SidebarProps = {
 
 export function Sidebar({ onNavigate, className }: SidebarProps) {
   const pathname = usePathname()
-  const { logout } = useAuth()
 
   return (
     <div
@@ -85,21 +76,14 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
         className,
       )}
     >
-      {/* macOS Controls & Search Bar Row */}
+      {/* Search + header actions */}
       <div className="flex items-center gap-4 px-6 pb-4 pt-6">
-        {/* macOS Window Controls */}
-        <div className="flex flex-shrink-0 items-center gap-1.5">
-          <div className="h-3 w-3 rounded-full bg-[#FF5F56]"></div>
-          <div className="h-3 w-3 rounded-full bg-[#FFBD2E]"></div>
-          <div className="h-3 w-3 rounded-full bg-[#27C93F]"></div>
-        </div>
-
-        {/* Search Bar */}
         <ZenflowSearch
           id="sidebar-zenflow-search"
-          className="flex-1"
+          className="min-w-0 flex-1"
           onNavigate={onNavigate}
         />
+        <HeaderActions />
       </div>
 
       {/* Logo — brand mark, not a page heading (pages own the sole <h1>) */}
@@ -169,21 +153,6 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
           })}
         </div>
       </nav>
-
-      {/* Logout button at the bottom */}
-      <div className="border-t border-slate-50 p-4">
-        <button
-          type="button"
-          onClick={() => {
-            onNavigate?.()
-            logout()
-          }}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-red-600 transition-all duration-150 hover:bg-red-50 hover:text-red-700"
-        >
-          <LogOut size={18} aria-hidden="true" />
-          <span>Log out</span>
-        </button>
-      </div>
     </div>
   )
 }

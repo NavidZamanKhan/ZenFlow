@@ -10,11 +10,22 @@ import { OtpDialog } from './OtpDialog'
 import { useAuth } from '@/lib/auth'
 import { ApiError } from '@/lib/api'
 
+const PASSWORD_SPECIAL = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/
+
 const signupSchema = z
   .object({
     fullName: z.string().min(1, 'Full name is required'),
     email: z.email('Enter a valid email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter.')
+      .regex(/[a-z]/, 'Password must contain at least one lowercase letter.')
+      .regex(/\d/, 'Password must contain at least one digit.')
+      .regex(
+        PASSWORD_SPECIAL,
+        'Password must contain at least one special character.',
+      ),
     confirmPassword: z.string(),
     terms: z.boolean().refine((v) => v, 'You must agree to the Terms and Privacy Policy'),
   })
@@ -64,7 +75,10 @@ export function SignupForm() {
           for (const [backendField, messages] of Object.entries(e.errors)) {
             const formField = fieldMap[backendField]
             if (formField) {
-              setError(formField, { type: 'manual', message: messages[0] })
+              setError(formField, {
+                type: 'manual',
+                message: messages.join(' '),
+              })
             }
           }
         }
@@ -107,7 +121,7 @@ export function SignupForm() {
           label="Password"
           type="password"
           icon={Lock}
-          placeholder="••••••••"
+          placeholder="At least 8 chars, mixed case, digit, symbol"
           autoComplete="new-password"
           error={errors.password?.message}
           {...register('password')}

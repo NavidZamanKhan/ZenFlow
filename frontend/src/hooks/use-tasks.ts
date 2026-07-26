@@ -2,13 +2,40 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { apiCreateTask, apiDeleteTask, apiGetTasks, apiUpdateTask } from '@/lib/api'
+import {
+  ApiError,
+  apiCreateTask,
+  apiDeleteTask,
+  apiGetTasks,
+  apiUpdateTask,
+} from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import type { Task, TaskInput } from '@/types/task'
 
 type MutationOptions = {
   silent?: boolean
   successMessage?: string
+}
+
+function taskErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ApiError) {
+    if (error.status === 0) {
+      return 'Cannot reach the server. Is the backend running?'
+    }
+    if (error.status === 401) {
+      return 'Session expired — please log in again.'
+    }
+    if (error.status >= 500) {
+      return 'Server error while saving the task. Check the backend logs.'
+    }
+    if (error.message.trim()) {
+      return error.message
+    }
+  }
+  if (error instanceof Error && error.message.trim()) {
+    return error.message
+  }
+  return fallback
 }
 
 export function useTasks() {
@@ -32,10 +59,12 @@ export function useTasks() {
           setError(null)
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        console.error('Failed to load tasks', err)
         if (!cancelled) {
-          setError('Could not load your tasks.')
-          toast.error('Could not load your tasks.')
+          const message = taskErrorMessage(err, 'Could not load your tasks.')
+          setError(message)
+          toast.error(message)
         }
       })
       .finally(() => {
@@ -56,8 +85,9 @@ export function useTasks() {
       setTasks((prev) => [...prev, created])
       toast.success('Task created')
       return true
-    } catch {
-      toast.error('Could not create the task.')
+    } catch (err: unknown) {
+      console.error('Failed to create task', err)
+      toast.error(taskErrorMessage(err, 'Could not create the task.'))
       return false
     }
   }, [])
@@ -71,8 +101,9 @@ export function useTasks() {
           toast.success(options?.successMessage ?? 'Task updated')
         }
         return true
-      } catch {
-        toast.error('Could not update the task.')
+      } catch (err: unknown) {
+        console.error('Failed to update task', err)
+        toast.error(taskErrorMessage(err, 'Could not update the task.'))
         return false
       }
     },
@@ -85,8 +116,9 @@ export function useTasks() {
       setTasks((prev) => prev.filter((t) => t.id !== id))
       toast.success('Task deleted')
       return true
-    } catch {
-      toast.error('Could not delete the task.')
+    } catch (err: unknown) {
+      console.error('Failed to delete task', err)
+      toast.error(taskErrorMessage(err, 'Could not delete the task.'))
       return false
     }
   }, [])
