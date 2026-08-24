@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { applyAccentColor } from '@/lib/accent'
 import { cn } from '@/lib/utils'
 import type { AppearanceSettings } from '@/types/settings'
 import {
@@ -101,6 +102,7 @@ export function AppearanceSettingsSection({
     // Theme radios for dark/system are disabled; never persist those stubs.
     const next: AppearanceSettings = { ...values, theme: 'light' }
     if (onSave(next)) {
+      applyAccentColor(next.accentColor)
       toast.success('Appearance preferences saved.')
     } else {
       toast.error('Could not save appearance preferences.')
@@ -195,7 +197,7 @@ export function AppearanceSettingsSection({
                   {ACCENT_OPTIONS.map((option) => (
                     <label
                       key={option.value}
-                      className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 has-[[data-checked]]:border-[#1D70E8] has-[[data-checked]]:bg-[#F5F9FE]"
+                      className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 has-[[data-checked]]:border-[var(--zf-accent)] has-[[data-checked]]:bg-[var(--zf-accent-soft)]"
                     >
                       <RadioGroupItem value={option.value} />
                       <span
@@ -233,9 +235,10 @@ export function AppearanceSettingsSection({
 
         <div className="mt-5">
           <SettingsNote>
-            Preferences are saved locally. ZenFlow currently remains in its
-            established light theme; full dark mode, accent, and density
-            application require a future app-wide theme pass.
+            Preferences are saved locally. Accent color currently updates dashboard
+            chrome (navigation, brand mark, focus rings, and Settings save actions).
+            Page CTAs, charts, and category colors still use the default blue until a
+            future pass. Dark mode and density remain forthcoming.
           </SettingsNote>
         </div>
 
@@ -243,7 +246,7 @@ export function AppearanceSettingsSection({
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="h-10 rounded-xl bg-[#1D70E8] px-4 text-white hover:bg-[#1660CC]"
+            className="h-10 rounded-xl bg-[var(--zf-accent)] px-4 text-white hover:bg-[var(--zf-accent-hover)]"
           >
             <Save size={15} />
             Save appearance

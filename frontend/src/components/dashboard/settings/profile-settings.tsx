@@ -301,7 +301,7 @@ export function ProfileSettingsSection({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="h-10 px-4 rounded-xl bg-[#1D70E8] text-white hover:bg-[#1660CC]"
+              className="h-10 px-4 rounded-xl bg-[var(--zf-accent)] text-white hover:bg-[var(--zf-accent-hover)]"
             >
               <Save size={15} />
               Save changes

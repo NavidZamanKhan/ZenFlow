@@ -31,7 +31,7 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
         </button>
 
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#1D70E8] shadow-sm">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--zf-accent)] shadow-sm">
             <Grid3x3 size={16} className="text-white" aria-hidden="true" />
           </div>
           <span className="truncate text-base font-bold tracking-tight text-slate-800">
