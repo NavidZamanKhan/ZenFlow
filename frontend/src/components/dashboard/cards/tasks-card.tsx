@@ -54,7 +54,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
     <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <ListTodo size={18} className="text-[#1D70E8]" aria-hidden="true" />
+          <ListTodo size={18} className="text-[var(--zf-accent)]" aria-hidden="true" />
           <h2 className="text-base font-bold text-slate-800">Tasks</h2>
         </div>
         <p className="text-xs font-medium text-slate-500 tabular-nums">
@@ -66,7 +66,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
         <button
           type="button"
           onClick={() => setFormOpen(true)}
-          className="inline-flex items-center gap-1 rounded-xl bg-[#E2EEFC] px-3 py-1.5 text-xs font-semibold text-[#1D70E8] transition-colors hover:bg-[#d3e5fb]"
+          className="inline-flex items-center gap-1 rounded-xl bg-[var(--zf-accent-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--zf-accent)] transition-colors hover:bg-[color-mix(in_srgb,var(--zf-accent)_18%,white)]"
         >
           <Plus size={13} aria-hidden="true" />
           Add task
@@ -120,7 +120,10 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                           transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
                           className="block"
                         >
-                          <CheckCircle2 size={18} className="text-[#1D70E8]" />
+                          <CheckCircle2
+                            size={18}
+                            className="text-[var(--zf-accent)]"
+                          />
                         </motion.span>
                       ) : (
                         <motion.span
@@ -129,7 +132,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.12 }}
-                          className="block h-[18px] w-[18px] rounded-full border border-slate-300 transition-colors group-hover:border-[#1D70E8]"
+                          className="block h-[18px] w-[18px] rounded-full border border-slate-300 transition-colors group-hover:border-[var(--zf-accent)]"
                         />
                       )}
                     </AnimatePresence>

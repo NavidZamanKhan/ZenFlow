@@ -149,7 +149,7 @@ export function RemindersCard({
   return (
     <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5">
       <div className="mb-6 flex items-center gap-2">
-        <Bell size={18} className="text-[#1D70E8]" aria-hidden="true" />
+        <Bell size={18} className="text-[var(--zf-accent)]" aria-hidden="true" />
         <h2 className="text-base font-bold text-slate-800">Reminders</h2>
       </div>
 
