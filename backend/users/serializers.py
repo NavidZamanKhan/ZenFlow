@@ -110,6 +110,8 @@ class GoogleAuthSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     """Read-only serializer for returning user data in responses."""
 
+    has_password = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
@@ -118,8 +120,81 @@ class UserSerializer(serializers.ModelSerializer):
             "full_name",
             "avatar",
             "email_verified",
+            "has_password",
             "date_joined",
             "created_at",
             "updated_at",
         ]
         read_only_fields = fields
+
+    def get_has_password(self, obj: User) -> bool:
+        return obj.has_usable_password()
+
+
+def validate_password_strength(value: str) -> str:
+    """Helper to validate password complexity."""
+    errors = []
+    if not re.search(r"[A-Z]", value):
+        errors.append("Password must contain at least one uppercase letter.")
+    if not re.search(r"[a-z]", value):
+        errors.append("Password must contain at least one lowercase letter.")
+    if not re.search(r"\d", value):
+        errors.append("Password must contain at least one digit.")
+    if not re.search(PASSWORD_SPECIAL_CHARS, value):
+        errors.append("Password must contain at least one special character.")
+    if errors:
+        raise serializers.ValidationError(errors)
+    return value
+
+
+class SetPasswordSerializer(serializers.Serializer):
+    """Validates setting a password for an account that currently has no password."""
+
+    new_password = serializers.CharField(min_length=8, write_only=True)
+    confirm_password = serializers.CharField(min_length=8, write_only=True)
+
+    def validate_new_password(self, value: str) -> str:
+        return validate_password_strength(value)
+
+    def validate(self, attrs: dict) -> dict:
+        if attrs["new_password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError(
+                {"confirm_password": "Passwords do not match."}
+            )
+        return attrs
+
+
+class ChangePasswordWithOTPSerializer(serializers.Serializer):
+    """Validates resetting / changing a password using an email OTP."""
+
+    otp = serializers.CharField(min_length=6, max_length=6)
+    new_password = serializers.CharField(min_length=8, write_only=True)
+    confirm_password = serializers.CharField(min_length=8, write_only=True)
+
+    def validate_otp(self, value: str) -> str:
+        if not value.isdigit():
+            raise serializers.ValidationError("Verification code must contain only digits.")
+        return value
+
+    def validate_new_password(self, value: str) -> str:
+        return validate_password_strength(value)
+
+    def validate(self, attrs: dict) -> dict:
+        if attrs["new_password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError(
+                {"confirm_password": "Passwords do not match."}
+            )
+        return attrs
+
+
+class DeleteAccountSerializer(serializers.Serializer):
+    """Validates account deletion request with OTP and password."""
+
+    otp = serializers.CharField(min_length=6, max_length=6)
+    password = serializers.CharField(required=False, allow_blank=True, write_only=True)
+
+    def validate_otp(self, value: str) -> str:
+        if not value.isdigit():
+            raise serializers.ValidationError("Verification code must contain only digits.")
+        return value
+

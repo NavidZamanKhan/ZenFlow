@@ -9,6 +9,7 @@ export interface ApiUser {
   full_name: string
   avatar: string | null
   email_verified: boolean
+  has_password?: boolean
   date_joined: string
   created_at: string
   updated_at: string
@@ -21,6 +22,7 @@ export interface User {
   fullName: string
   avatar: string | null
   emailVerified: boolean
+  hasPassword: boolean
   dateJoined: string
   createdAt: string
   updatedAt: string
@@ -87,6 +89,24 @@ export interface GoogleAuthRequest {
   access_token?: string
 }
 
+// -- Password Management & Account Deletion ---------------------------------
+
+export interface SetPasswordRequest {
+  new_password: string
+  confirm_password: string
+}
+
+export interface ResetPasswordWithOtpRequest {
+  otp: string
+  new_password: string
+  confirm_password: string
+}
+
+export interface DeleteAccountRequest {
+  otp: string
+  password?: string
+}
+
 // -- Logout -----------------------------------------------------------------
 
 export interface LogoutRequest {
@@ -109,6 +129,7 @@ export function toUser(
     fullName: api.full_name,
     avatar: 'avatar' in api ? (api.avatar ?? null) : null,
     emailVerified: api.email_verified,
+    hasPassword: 'has_password' in api ? Boolean(api.has_password) : true,
     dateJoined: 'date_joined' in api ? api.date_joined : '',
     createdAt: 'created_at' in api ? api.created_at : '',
     updatedAt: 'updated_at' in api ? api.updated_at : '',

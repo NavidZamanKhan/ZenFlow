@@ -5,6 +5,7 @@
 
 import type {
   ApiUser,
+  DeleteAccountRequest,
   GoogleAuthRequest,
   LoginRequest,
   LoginResponse,
@@ -14,6 +15,8 @@ import type {
   RegisterResponse,
   ResendOtpRequest,
   ResendOtpResponse,
+  ResetPasswordWithOtpRequest,
+  SetPasswordRequest,
   VerifyEmailRequest,
   VerifyEmailResponse,
 } from '@/types/auth'
@@ -207,6 +210,48 @@ export function apiLogout(refresh: string): Promise<LogoutResponse> {
 
 export function apiMe(): Promise<ApiUser> {
   return authRequest<ApiUser>('/api/auth/me/')
+}
+
+export function apiSetPassword(
+  data: SetPasswordRequest,
+): Promise<{ message: string; user: ApiUser }> {
+  return authRequest<{ message: string; user: ApiUser }>(
+    '/api/auth/password/set/',
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    },
+  )
+}
+
+export function apiSendPasswordResetOtp(): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('/api/auth/password/otp/', {
+    method: 'POST',
+  })
+}
+
+export function apiResetPasswordWithOtp(
+  data: ResetPasswordWithOtpRequest,
+): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('/api/auth/password/reset/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function apiSendDeleteAccountOtp(): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('/api/auth/delete-account/otp/', {
+    method: 'POST',
+  })
+}
+
+export function apiDeleteAccount(
+  data: DeleteAccountRequest,
+): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('/api/auth/delete-account/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
 }
 
 // -- Tasks endpoints --------------------------------------------------------

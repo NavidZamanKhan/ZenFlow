@@ -78,3 +78,48 @@ class PendingRegistration(models.Model):
 
     def __str__(self) -> str:
         return f"PendingRegistration({self.email})"
+
+
+class AccountOTP(models.Model):
+    """
+    Stores single-use OTPs for authenticated account actions
+    such as password reset and account deletion.
+    """
+
+    PURPOSE_PASSWORD_RESET = "password_reset"
+    PURPOSE_DELETE_ACCOUNT = "delete_account"
+    PURPOSE_CHOICES = [
+        (PURPOSE_PASSWORD_RESET, "Password Reset"),
+        (PURPOSE_DELETE_ACCOUNT, "Delete Account"),
+    ]
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="account_otps",
+    )
+    purpose = models.CharField(
+        max_length=30,
+        choices=PURPOSE_CHOICES,
+    )
+    otp_hash = models.CharField(max_length=255)
+    otp_expires_at = models.DateTimeField()
+    resend_available_at = models.DateTimeField()
+    failed_attempts = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "account OTP"
+        verbose_name_plural = "account OTPs"
+        indexes = [
+            models.Index(fields=["user", "purpose"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"AccountOTP({self.user.email}, {self.purpose})"
+

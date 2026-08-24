@@ -36,6 +36,7 @@ interface AuthContextType {
   signup: (fullName: string, email: string, password: string, confirmPassword: string) => Promise<SignupResult>
   verifyEmail: (pendingRegistrationId: string, otp: string) => Promise<void>
   resendOtp: (pendingRegistrationId: string) => Promise<void>
+  refreshUser: () => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -203,6 +204,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await apiResendOtp({ pending_registration_id: pendingRegistrationId })
   }, [])
 
+  // -- Refresh User --------------------------------------------------------
+
+  const refreshUser = useCallback(async (): Promise<void> => {
+    try {
+      const apiUser = await apiMe()
+      const freshUser = toUser(apiUser)
+      setUser(freshUser)
+      storeUser(freshUser)
+    } catch {
+      // Ignore if cannot refresh
+    }
+  }, [])
+
   // -- Logout ---------------------------------------------------------------
 
   const logout = useCallback(async (): Promise<void> => {
@@ -223,7 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router])
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, loading, login, loginWithGoogle, signup, verifyEmail, resendOtp, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, loading, login, loginWithGoogle, signup, verifyEmail, resendOtp, refreshUser, logout }}>
       {children}
     </AuthContext.Provider>
   )

@@ -6,11 +6,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import (
+    ChangePasswordWithOTPSerializer,
+    DeleteAccountSerializer,
     GoogleAuthSerializer,
     LoginSerializer,
     LogoutSerializer,
     RegisterSerializer,
     ResendOTPSerializer,
+    SetPasswordSerializer,
     UserSerializer,
     VerifyEmailSerializer,
 )
@@ -198,3 +201,135 @@ class MeView(APIView):
     def get(self, request: Request) -> Response:
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class SetPasswordView(APIView):
+    """
+    POST /api/auth/password/set/
+    Set password for an account that currently has no usable password.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        serializer = SetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        service = AuthService()
+        try:
+            user = service.set_password(
+                user=request.user,
+                new_password=serializer.validated_data["new_password"],
+            )
+        except ValidationError as e:
+            return Response(
+                {"errors": e.messages if hasattr(e, "messages") else [str(e)]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {
+                "message": "Password set successfully.",
+                "user": UserSerializer(user).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordResetOTPView(APIView):
+    """
+    POST /api/auth/password/otp/
+    Send 6-digit OTP for resetting/changing password.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        service = AuthService()
+        try:
+            result = service.send_password_reset_otp(user=request.user)
+        except ValidationError as e:
+            return Response(
+                {"errors": e.messages if hasattr(e, "messages") else [str(e)]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class ResetPasswordWithOTPView(APIView):
+    """
+    POST /api/auth/password/reset/
+    Verify OTP and change/reset the user's password.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        serializer = ChangePasswordWithOTPSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        service = AuthService()
+        try:
+            result = service.change_password_with_otp(
+                user=request.user,
+                otp=serializer.validated_data["otp"],
+                new_password=serializer.validated_data["new_password"],
+            )
+        except ValidationError as e:
+            return Response(
+                {"errors": e.messages if hasattr(e, "messages") else [str(e)]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class DeleteAccountOTPView(APIView):
+    """
+    POST /api/auth/delete-account/otp/
+    Send 6-digit OTP for confirming account deletion.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        service = AuthService()
+        try:
+            result = service.send_delete_account_otp(user=request.user)
+        except ValidationError as e:
+            return Response(
+                {"errors": e.messages if hasattr(e, "messages") else [str(e)]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class DeleteAccountView(APIView):
+    """
+    POST /api/auth/delete-account/
+    Verify password and OTP, then permanently delete user and workspace data.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        serializer = DeleteAccountSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        service = AuthService()
+        try:
+            result = service.delete_account(
+                user=request.user,
+                otp=serializer.validated_data["otp"],
+                password=serializer.validated_data.get("password"),
+            )
+        except ValidationError as e:
+            return Response(
+                {"errors": e.messages if hasattr(e, "messages") else [str(e)]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
+

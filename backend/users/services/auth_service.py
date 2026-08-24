@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from users.models import PendingRegistration
+from users.models import AccountOTP, PendingRegistration
 
 import requests
 from google.auth.transport import requests as google_requests
@@ -394,6 +394,162 @@ class AuthService:
             raise ValidationError("Invalid or expired token.")
 
         return {"detail": "Successfully logged out."}
+
+    # ------------------------------------------------------------------
+    # Password Management & Account Deletion
+    # ------------------------------------------------------------------
+
+    def set_password(self, user: Any, new_password: str) -> User:
+        """
+        Set a password for an account that does not have a usable password
+        (e.g., created via Google OAuth).
+        """
+        if user.has_usable_password():
+            raise ValidationError("This account already has a password. Use change password instead.")
+
+        user.set_password(new_password)
+        user.save(update_fields=["password", "updated_at"])
+        logger.info("Password set for OAuth account: %s", user.email)
+        return user
+
+    def send_password_reset_otp(self, user: Any) -> dict[str, str]:
+        """
+        Send a 6-digit OTP to the user's email for resetting/changing password.
+        """
+        existing_otp = AccountOTP.objects.filter(
+            user=user, purpose=AccountOTP.PURPOSE_PASSWORD_RESET
+        ).first()
+
+        if existing_otp and not self.otp_service.can_resend(existing_otp.resend_available_at):
+            raise ValidationError("Please wait a moment before requesting another code.")
+
+        otp = self.otp_service.generate_otp()
+        otp_hash = self.otp_service.hash_otp(otp)
+        otp_expires_at = self.otp_service.get_expiry_time()
+        resend_available_at = self.otp_service.get_resend_available_time()
+
+        AccountOTP.objects.update_or_create(
+            user=user,
+            purpose=AccountOTP.PURPOSE_PASSWORD_RESET,
+            defaults={
+                "otp_hash": otp_hash,
+                "otp_expires_at": otp_expires_at,
+                "resend_available_at": resend_available_at,
+                "failed_attempts": 0,
+            },
+        )
+
+        self.email_service.send_password_reset_email(user.email, user.full_name, otp)
+        logger.info("Password reset OTP sent to %s", user.email)
+        return {"message": "Verification code sent to your email."}
+
+    def change_password_with_otp(self, user: Any, otp: str, new_password: str) -> dict[str, str]:
+        """
+        Verify the OTP and update the user's password.
+        """
+        record = AccountOTP.objects.filter(
+            user=user, purpose=AccountOTP.PURPOSE_PASSWORD_RESET
+        ).first()
+
+        if not record:
+            raise ValidationError("No active password reset request found. Please request a new code.")
+
+        if self.otp_service.is_expired(record.otp_expires_at):
+            record.delete()
+            raise ValidationError("Verification code has expired. Please request a new one.")
+
+        if self.otp_service.has_exceeded_max_attempts(record.failed_attempts):
+            record.delete()
+            raise ValidationError("Too many failed attempts. Please request a new code.")
+
+        if not self.otp_service.verify_otp(otp, record.otp_hash):
+            record.failed_attempts += 1
+            record.save(update_fields=["failed_attempts"])
+            remaining = OTP_MAX_FAILED_ATTEMPTS - record.failed_attempts
+            if remaining <= 0:
+                record.delete()
+                raise ValidationError("Too many failed attempts. Please request a new code.")
+            raise ValidationError(f"Invalid verification code. {remaining} attempt(s) remaining.")
+
+        user.set_password(new_password)
+        user.save(update_fields=["password", "updated_at"])
+        record.delete()
+        logger.info("Password updated successfully for: %s", user.email)
+        return {"message": "Password updated successfully."}
+
+    def send_delete_account_otp(self, user: Any) -> dict[str, str]:
+        """
+        Send a 6-digit OTP to the user's email for confirming account deletion.
+        Requires the user to have a password set first.
+        """
+        if not user.has_usable_password():
+            raise ValidationError("Please set up a password first before proceeding with account deletion.")
+
+        existing_otp = AccountOTP.objects.filter(
+            user=user, purpose=AccountOTP.PURPOSE_DELETE_ACCOUNT
+        ).first()
+
+        if existing_otp and not self.otp_service.can_resend(existing_otp.resend_available_at):
+            raise ValidationError("Please wait a moment before requesting another code.")
+
+        otp = self.otp_service.generate_otp()
+        otp_hash = self.otp_service.hash_otp(otp)
+        otp_expires_at = self.otp_service.get_expiry_time()
+        resend_available_at = self.otp_service.get_resend_available_time()
+
+        AccountOTP.objects.update_or_create(
+            user=user,
+            purpose=AccountOTP.PURPOSE_DELETE_ACCOUNT,
+            defaults={
+                "otp_hash": otp_hash,
+                "otp_expires_at": otp_expires_at,
+                "resend_available_at": resend_available_at,
+                "failed_attempts": 0,
+            },
+        )
+
+        self.email_service.send_account_deletion_email(user.email, user.full_name, otp)
+        logger.info("Account deletion OTP sent to %s", user.email)
+        return {"message": "Account deletion verification code sent to your email."}
+
+    def delete_account(self, user: Any, otp: str, password: str | None = None) -> dict[str, str]:
+        """
+        Verify password and OTP, then permanently delete the User and all associated data.
+        """
+        if not user.has_usable_password():
+            raise ValidationError("Please set up a password first before proceeding with account deletion.")
+
+        if not password or not user.check_password(password):
+            raise ValidationError("Incorrect password.")
+
+        record = AccountOTP.objects.filter(
+            user=user, purpose=AccountOTP.PURPOSE_DELETE_ACCOUNT
+        ).first()
+
+        if not record:
+            raise ValidationError("No active account deletion request found. Please request a new code.")
+
+        if self.otp_service.is_expired(record.otp_expires_at):
+            record.delete()
+            raise ValidationError("Verification code has expired. Please request a new one.")
+
+        if self.otp_service.has_exceeded_max_attempts(record.failed_attempts):
+            record.delete()
+            raise ValidationError("Too many failed attempts. Please request a new code.")
+
+        if not self.otp_service.verify_otp(otp, record.otp_hash):
+            record.failed_attempts += 1
+            record.save(update_fields=["failed_attempts"])
+            remaining = OTP_MAX_FAILED_ATTEMPTS - record.failed_attempts
+            if remaining <= 0:
+                record.delete()
+                raise ValidationError("Too many failed attempts. Please request a new code.")
+            raise ValidationError(f"Invalid verification code. {remaining} attempt(s) remaining.")
+
+        email = user.email
+        user.delete()
+        logger.warning("User permanently deleted: %s", email)
+        return {"message": "Your account has been permanently deleted."}
 
     # ------------------------------------------------------------------
     # Private Helpers
