@@ -15,7 +15,7 @@ import type { Task, TaskSortKey, TaskStatusFilter } from '@/types/task'
 const priorityRank = { high: 0, medium: 1, low: 2 } as const
 
 const selectClass =
-  'px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#1D70E8]/30 focus:border-transparent transition-all'
+  'px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-transparent transition-all'
 
 export function TasksPage() {
   const {
@@ -105,15 +105,15 @@ export function TasksPage() {
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <div className="rounded-full bg-[#E2EEFC] px-3.5 py-1">
-            <span className="text-xs font-semibold text-[#1D70E8]">
+          <div className="rounded-full bg-[var(--zf-accent-soft)] px-3.5 py-1">
+            <span className="text-xs font-semibold text-[var(--zf-accent)]">
               {remaining} {remaining === 1 ? 'task' : 'tasks'} left
             </span>
           </div>
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-1.5 rounded-xl bg-[#1D70E8] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1660CC]"
+            className="flex items-center gap-1.5 rounded-xl bg-[var(--zf-accent)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--zf-accent-hover)]"
           >
             <Plus size={16} />
             New task
@@ -137,7 +137,7 @@ export function TasksPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tasks..."
-            className="w-full rounded-xl border border-slate-100 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1D70E8]/30"
+            className="w-full rounded-xl border border-slate-100 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]"
           />
         </div>
         <select
@@ -177,7 +177,7 @@ export function TasksPage() {
 
       <div className="rounded-3xl border border-slate-100/80 bg-white p-4 shadow-sm sm:p-6">
         <div className="mb-4 flex items-center gap-2">
-          <ListTodo size={18} className="text-[#1D70E8]" />
+          <ListTodo size={18} className="text-[var(--zf-accent)]" />
           <h2 className="text-base font-bold text-slate-800">
             {status === 'completed'
               ? 'Completed'
@@ -217,7 +217,7 @@ export function TasksPage() {
                 <button
                   type="button"
                   onClick={openCreate}
-                  className="flex items-center gap-1.5 rounded-xl bg-[#1D70E8] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1660CC]"
+                  className="flex items-center gap-1.5 rounded-xl bg-[var(--zf-accent)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--zf-accent-hover)]"
                 >
                   <Plus size={16} />
                   Create your first task
