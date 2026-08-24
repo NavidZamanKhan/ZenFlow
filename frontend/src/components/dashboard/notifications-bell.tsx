@@ -1,7 +1,9 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import {
   Bell,
+  CheckCheck,
   CheckSquare2,
   Clock3,
   Wallet,
@@ -35,7 +37,7 @@ function NotificationRow({
   onSelect,
 }: {
   notification: Notification
-  onSelect: (id: string) => void
+  onSelect: (notification: Notification) => void
 }) {
   const Icon = TYPE_ICON[notification.type]
 
@@ -43,11 +45,11 @@ function NotificationRow({
     <li>
       <button
         type="button"
-        onClick={() => onSelect(notification.id)}
+        onClick={() => onSelect(notification)}
         className={cn(
           'flex w-full items-start gap-3 rounded-xl px-2 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8]',
           notification.read
-            ? 'hover:bg-slate-50/80'
+            ? 'hover:bg-slate-50/80 opacity-75'
             : 'bg-[#F5F9FE] hover:bg-[#E2EEFC]/70',
         )}
       >
@@ -91,12 +93,20 @@ function NotificationRow({
 }
 
 /**
- * Bell trigger + unread badge + notification list popover.
- * Data comes from NotificationsProvider (dummy today, API-ready shape).
+ * Bell trigger + unread badge + dynamic notification list popover.
+ * Data comes from NotificationsProvider derived from user tasks, budget, and events.
  */
 export function NotificationsBell() {
-  const { notifications, unreadCount, markAsRead } = useNotifications()
-  const showEmpty = unreadCount === 0
+  const router = useRouter()
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications()
+  const showEmpty = notifications.length === 0
+
+  const handleSelect = (item: Notification) => {
+    markAsRead(item.id)
+    if (item.href) {
+      router.push(item.href)
+    }
+  }
 
   return (
     <Popover>
@@ -121,15 +131,28 @@ export function NotificationsBell() {
         side="bottom"
         sideOffset={8}
         collisionPadding={12}
-        className="flex w-[min(20rem,calc(100vw-2rem))] flex-col p-0"
+        className="flex w-[min(22rem,calc(100vw-2rem))] flex-col p-0"
       >
         <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
           <PopoverTitle>Notifications</PopoverTitle>
-          {unreadCount > 0 ? (
-            <span className="text-[11px] font-semibold text-slate-500 tabular-nums">
-              {unreadCount} unread
-            </span>
-          ) : null}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 ? (
+              <>
+                <span className="text-[11px] font-semibold text-slate-500 tabular-nums">
+                  {unreadCount} unread
+                </span>
+                <button
+                  type="button"
+                  onClick={() => markAllAsRead()}
+                  title="Mark all as read"
+                  className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-medium text-[#1D70E8] transition-colors hover:bg-[#E2EEFC]"
+                >
+                  <CheckCheck size={12} aria-hidden="true" />
+                  <span>Mark all read</span>
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
 
         {showEmpty ? (
@@ -146,27 +169,29 @@ export function NotificationsBell() {
           </div>
         ) : (
           <ul className="max-h-[min(22rem,60vh)] space-y-0.5 overflow-y-auto p-2">
-            {notifications
-              .filter((item) => !item.read)
-              .map((notification) => (
-                <NotificationRow
-                  key={notification.id}
-                  notification={notification}
-                  onSelect={markAsRead}
-                />
-              ))}
+            {notifications.map((notification) => (
+              <NotificationRow
+                key={notification.id}
+                notification={notification}
+                onSelect={handleSelect}
+              />
+            ))}
           </ul>
         )}
 
-        <div className="border-t border-slate-100 p-2">
-          <button
-            type="button"
-            className="w-full rounded-xl px-3 py-2 text-center text-xs font-semibold text-[#1D70E8] transition-colors hover:bg-[#E2EEFC] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8]"
-          >
-            View all
-          </button>
-        </div>
+        {unreadCount > 0 ? (
+          <div className="border-t border-slate-100 p-2">
+            <button
+              type="button"
+              onClick={() => markAllAsRead()}
+              className="w-full rounded-xl px-3 py-2 text-center text-xs font-semibold text-[#1D70E8] transition-colors hover:bg-[#E2EEFC] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8]"
+            >
+              Mark all as read
+            </button>
+          </div>
+        ) : null}
       </PopoverContent>
     </Popover>
   )
 }
+

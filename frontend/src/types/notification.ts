@@ -9,4 +9,6 @@ export type Notification = {
   read: boolean
   /** ISO-8601 timestamp; UI derives a relative label from this. */
   timestamp: string
+  /** Route to navigate to when clicked (e.g. /dashboard/tasks). */
+  href?: string
 }
