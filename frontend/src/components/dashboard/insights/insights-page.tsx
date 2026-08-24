@@ -153,7 +153,7 @@ export function InsightsPage() {
 
           <section aria-labelledby="charts-heading" className="mb-6">
             <div className="flex items-center gap-2 mb-4">
-              <BarChart3 size={18} className="text-[#1D70E8]" />
+              <BarChart3 size={18} className="text-[var(--zf-accent)]" />
               <h2 id="charts-heading" className="text-base font-bold text-slate-800">
                 Spending charts
               </h2>
@@ -357,7 +357,7 @@ export function InsightsPage() {
 
           <section className={`${CARD_CLASS} p-6 mb-6`} aria-labelledby="breakdown-heading">
             <div className="flex items-center gap-2 mb-4">
-              <PieChartIcon size={18} className="text-[#1D70E8]" />
+              <PieChartIcon size={18} className="text-[var(--zf-accent)]" />
               <h2 id="breakdown-heading" className="text-base font-bold text-slate-800">
                 Spending breakdown
               </h2>
@@ -402,7 +402,7 @@ export function InsightsPage() {
 
           <section className="mb-6" aria-labelledby="analytics-heading">
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles size={18} className="text-[#1D70E8]" />
+              <Sparkles size={18} className="text-[var(--zf-accent)]" />
               <h2 id="analytics-heading" className="text-base font-bold text-slate-800">
                 Smart analytics
               </h2>
@@ -426,7 +426,7 @@ export function InsightsPage() {
 
           <section aria-labelledby="trends-heading">
             <div className="flex items-center gap-2 mb-4">
-              <TrendingUp size={18} className="text-[#1D70E8]" />
+              <TrendingUp size={18} className="text-[var(--zf-accent)]" />
               <h2 id="trends-heading" className="text-base font-bold text-slate-800">
                 Trends
               </h2>
@@ -498,7 +498,7 @@ function SummaryCard({
   return (
     <div className={`${CARD_CLASS} p-5`}>
       <div className="flex items-center gap-2 mb-3">
-        <Icon size={18} className="text-[#1D70E8]" />
+        <Icon size={18} className="text-[var(--zf-accent)]" />
         <h2 className="text-sm font-bold text-slate-800">{label}</h2>
       </div>
       <p
@@ -531,7 +531,7 @@ function ChartCard({
   return (
     <div className={`${CARD_CLASS} p-5 ${className}`}>
       <div className="flex items-start gap-2 mb-4">
-        <Icon size={18} className="text-[#1D70E8] mt-0.5 flex-shrink-0" />
+        <Icon size={18} className="text-[var(--zf-accent)] mt-0.5 flex-shrink-0" />
         <div>
           <h3 className="text-sm font-bold text-slate-800">{title}</h3>
           <p className="text-xs text-slate-500 mt-0.5">{description}</p>
@@ -547,8 +547,8 @@ function ChartCard({
 function ChartEmpty({ message }: { message: string }) {
   return (
     <div className="h-full flex flex-col items-center justify-center text-center px-5">
-      <div className="w-10 h-10 rounded-2xl bg-[#E2EEFC] flex items-center justify-center mb-3">
-        <BarChart3 size={18} className="text-[#1D70E8]" />
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--zf-accent-soft)]">
+        <BarChart3 size={18} className="text-[var(--zf-accent)]" />
       </div>
       <p className="text-xs text-slate-500 leading-relaxed max-w-[240px]">{message}</p>
     </div>
@@ -580,8 +580,8 @@ function ChartLegend({
 function InsightCard({ text }: { text: string }) {
   return (
     <div className={`${CARD_CLASS} p-4 flex items-start gap-3`}>
-      <div className="w-8 h-8 rounded-xl bg-[#E2EEFC] flex items-center justify-center flex-shrink-0">
-        <Sparkles size={15} className="text-[#1D70E8]" />
+      <div className="w-8 h-8 rounded-xl bg-[var(--zf-accent-soft)] flex items-center justify-center flex-shrink-0">
+        <Sparkles size={15} className="text-[var(--zf-accent)]" />
       </div>
       <p className="text-sm text-slate-600 leading-relaxed">{text}</p>
     </div>
@@ -602,7 +602,7 @@ function TrendCard({
   return (
     <div className={`${CARD_CLASS} p-5`}>
       <div className="flex items-center gap-2 mb-3">
-        <Icon size={17} className="text-[#1D70E8]" />
+        <Icon size={17} className="text-[var(--zf-accent)]" />
         <p className="text-xs font-semibold text-slate-500">{label}</p>
       </div>
       <p className="text-sm font-bold text-slate-800 truncate" title={value}>{value}</p>
@@ -627,7 +627,7 @@ function EmptyInsights() {
         action={
           <Link
             href="/dashboard/expenses"
-            className="flex items-center gap-1.5 rounded-xl bg-[#1D70E8] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1660CC]"
+            className="flex items-center gap-1.5 rounded-xl bg-[var(--zf-accent)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--zf-accent-hover)]"
           >
             <Wallet size={16} />
             Go to Expenses
