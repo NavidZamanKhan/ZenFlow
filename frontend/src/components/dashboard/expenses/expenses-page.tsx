@@ -30,7 +30,7 @@ import { ExpenseFormModal } from './expense-form-modal'
 import { ExpenseRow } from './expense-row'
 
 const selectClass =
-  'px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#1D70E8]/30 focus:border-transparent transition-all'
+  'px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-transparent transition-all'
 
 function monthBounds(monthValue: string): { start: string; end: string } | null {
   if (!monthValue) return null
@@ -141,7 +141,7 @@ export function ExpensesPage() {
         <button
           type="button"
           onClick={openCreate}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1D70E8] hover:bg-[#1660CC] shadow-sm transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[var(--zf-accent)] hover:bg-[var(--zf-accent-hover)] shadow-sm transition-colors"
         >
           <Plus size={16} />
           Add expense
@@ -167,7 +167,7 @@ export function ExpensesPage() {
         />
         <div className="bg-white rounded-3xl p-5 border border-slate-100/80 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <PiggyBank size={18} className="text-[#1D70E8]" />
+            <PiggyBank size={18} className="text-[var(--zf-accent)]" />
             <h2 className="text-sm font-bold text-slate-800">Remaining budget</h2>
           </div>
           <p className="text-sm font-semibold text-slate-700 mb-1">Set a budget</p>
@@ -194,7 +194,7 @@ export function ExpensesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search expenses..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1D70E8]/30 focus:border-transparent transition-all"
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-transparent transition-all"
           />
         </div>
         <select
@@ -284,7 +284,7 @@ export function ExpensesPage() {
       {/* List card */}
       <div className="bg-white rounded-3xl p-6 border border-slate-100/80 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
-          <Receipt size={18} className="text-[#1D70E8]" />
+          <Receipt size={18} className="text-[var(--zf-accent)]" />
           <h2 className="text-base font-bold text-slate-800">
             {visibleExpenses.length === 1
               ? '1 expense'
@@ -322,7 +322,7 @@ export function ExpensesPage() {
                 <button
                   type="button"
                   onClick={openCreate}
-                  className="flex items-center gap-1.5 rounded-xl bg-[#1D70E8] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1660CC]"
+                  className="flex items-center gap-1.5 rounded-xl bg-[var(--zf-accent)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--zf-accent-hover)]"
                 >
                   <Plus size={16} />
                   Add your first expense
@@ -380,7 +380,7 @@ function SummaryCard({
   return (
     <div className="bg-white rounded-3xl p-5 border border-slate-100/80 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
-        <Icon size={18} className="text-[#1D70E8]" />
+        <Icon size={18} className="text-[var(--zf-accent)]" />
         <h2 className="text-sm font-bold text-slate-800">{label}</h2>
       </div>
       <p className="text-2xl font-extrabold text-slate-800 tracking-tight tabular-nums">

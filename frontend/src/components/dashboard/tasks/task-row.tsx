@@ -39,7 +39,7 @@ export function TaskRow({
       data-highlight-id={task.id}
       className={`group flex items-center gap-3 py-2.5 px-2 rounded-xl transition-colors ${
         highlighted
-          ? 'bg-[#E2EEFC] ring-2 ring-[#1D70E8]/35'
+          ? 'bg-[var(--zf-accent-soft)] ring-2 ring-[color-mix(in_srgb,var(--zf-accent)_35%,transparent)]'
           : 'hover:bg-slate-50/50'
       }`}
     >
@@ -51,9 +51,9 @@ export function TaskRow({
         className="zf-tap relative flex-shrink-0"
       >
         {task.completed ? (
-          <CheckCircle2 size={18} className="text-[#1D70E8]" />
+          <CheckCircle2 size={18} className="text-[var(--zf-accent)]" />
         ) : (
-          <span className="block w-[18px] h-[18px] rounded-full border border-slate-300 hover:border-[#1D70E8] transition-colors" />
+          <span className="block w-[18px] h-[18px] rounded-full border border-slate-300 hover:border-[var(--zf-accent)] transition-colors" />
         )}
       </button>
 
@@ -99,7 +99,7 @@ export function TaskRow({
           type="button"
           onClick={() => onEdit(task)}
           aria-label={`Edit ${task.title}`}
-          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-[#E2EEFC] hover:text-[#1D70E8] transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-[var(--zf-accent-soft)] hover:text-[var(--zf-accent)] transition-colors"
         >
           <Pencil size={14} />
         </button>

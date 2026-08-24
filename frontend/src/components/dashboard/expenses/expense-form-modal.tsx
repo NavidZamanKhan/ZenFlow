@@ -52,7 +52,7 @@ const expenseSchema = z
 type ExpenseFormValues = z.infer<typeof expenseSchema>
 
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1D70E8]/30 focus:border-[#1D70E8] transition-all'
+  'w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-[var(--zf-accent)] transition-all'
 const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5'
 
 interface ExpenseFormModalProps {
@@ -258,7 +258,7 @@ function ExpenseForm({
       <label className="flex items-center gap-2.5 text-sm text-slate-600 font-medium">
         <input
           type="checkbox"
-          className="w-4 h-4 rounded border-slate-300 accent-[#1D70E8]"
+          className="w-4 h-4 rounded border-slate-300 accent-[var(--zf-accent)]"
           {...register('isRecurring')}
         />
         Recurring expense
@@ -294,7 +294,7 @@ function ExpenseForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1D70E8] hover:bg-[#1660CC] transition-colors disabled:pointer-events-none disabled:opacity-60"
+          className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[var(--zf-accent)] hover:bg-[var(--zf-accent-hover)] transition-colors disabled:pointer-events-none disabled:opacity-60"
         >
           {expense ? 'Save changes' : 'Add expense'}
         </button>

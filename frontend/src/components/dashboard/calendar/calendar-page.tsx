@@ -183,7 +183,7 @@ export function CalendarPage() {
         {/* Custom toolbar */}
         <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
           <div className="flex items-center gap-2">
-            <CalendarDays size={18} className="text-[#1D70E8]" />
+            <CalendarDays size={18} className="text-[var(--zf-accent)]" />
             <h2 className="text-base font-bold text-slate-800">{title || 'Calendar'}</h2>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -217,7 +217,7 @@ export function CalendarPage() {
               <button
                 type="button"
                 onClick={() => getApi()?.today()}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-[#1D70E8] bg-[#E2EEFC] hover:bg-[#d3e5fb] transition-colors"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-[var(--zf-accent)] bg-[var(--zf-accent-soft)] hover:bg-[color-mix(in_srgb,var(--zf-accent)_18%,white)] transition-colors"
               >
                 Today
               </button>
@@ -255,7 +255,7 @@ export function CalendarPage() {
                   <button
                     type="button"
                     onClick={openCreateToday}
-                    className="flex items-center gap-1.5 rounded-xl bg-[#1D70E8] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1660CC]"
+                    className="flex items-center gap-1.5 rounded-xl bg-[var(--zf-accent)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--zf-accent-hover)]"
                   >
                     <Plus size={16} />
                     Add your first event

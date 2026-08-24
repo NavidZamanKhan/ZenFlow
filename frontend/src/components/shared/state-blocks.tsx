@@ -25,8 +25,8 @@ export function EmptyState({
         className,
       )}
     >
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E2EEFC]">
-        <Icon size={22} className="text-[#1D70E8]" aria-hidden="true" />
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--zf-accent-soft)]">
+        <Icon size={22} className="text-[var(--zf-accent)]" aria-hidden="true" />
       </div>
       <h2 className="mb-1 text-sm font-semibold text-slate-700">{title}</h2>
       <p className="mb-5 max-w-[260px] text-xs leading-relaxed text-slate-500">
@@ -70,7 +70,7 @@ export function ErrorState({
         <button
           type="button"
           onClick={onRetry}
-          className="rounded-xl bg-[#1D70E8] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1660CC]"
+          className="rounded-xl bg-[var(--zf-accent)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--zf-accent-hover)]"
         >
           Try again
         </button>

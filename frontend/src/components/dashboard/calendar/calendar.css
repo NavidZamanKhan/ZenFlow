@@ -6,7 +6,7 @@
   --fc-page-bg-color: #ffffff;
   --fc-neutral-bg-color: #f8fafc;
   --fc-now-indicator-color: #1d70e8;
-  --fc-highlight-color: rgba(226, 238, 252, 0.5);
+  --fc-highlight-color: color-mix(in srgb, var(--zf-accent-soft) 50%, transparent);
   font-family: inherit;
 }
 
@@ -91,7 +91,7 @@
 }
 
 .zenflow-calendar .fc .fc-more-link {
-  color: #1d70e8;
+  color: var(--zf-accent);
   font-size: 11px;
   font-weight: 600;
 }

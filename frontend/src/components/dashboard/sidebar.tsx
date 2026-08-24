@@ -88,7 +88,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
 
       {/* Logo — brand mark, not a page heading (pages own the sole <h1>) */}
       <div className="flex items-center gap-3 px-6 py-4">
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#1D70E8] shadow-sm">
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--zf-accent)] shadow-sm">
           <Grid3x3 size={18} className="text-white" aria-hidden="true" />
         </div>
         <p className="text-lg font-bold tracking-tight text-slate-800">ZenFlow</p>
@@ -105,7 +105,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                 : pathname.startsWith(item.href)
             const itemClass = `w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 ${
               isActive
-                ? 'bg-[#E2EEFC] text-[#1D70E8]'
+                ? 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent)]'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
             }`
 
@@ -119,7 +119,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                 >
                   <Icon
                     size={18}
-                    className={isActive ? 'text-[#1D70E8]' : 'text-slate-500'}
+                    className={isActive ? 'text-[var(--zf-accent)]' : 'text-slate-500'}
                     aria-hidden="true"
                   />
                   <span className="text-sm font-medium">{item.label}</span>
@@ -138,7 +138,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                           className={cn(
                             'block rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
                             childActive
-                              ? 'bg-[#F5F9FE] text-[#1D70E8]'
+                              ? 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent)]'
                               : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700',
                           )}
                         >

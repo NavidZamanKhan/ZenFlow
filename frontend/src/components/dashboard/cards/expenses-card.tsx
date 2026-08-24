@@ -72,12 +72,16 @@ export function ExpensesCard({
     <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5">
       <div className="mb-4 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <CreditCard size={18} className="text-[#1D70E8]" aria-hidden="true" />
+          <CreditCard
+            size={18}
+            className="text-[var(--zf-accent)]"
+            aria-hidden="true"
+          />
           <h2 className="text-base font-bold text-slate-800">Expenses</h2>
         </div>
         <Link
           href="/dashboard/expenses/budget"
-          className="text-xs font-semibold text-[#1D70E8] hover:underline"
+          className="text-xs font-semibold text-[var(--zf-accent)] hover:underline"
         >
           {showBudget ? 'Edit budget' : 'Set budget'}
         </Link>
