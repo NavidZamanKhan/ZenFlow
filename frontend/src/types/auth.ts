@@ -57,7 +57,7 @@ export interface VerifyEmailRequest {
 
 export interface VerifyEmailResponse {
   tokens: AuthTokens
-  user: Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified'>
+  user: Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified' | 'has_password'>
 }
 
 // -- Resend OTP -------------------------------------------------------------
@@ -79,7 +79,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   tokens: AuthTokens
-  user: Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified'>
+  user: Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified' | 'has_password'>
 }
 
 // -- Google Auth ------------------------------------------------------------
@@ -121,7 +121,7 @@ export interface LogoutResponse {
 
 /** Maps a snake_case ApiUser (or partial) to the frontend camelCase User. */
 export function toUser(
-  api: ApiUser | Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified'>,
+  api: ApiUser | Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified'> | (Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified'> & { has_password?: boolean }),
 ): User {
   return {
     id: api.id,
@@ -129,7 +129,7 @@ export function toUser(
     fullName: api.full_name,
     avatar: 'avatar' in api ? (api.avatar ?? null) : null,
     emailVerified: api.email_verified,
-    hasPassword: 'has_password' in api ? Boolean(api.has_password) : true,
+    hasPassword: 'has_password' in api ? Boolean(api.has_password) : false,
     dateJoined: 'date_joined' in api ? api.date_joined : '',
     createdAt: 'created_at' in api ? api.created_at : '',
     updatedAt: 'updated_at' in api ? api.updated_at : '',

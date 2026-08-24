@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AlertTriangle,
+  ArrowLeft,
   Eye,
   EyeOff,
   KeyRound,
@@ -363,7 +364,7 @@ function ChangePasswordModal({
 }
 
 // ---------------------------------------------------------------------------
-// Delete Account Modal (Requires Password + 6-Digit Email OTP)
+// Delete Account Modal (Requires Password + 6-Digit Email OTP + Confirmation)
 // ---------------------------------------------------------------------------
 
 function DeleteAccountModal({
@@ -383,7 +384,21 @@ function DeleteAccountModal({
   const [otp, setOtp] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [confirmStep, setConfirmStep] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+
+  // Reset internal state when modal closes
+  useEffect(() => {
+    if (!open) {
+      setOtpSent(false)
+      setSendingOtp(false)
+      setOtp('')
+      setPassword('')
+      setShowPassword(false)
+      setConfirmStep(false)
+      setSubmitting(false)
+    }
+  }, [open])
 
   const handleSendOtp = async () => {
     setSendingOtp(true)
@@ -402,17 +417,20 @@ function DeleteAccountModal({
     }
   }
 
-  const handleDelete = async (e: React.FormEvent) => {
+  const handleProceedToConfirm = (e: React.FormEvent) => {
     e.preventDefault()
     if (!otp || otp.length !== 6) {
       toast.error('Please enter the 6-digit verification code.')
       return
     }
     if (!password) {
-      toast.error('Please enter your password to confirm account deletion.')
+      toast.error('Please enter your password.')
       return
     }
+    setConfirmStep(true)
+  }
 
+  const handleFinalDelete = async () => {
     setSubmitting(true)
     try {
       const res = await apiDeleteAccount({
@@ -428,31 +446,27 @@ function DeleteAccountModal({
       } else {
         toast.error('Could not delete account. Check your password and code.')
       }
+      setConfirmStep(false)
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <Modal open={open} title="Delete account" onClose={onClose}>
+    <Modal open={open} title={confirmStep ? 'Confirm deletion' : 'Delete account'} onClose={onClose}>
       <div className="space-y-4">
-        {/* Warning Banner */}
-        <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50/70 p-3.5 text-rose-900">
-          <AlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-rose-600" />
-          <div className="text-xs leading-relaxed">
-            <p className="font-semibold">This action is permanent and irreversible.</p>
-            <p className="mt-0.5 text-rose-700">
-              All your tasks, calendar events, expenses, and budgets will be immediately and permanently deleted.
-            </p>
-          </div>
-        </div>
-
         {!hasPassword ? (
           // Google user without password -> prompt to set password first
-          <div className="space-y-4 pt-1">
-            <p className="text-xs leading-relaxed text-slate-600">
-              For your security, you must set up an account password before proceeding with account deletion.
-            </p>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50/70 p-3.5 text-rose-900">
+              <AlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-rose-600" />
+              <div className="text-xs leading-relaxed">
+                <p className="font-semibold">Password required for deletion</p>
+                <p className="mt-0.5 text-rose-700">
+                  For your security, you must set up an account password before proceeding with account deletion.
+                </p>
+              </div>
+            </div>
             <Button
               type="button"
               onClick={() => {
@@ -465,9 +479,64 @@ function DeleteAccountModal({
               Set password first
             </Button>
           </div>
+        ) : confirmStep ? (
+          // Step 3: Final "Are you sure?" Confirmation
+          <div className="space-y-5 pt-1">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+              <AlertTriangle size={28} />
+            </div>
+
+            <div className="text-center">
+              <h3 className="text-base font-bold text-slate-900">
+                Are you absolutely sure?
+              </h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
+                This will immediately and permanently delete your account for{' '}
+                <strong className="font-semibold text-slate-700">{user?.email}</strong>.
+                All tasks, calendar events, expenses, and budgets will be wiped forever.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2 sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={submitting}
+                onClick={() => setConfirmStep(false)}
+                className="h-11 flex-1 rounded-xl border-slate-200 text-xs font-semibold text-slate-700"
+              >
+                <ArrowLeft size={14} className="mr-1.5" />
+                Back
+              </Button>
+              <Button
+                type="button"
+                disabled={submitting}
+                onClick={handleFinalDelete}
+                className="h-11 flex-1 rounded-xl bg-rose-600 text-xs font-semibold text-white shadow-sm hover:bg-rose-700 disabled:opacity-60"
+              >
+                {submitting ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 size={15} className="animate-spin" />
+                    Deleting...
+                  </span>
+                ) : (
+                  'Yes, delete everything'
+                )}
+              </Button>
+            </div>
+          </div>
         ) : !otpSent ? (
           // Step 1: Send OTP
-          <div className="space-y-3 pt-1">
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50/70 p-3.5 text-rose-900">
+              <AlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-rose-600" />
+              <div className="text-xs leading-relaxed">
+                <p className="font-semibold">This action is permanent and irreversible.</p>
+                <p className="mt-0.5 text-rose-700">
+                  All your tasks, calendar events, expenses, and budgets will be permanently deleted.
+                </p>
+              </div>
+            </div>
             <p className="text-xs leading-relaxed text-slate-500">
               To verify your identity, we will send an account deletion code to{' '}
               <strong className="font-semibold text-slate-700">{user?.email}</strong>.
@@ -489,8 +558,8 @@ function DeleteAccountModal({
             </Button>
           </div>
         ) : (
-          // Step 2: Confirm OTP & Password
-          <form onSubmit={handleDelete} className="space-y-4">
+          // Step 2: Fill OTP & Password
+          <form onSubmit={handleProceedToConfirm} className="space-y-4">
             <div>
               <div className="mb-1.5 flex items-center justify-between">
                 <label className="text-xs font-semibold text-slate-700">
@@ -552,17 +621,9 @@ function DeleteAccountModal({
               </Button>
               <Button
                 type="submit"
-                disabled={submitting}
                 className="h-10 rounded-xl bg-rose-600 px-5 font-medium text-white hover:bg-rose-700"
               >
-                {submitting ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 size={15} className="animate-spin" />
-                    Deleting account...
-                  </span>
-                ) : (
-                  'Permanently delete account'
-                )}
+                Continue to confirmation
               </Button>
             </div>
           </form>
@@ -577,10 +638,15 @@ function DeleteAccountModal({
 // ---------------------------------------------------------------------------
 
 export function SecuritySettingsSection() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const [setPasswordModalOpen, setSetPasswordModalOpen] = useState(false)
   const [changePasswordModalOpen, setChangePasswordModalOpen] = useState(false)
   const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false)
+
+  // Re-validate user credentials on mount
+  useEffect(() => {
+    refreshUser()
+  }, [refreshUser])
 
   return (
     <>

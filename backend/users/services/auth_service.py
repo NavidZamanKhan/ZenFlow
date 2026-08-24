@@ -194,6 +194,7 @@ class AuthService:
                 "email": user.email,
                 "full_name": user.full_name,
                 "email_verified": user.email_verified,
+                "has_password": user.has_usable_password(),
             },
         }
 
@@ -289,6 +290,7 @@ class AuthService:
                 "email": user.email,
                 "full_name": user.full_name,
                 "email_verified": user.email_verified,
+                "has_password": user.has_usable_password(),
             },
         }
 
@@ -376,6 +378,7 @@ class AuthService:
                 "email": user.email,
                 "full_name": user.full_name,
                 "email_verified": user.email_verified,
+                "has_password": user.has_usable_password(),
             },
         }
 
