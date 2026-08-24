@@ -13,6 +13,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import PendingRegistration
 
+import requests
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
+
 from .email_service import get_email_service
 from .otp_service import OTP_MAX_FAILED_ATTEMPTS, OTPService
 
@@ -277,6 +281,93 @@ class AuthService:
         tokens = self._issue_tokens(user)
 
         logger.info("User logged in: %s", user.email)
+
+        return {
+            "tokens": tokens,
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "full_name": user.full_name,
+                "email_verified": user.email_verified,
+            },
+        }
+
+    # ------------------------------------------------------------------
+    # Google OAuth
+    # ------------------------------------------------------------------
+
+    def google_auth(
+        self,
+        id_token_str: str | None = None,
+        access_token_str: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Verify Google ID token or Access token and log in or register the user.
+        """
+        id_info = None
+
+        if id_token_str:
+            try:
+                request = google_requests.Request()
+                id_info = google_id_token.verify_oauth2_token(
+                    id_token_str,
+                    request,
+                    settings.GOOGLE_CLIENT_ID if settings.GOOGLE_CLIENT_ID else None,
+                )
+                if id_info.get("iss") not in ["accounts.google.com", "https://accounts.google.com"]:
+                    raise ValidationError("Invalid Google token issuer.")
+            except Exception as e:
+                logger.warning("Google ID token verification failed: %s", e)
+                raise ValidationError("Invalid Google authentication token.")
+
+        elif access_token_str:
+            try:
+                resp = requests.get(
+                    "https://www.googleapis.com/oauth2/v3/userinfo",
+                    headers={"Authorization": f"Bearer {access_token_str}"},
+                    timeout=10,
+                )
+                if resp.status_code != 200:
+                    raise ValidationError("Failed to verify Google access token.")
+                id_info = resp.json()
+            except Exception as e:
+                logger.warning("Google access token verification failed: %s", e)
+                raise ValidationError("Invalid Google authentication token.")
+
+        if not id_info:
+            raise ValidationError("Google authentication payload missing.")
+
+        email = id_info.get("email")
+        if not email:
+            raise ValidationError("Google account did not provide an email address.")
+
+        email = email.lower().strip()
+        full_name = id_info.get("name") or id_info.get("given_name") or email.split("@")[0]
+
+        # Look up user or create new user
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                "full_name": full_name,
+                "email_verified": True,
+                "is_active": True,
+            },
+        )
+
+        if created:
+            user.set_unusable_password()
+            user.save()
+            logger.info("New user registered via Google: %s", user.email)
+        else:
+            if not user.is_active:
+                raise ValidationError("This account has been deactivated.")
+            if not user.email_verified:
+                user.email_verified = True
+                user.save(update_fields=["email_verified"])
+            logger.info("Existing user logged in via Google: %s", user.email)
+
+        # Issue JWT tokens
+        tokens = self._issue_tokens(user)
 
         return {
             "tokens": tokens,

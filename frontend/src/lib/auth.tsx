@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { User } from '@/types/auth'
 import { toUser } from '@/types/auth'
 import {
+  apiGoogleAuth,
   apiLogin,
   apiLogout,
   apiMe,
@@ -31,6 +32,7 @@ interface AuthContextType {
   loading: boolean
 
   login: (email: string, password: string) => Promise<void>
+  loginWithGoogle: (payload: string | { idToken?: string; accessToken?: string }) => Promise<void>
   signup: (fullName: string, email: string, password: string, confirmPassword: string) => Promise<SignupResult>
   verifyEmail: (pendingRegistrationId: string, otp: string) => Promise<void>
   resendOtp: (pendingRegistrationId: string) => Promise<void>
@@ -133,6 +135,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/dashboard')
   }, [router])
 
+  // -- Google Login ---------------------------------------------------------
+
+  const loginWithGoogle = useCallback(async (
+    payload: string | { idToken?: string; accessToken?: string },
+  ): Promise<void> => {
+    const data = typeof payload === 'string'
+      ? { id_token: payload }
+      : { id_token: payload.idToken, access_token: payload.accessToken }
+    const res = await apiGoogleAuth(data)
+    storeTokens(res.tokens.access, res.tokens.refresh)
+    const u = toUser(res.user)
+    storeUser(u)
+    setUser(u)
+    setIsAuthenticated(true)
+    router.push('/dashboard')
+  }, [router])
+
   // -- Signup (step 1 — returns pending ID, does NOT authenticate) ----------
 
   const signup = useCallback(async (
@@ -204,7 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router])
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, loading, login, signup, verifyEmail, resendOtp, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, loading, login, loginWithGoogle, signup, verifyEmail, resendOtp, logout }}>
       {children}
     </AuthContext.Provider>
   )
