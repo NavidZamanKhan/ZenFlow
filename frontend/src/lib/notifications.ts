@@ -69,7 +69,7 @@ export function deriveNotifications({
         id,
         type: 'task',
         title: `Task due today: ${task.title}`,
-        description: 'Scheduled for today — stay focused.',
+        description: 'Scheduled for today. Stay focused.',
         read: readIds.has(id),
         timestamp: `${taskDate}T09:00:00`,
         href: '/dashboard/tasks',

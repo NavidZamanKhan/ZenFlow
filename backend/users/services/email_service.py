@@ -31,14 +31,15 @@ class SMTPEmailService(BaseEmailService):
         self, to_email: str, full_name: str, otp: str
     ) -> None:
         """Send a verification email with the OTP code."""
-        subject = "ZenFlow — Verify Your Email"
+        subject = "ZenFlow: Verify Your Email"
         plain_message = (
             f"Hi {full_name},\n\n"
             f"Your verification code is: {otp}\n\n"
             f"This code expires in 5 minutes.\n\n"
-            f"If you didn't create a ZenFlow account, "
+            f"If you did not create a ZenFlow account, "
             f"you can safely ignore this email.\n\n"
-            f"— The ZenFlow Team"
+            f"Best regards,\n"
+            f"The ZenFlow Team"
         )
 
         try:
