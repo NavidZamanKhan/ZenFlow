@@ -182,7 +182,7 @@ export function BudgetPage() {
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <WalletCards size={18} className="text-[#1D70E8]" aria-hidden="true" />
+              <WalletCards size={18} className="text-[var(--zf-accent)]" aria-hidden="true" />
               <h2 className="text-base font-bold text-slate-800">
                 Monthly budget
               </h2>
@@ -314,13 +314,13 @@ const MonthlyBudgetForm = function MonthlyBudgetForm({
             if (amount !== null) setDraft(formatAmountInput(amount))
           }}
           placeholder="0.00"
-          className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-7 pr-3 text-sm text-slate-700 outline-none transition focus:border-transparent focus:ring-2 focus:ring-[#1D70E8]/30"
+          className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-7 pr-3 text-sm text-slate-700 outline-none transition focus:border-transparent focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]"
         />
       </div>
       <button
         type="submit"
         disabled={saving}
-        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-[#1D70E8] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#1660CC] disabled:pointer-events-none disabled:opacity-60"
+        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-[var(--zf-accent)] px-4 text-sm font-semibold text-white transition-colors hover:bg-[var(--zf-accent-hover)] disabled:pointer-events-none disabled:opacity-60"
       >
         <Save size={15} aria-hidden="true" />
         {submitLabel}
@@ -430,13 +430,13 @@ function CategoryBudgetRow({
                 if (amount !== null) setDraft(formatAmountInput(amount))
               }}
               placeholder="0.00"
-              className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-7 pr-3 text-sm text-slate-700 outline-none transition focus:border-transparent focus:ring-2 focus:ring-[#1D70E8]/30"
+              className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-7 pr-3 text-sm text-slate-700 outline-none transition focus:border-transparent focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]"
             />
           </div>
           <button
             type="submit"
             disabled={saving}
-            className="h-9 rounded-xl bg-slate-50 px-3 text-xs font-semibold text-slate-600 transition-colors hover:bg-[#E2EEFC] hover:text-[#1D70E8] disabled:pointer-events-none disabled:opacity-60"
+            className="h-9 rounded-xl bg-slate-50 px-3 text-xs font-semibold text-slate-600 transition-colors hover:bg-[var(--zf-accent-soft)] hover:text-[var(--zf-accent)] disabled:pointer-events-none disabled:opacity-60"
           >
             Save
           </button>
