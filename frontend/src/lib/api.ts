@@ -5,6 +5,7 @@
 
 import type {
   ApiUser,
+  GoogleAuthRequest,
   LoginRequest,
   LoginResponse,
   LogoutRequest,
@@ -183,6 +184,13 @@ export function apiResendOtp(data: ResendOtpRequest): Promise<ResendOtpResponse>
 
 export function apiLogin(data: LoginRequest): Promise<LoginResponse> {
   return request<LoginResponse>('/api/auth/login/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function apiGoogleAuth(data: GoogleAuthRequest): Promise<LoginResponse> {
+  return request<LoginResponse>('/api/auth/google/', {
     method: 'POST',
     body: JSON.stringify(data),
   })

@@ -95,6 +95,18 @@ class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
 
+class GoogleAuthSerializer(serializers.Serializer):
+    """Validates Google OAuth ID token or access token."""
+
+    id_token = serializers.CharField(required=False, allow_blank=True)
+    access_token = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        if not data.get("id_token") and not data.get("access_token"):
+            raise serializers.ValidationError("Either id_token or access_token is required.")
+        return data
+
+
 class UserSerializer(serializers.ModelSerializer):
     """Read-only serializer for returning user data in responses."""
 

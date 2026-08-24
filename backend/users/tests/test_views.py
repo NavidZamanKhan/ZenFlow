@@ -298,3 +298,84 @@ class MeViewTests(TestCase):
         """Test /me returns 401 when not authenticated."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class GoogleAuthViewTests(TestCase):
+    """Tests for POST /api/auth/google/."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.url = "/api/auth/google/"
+
+    @patch("users.services.auth_service.google_id_token.verify_oauth2_token")
+    def test_google_auth_new_user_success(self, mock_verify):
+        """Test Google login creates new user and returns JWT tokens."""
+        mock_verify.return_value = {
+            "iss": "https://accounts.google.com",
+            "email": "newgoogle@example.com",
+            "name": "Google User",
+        }
+
+        response = self.client.post(
+            self.url,
+            {"id_token": "valid-google-id-token"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("tokens", response.data)
+        self.assertIn("access", response.data["tokens"])
+        self.assertIn("refresh", response.data["tokens"])
+        self.assertEqual(response.data["user"]["email"], "newgoogle@example.com")
+        self.assertEqual(response.data["user"]["full_name"], "Google User")
+        self.assertTrue(response.data["user"]["email_verified"])
+
+        user = User.objects.get(email="newgoogle@example.com")
+        self.assertTrue(user.email_verified)
+        self.assertFalse(user.has_usable_password())
+
+    @patch("users.services.auth_service.google_id_token.verify_oauth2_token")
+    def test_google_auth_existing_user_success(self, mock_verify):
+        """Test Google login for existing user returns tokens and verifies email."""
+        User.objects.create_user(
+            email="existing@example.com",
+            full_name="Existing User",
+            password="Password1!",
+        )
+
+        mock_verify.return_value = {
+            "iss": "accounts.google.com",
+            "email": "existing@example.com",
+            "name": "Existing User",
+        }
+
+        response = self.client.post(
+            self.url,
+            {"id_token": "valid-google-id-token"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("tokens", response.data)
+        self.assertEqual(response.data["user"]["email"], "existing@example.com")
+
+        user = User.objects.get(email="existing@example.com")
+        self.assertTrue(user.email_verified)
+
+    @patch("users.services.auth_service.google_id_token.verify_oauth2_token")
+    def test_google_auth_invalid_token(self, mock_verify):
+        """Test Google login with invalid token returns 400."""
+        mock_verify.side_effect = ValueError("Invalid token")
+
+        response = self.client.post(
+            self.url,
+            {"id_token": "bad-token"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_google_auth_missing_token(self):
+        """Test Google login without id_token returns 400."""
+        response = self.client.post(self.url, {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

@@ -80,6 +80,13 @@ export interface LoginResponse {
   user: Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified'>
 }
 
+// -- Google Auth ------------------------------------------------------------
+
+export interface GoogleAuthRequest {
+  id_token?: string
+  access_token?: string
+}
+
 // -- Logout -----------------------------------------------------------------
 
 export interface LogoutRequest {

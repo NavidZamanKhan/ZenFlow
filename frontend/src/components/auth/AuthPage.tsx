@@ -6,9 +6,16 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import { ZenFlowLogo } from '@/components/zenflow-logo'
 import { cn } from '@/lib/utils'
+import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google'
+import { toast } from 'sonner'
+import { ApiError } from '@/lib/api'
 import { DashboardPreview } from './DashboardPreview'
 import { LoginForm } from './LoginForm'
 import { SignupForm } from './SignupForm'
+
+const GOOGLE_CLIENT_ID =
+  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+  '680417209345-e220tanmhq34htb6dhs61glak7gc2n87.apps.googleusercontent.com'
 
 type AuthTab = 'login' | 'signup'
 
@@ -72,7 +79,52 @@ function GitHubIcon() {
   )
 }
 
-export function AuthPage({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
+function GoogleAuthButton() {
+  const { loginWithGoogle } = useAuth()
+  const [loading, setLoading] = useState(false)
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setLoading(true)
+      try {
+        await loginWithGoogle({ accessToken: tokenResponse.access_token })
+        toast.success('Successfully authenticated with Google!')
+      } catch (err) {
+        if (err instanceof ApiError) {
+          toast.error(err.message)
+        } else {
+          toast.error('Google authentication failed. Please try again.')
+        }
+      } finally {
+        setLoading(false)
+      }
+    },
+    onError: () => {
+      toast.error('Google Sign-In was cancelled or failed.')
+    },
+  })
+
+  return (
+    <button
+      type="button"
+      disabled={loading}
+      onClick={() => handleGoogleLogin()}
+      className="zf-tap flex h-11 items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8] disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {loading ? (
+        <div
+          className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"
+          aria-hidden="true"
+        />
+      ) : (
+        <GoogleIcon />
+      )}
+      <span>{loading ? 'Connecting...' : 'Google'}</span>
+    </button>
+  )
+}
+
+function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
   const [tab, setTab] = useState<AuthTab>(defaultTab)
   const { badge, heading, subheading, footerPrompt, footerAction } = copy[tab]
   const { isAuthenticated, loading } = useAuth()
@@ -173,32 +225,20 @@ export function AuthPage({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
                 <span className="h-px flex-1 bg-slate-200" />
               </div>
 
-              {/* social buttons — placeholder OAuth; not wired yet */}
+              {/* social buttons */}
               <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2">
+                <GoogleAuthButton />
                 <button
                   type="button"
                   disabled
                   aria-disabled="true"
                   title="Coming soon"
-                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 opacity-60"
-                >
-                  <GoogleIcon />
-                  Google
-                </button>
-                <button
-                  type="button"
-                  disabled
-                  aria-disabled="true"
-                  title="Coming soon"
-                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 opacity-60"
+                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 opacity-60 cursor-not-allowed"
                 >
                   <GitHubIcon />
                   GitHub
                 </button>
               </div>
-              <p className="mt-2 text-center text-xs text-slate-500">
-                Social sign-in coming soon
-              </p>
 
               <p className="mt-5 text-center text-sm text-slate-500 min-[480px]:mt-6">
                 {footerPrompt}{' '}
@@ -259,5 +299,13 @@ export function AuthPage({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
         </div>
       </div>
     </div>
+  )
+}
+
+export function AuthPage(props: { defaultTab?: AuthTab }) {
+  return (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <AuthPageInner {...props} />
+    </GoogleOAuthProvider>
   )
 }

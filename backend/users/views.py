@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import (
+    GoogleAuthSerializer,
     LoginSerializer,
     LogoutSerializer,
     RegisterSerializer,
@@ -127,6 +128,34 @@ class LoginView(APIView):
             return Response(
                 {"errors": e.messages if hasattr(e, "messages") else [str(e)]},
                 status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class GoogleAuthView(APIView):
+    """
+    POST /api/auth/google/
+    Authenticate with Google OAuth ID token, return JWT tokens.
+    """
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request: Request) -> Response:
+        serializer = GoogleAuthSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        service = AuthService()
+        try:
+            result = service.google_auth(
+                id_token_str=serializer.validated_data.get("id_token"),
+                access_token_str=serializer.validated_data.get("access_token"),
+            )
+        except ValidationError as e:
+            return Response(
+                {"errors": e.messages if hasattr(e, "messages") else [str(e)]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         return Response(result, status=status.HTTP_200_OK)
