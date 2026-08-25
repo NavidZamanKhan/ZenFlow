@@ -72,6 +72,8 @@ export function AppearanceSettingsSection({
     control,
     handleSubmit,
     reset,
+    setValue,
+    getValues,
     formState: { isSubmitting },
   } = useForm<AppearanceFormValues>({
     resolver: zodResolver(appearanceSchema),
@@ -82,6 +84,44 @@ export function AppearanceSettingsSection({
   useEffect(() => {
     reset(appearance)
   }, [appearance, reset])
+
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setValue('theme', newTheme, { shouldDirty: true })
+    setTheme(newTheme)
+    const currentAccent = getValues('accentColor')
+    const themeForAccent =
+      newTheme === 'dark'
+        ? 'dark'
+        : newTheme === 'light'
+          ? 'light'
+          : resolvedTheme === 'dark'
+            ? 'dark'
+            : 'light'
+    applyAccentColor(currentAccent, themeForAccent)
+    onSave({ ...getValues(), theme: newTheme })
+  }
+
+  const handleAccentChange = (
+    newAccent: 'blue' | 'teal' | 'violet' | 'coral',
+  ) => {
+    setValue('accentColor', newAccent, { shouldDirty: true })
+    const currentTheme = getValues('theme')
+    const themeForAccent =
+      currentTheme === 'dark'
+        ? 'dark'
+        : currentTheme === 'light'
+          ? 'light'
+          : resolvedTheme === 'dark'
+            ? 'dark'
+            : 'light'
+    applyAccentColor(newAccent, themeForAccent)
+    onSave({ ...getValues(), accentColor: newAccent })
+  }
+
+  const handleDensityChange = (newDensity: 'comfortable' | 'compact') => {
+    setValue('density', newDensity, { shouldDirty: true })
+    onSave({ ...getValues(), density: newDensity })
+  }
 
   const submitAppearance = (values: AppearanceFormValues) => {
     if (onSave(values)) {
@@ -116,7 +156,9 @@ export function AppearanceSettingsSection({
             render={({ field }) => (
               <RadioGroup
                 value={field.value}
-                onValueChange={field.onChange}
+                onValueChange={(val) =>
+                  handleThemeChange(val as 'light' | 'dark' | 'system')
+                }
                 className="grid grid-cols-1 gap-3 sm:grid-cols-3"
               >
                 {THEME_OPTIONS.map((option) => {
@@ -157,7 +199,7 @@ export function AppearanceSettingsSection({
         <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <SettingsField
             label="Accent color"
-            helper="Saved for future app-wide personalization."
+            helper="Instantly personalizes dashboard chrome and branding."
           >
             <Controller
               control={control}
@@ -165,7 +207,11 @@ export function AppearanceSettingsSection({
               render={({ field }) => (
                 <RadioGroup
                   value={field.value}
-                  onValueChange={field.onChange}
+                  onValueChange={(val) =>
+                    handleAccentChange(
+                      val as 'blue' | 'teal' | 'violet' | 'coral',
+                    )
+                  }
                   className="grid grid-cols-2 gap-2"
                 >
                   {ACCENT_OPTIONS.map((option) => (
@@ -178,7 +224,7 @@ export function AppearanceSettingsSection({
                         className="h-3 w-3 rounded-full"
                         style={{ backgroundColor: option.color }}
                       />
-                      <span className="text-xs font-medium text-slate-600 dark:text-[var(--zf-text-muted)]">
+                      <span className="text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)]">
                         {option.label}
                       </span>
                     </label>
@@ -198,7 +244,9 @@ export function AppearanceSettingsSection({
               render={({ field }) => (
                 <SettingsSelect
                   value={field.value}
-                  onValueChange={field.onChange}
+                  onValueChange={(val) =>
+                    handleDensityChange(val as 'comfortable' | 'compact')
+                  }
                   options={DENSITY_OPTIONS}
                   ariaLabel="Display density"
                 />
@@ -209,10 +257,8 @@ export function AppearanceSettingsSection({
 
         <div className="mt-5">
           <SettingsNote>
-            Preferences are saved locally. Accent color updates dashboard chrome
-            (navigation, brand mark, focus rings, and Settings save actions).
-            Page CTAs, charts, and category colors still use the default blue until a
-            future pass. Density remains forthcoming.
+            Appearance changes apply live immediately. Accent color updates dashboard chrome
+            (navigation, brand mark, focus rings, and Settings actions).
           </SettingsNote>
         </div>
 

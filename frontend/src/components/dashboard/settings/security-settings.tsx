@@ -244,7 +244,7 @@ function ChangePasswordModal({
       <form onSubmit={handleSubmit} className="space-y-4">
         <p className="text-xs leading-relaxed text-slate-500 dark:text-[var(--zf-text-muted)]">
           For your security, a 6-digit verification code will be sent to{' '}
-          <strong className="font-semibold text-slate-700">{user?.email}</strong>.
+          <strong className="font-semibold text-slate-700 dark:text-[var(--zf-text)]">{user?.email}</strong>.
         </p>
 
         {!otpSent ? (
@@ -487,12 +487,12 @@ function DeleteAccountModal({
             </div>
 
             <div className="text-center">
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-slate-900 dark:text-[var(--zf-text)]">
                 Are you absolutely sure?
               </h3>
               <p className="mt-1.5 text-xs leading-relaxed text-slate-500 dark:text-[var(--zf-text-muted)]">
                 This will immediately and permanently delete your account for{' '}
-                <strong className="font-semibold text-slate-700">{user?.email}</strong>.
+                <strong className="font-semibold text-slate-700 dark:text-[var(--zf-text)]">{user?.email}</strong>.
                 All tasks, calendar events, expenses, and budgets will be wiped forever.
               </p>
             </div>
@@ -520,7 +520,7 @@ function DeleteAccountModal({
                     Deleting...
                   </span>
                 ) : (
-                  'Yes, delete everything'
+                  'Yes, delete my account'
                 )}
               </Button>
             </div>

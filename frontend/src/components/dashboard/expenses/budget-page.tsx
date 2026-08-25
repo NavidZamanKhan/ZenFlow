@@ -184,11 +184,11 @@ export function BudgetPage() {
           <div>
             <div className="flex items-center gap-2">
               <WalletCards size={18} className="text-[var(--zf-accent)]" aria-hidden="true" />
-              <h2 className="text-base font-bold text-slate-800">
+              <h2 className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">
                 Monthly budget
               </h2>
             </div>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               {Math.round(overallPercentage)}% used this month
             </p>
           </div>
