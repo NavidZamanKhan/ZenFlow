@@ -95,3 +95,33 @@
   font-size: 11px;
   font-weight: 600;
 }
+
+/* Dark Mode support */
+.dark .zenflow-calendar .fc {
+  --fc-border-color: #2e3a4d;
+  --fc-today-bg-color: rgba(29, 112, 232, 0.15);
+  --fc-page-bg-color: #1a2332;
+  --fc-neutral-bg-color: #0f1419;
+  --fc-now-indicator-color: #1d70e8;
+  --fc-highlight-color: rgba(29, 112, 232, 0.2);
+}
+
+.dark .zenflow-calendar .fc .fc-col-header-cell-cushion,
+.dark .zenflow-calendar .fc .fc-daygrid-day-number,
+.dark .zenflow-calendar .fc .fc-timegrid-slot-label-cushion,
+.dark .zenflow-calendar .fc .fc-timegrid-axis-cushion {
+  color: #94a3b8;
+}
+
+.dark .zenflow-calendar .fc .fc-day-today .fc-daygrid-day-number {
+  color: #67b2f5;
+}
+
+.dark .zenflow-calendar .fc .zenflow-task-event {
+  background: #134e48;
+  color: #5eead4;
+}
+
+.dark .zenflow-calendar .fc .zenflow-task-event .fc-event-main {
+  color: #5eead4;
+}

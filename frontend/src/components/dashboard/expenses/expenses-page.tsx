@@ -31,7 +31,7 @@ import { ExpenseFormModal } from './expense-form-modal'
 import { ExpenseRow } from './expense-row'
 
 const selectClass =
-  'px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-transparent transition-all'
+  'px-3 py-2 rounded-xl bg-slate-50 dark:bg-[var(--zf-surface)] border border-slate-100 dark:border-[var(--zf-border)] text-xs font-medium text-slate-600 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-transparent transition-all'
 
 function monthBounds(monthValue: string): { start: string; end: string } | null {
   if (!monthValue) return null
@@ -69,63 +69,61 @@ export function ExpensesPage() {
   const [editing, setEditing] = useState<Expense | null>(null)
   const [deleting, setDeleting] = useState<Expense | null>(null)
 
-  const summary = useMemo(
-    () => ({
-      total: totalExpenses(expenses),
-      today: todaysSpending(expenses),
-      month: monthlySpending(expenses),
-    }),
-    [expenses],
-  )
+  const bounds = useMemo(() => monthBounds(month), [month])
 
-  const visibleExpenses = useMemo(() => {
+  const filteredExpenses = useMemo(() => {
     const query = search.trim().toLowerCase()
-    const monthRange = monthBounds(month)
     const min = minAmount ? Number(minAmount) : null
     const max = maxAmount ? Number(maxAmount) : null
 
-    const filtered = expenses.filter((expense) => {
+    return expenses.filter((expense) => {
       if (category !== 'all' && expense.category !== category) return false
       if (paymentMethod !== 'all' && expense.paymentMethod !== paymentMethod) return false
-
-      if (monthRange) {
-        if (expense.date < monthRange.start || expense.date > monthRange.end) return false
+      if (bounds) {
+        if (expense.date < bounds.start || expense.date > bounds.end) return false
       }
       if (dateFrom && expense.date < dateFrom) return false
       if (dateTo && expense.date > dateTo) return false
-
       if (min !== null && Number.isFinite(min) && expense.amount < min) return false
       if (max !== null && Number.isFinite(max) && expense.amount > max) return false
-
-      if (query) {
-        const inTitle = expense.title.toLowerCase().includes(query)
-        const inNotes = expense.notes.toLowerCase().includes(query)
-        const inTags = expense.tags.some((tag) => tag.toLowerCase().includes(query))
-        if (!inTitle && !inNotes && !inTags) return false
+      if (
+        query &&
+        !expense.title.toLowerCase().includes(query) &&
+        !expense.notes.toLowerCase().includes(query) &&
+        !expense.tags.some((tag) => tag.toLowerCase().includes(query))
+      ) {
+        return false
       }
-
       return true
-    })
-
-    return [...filtered].sort((a, b) => {
-      if (sortKey === 'newest') return b.date.localeCompare(a.date)
-      if (sortKey === 'oldest') return a.date.localeCompare(b.date)
-      if (sortKey === 'highest') return b.amount - a.amount
-      if (sortKey === 'lowest') return a.amount - b.amount
-      return 0
     })
   }, [
     expenses,
     search,
     category,
     paymentMethod,
-    month,
+    bounds,
     dateFrom,
     dateTo,
     minAmount,
     maxAmount,
-    sortKey,
   ])
+
+  const visibleExpenses = useMemo(() => {
+    return [...filteredExpenses].sort((a, b) => {
+      if (sortKey === 'oldest') return a.date.localeCompare(b.date)
+      if (sortKey === 'highest') return b.amount - a.amount
+      if (sortKey === 'lowest') return a.amount - b.amount
+      return b.date.localeCompare(a.date)
+    })
+  }, [filteredExpenses, sortKey])
+
+  const summary = useMemo(() => {
+    return {
+      total: totalExpenses(expenses),
+      today: todaysSpending(expenses),
+      month: monthlySpending(expenses),
+    }
+  }, [expenses])
 
   const openCreate = () => {
     setEditing(null)
@@ -137,18 +135,14 @@ export function ExpensesPage() {
     setFormOpen(true)
   }
 
-  const closeForm = () => {
-    setFormOpen(false)
-    setEditing(null)
-  }
-
   const confirmDelete = async () => {
-    if (!deleting) return
-    const ok = await deleteExpense(deleting.id)
-    if (ok) setDeleting(null)
+    if (deleting) {
+      await deleteExpense(deleting.id)
+      setDeleting(null)
+    }
   }
 
-  if (loading) return <div className="p-8">Loading...</div>
+  if (loading) return <div className="p-8 text-slate-600 dark:text-slate-300">Loading...</div>
 
   if (error) {
     return (
@@ -165,13 +159,13 @@ export function ExpensesPage() {
       <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
         <div>
           <div className="flex items-center gap-2.5">
-            <p className="text-slate-500 text-sm font-medium mb-0.5">Track where your money goes</p>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#1D70E8] border border-blue-100/60">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-0.5">Track where your money goes</p>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-[#1D70E8] dark:text-blue-300 border border-blue-100/60 dark:border-blue-900/60">
               <Globe size={11} />
               {currency} {currency !== 'USD' ? `(1 USD ≈ ${rateAgainstUSD.toFixed(2)} ${currency})` : ''}
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Expenses</h1>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-[var(--zf-text)] tracking-tight">Expenses</h1>
         </div>
         <button
           type="button"
@@ -200,13 +194,13 @@ export function ExpensesPage() {
           label="This month"
           value={format(summary.month)}
         />
-        <div className="bg-white rounded-3xl p-5 border border-slate-100/80 shadow-sm">
+        <div className="bg-white dark:bg-[var(--zf-surface)] rounded-3xl p-5 border border-slate-100/80 dark:border-[var(--zf-border)] shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <PiggyBank size={18} className="text-[var(--zf-accent)]" />
-            <h2 className="text-sm font-bold text-slate-800">Remaining budget</h2>
+            <h2 className="text-sm font-bold text-slate-800 dark:text-[var(--zf-text)]">Remaining budget</h2>
           </div>
-          <p className="text-sm font-semibold text-slate-700 mb-1">Set a budget</p>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Set a budget</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
             Budgets are coming soon. This card is ready for when you define monthly limits.
           </p>
         </div>
@@ -220,7 +214,7 @@ export function ExpensesPage() {
           </label>
           <Search
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400"
             aria-hidden="true"
           />
           <input
@@ -229,7 +223,7 @@ export function ExpensesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search expenses..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-transparent transition-all"
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-[var(--zf-surface)] border border-slate-100 dark:border-[var(--zf-border)] text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-transparent transition-all"
           />
         </div>
         <select
@@ -317,10 +311,10 @@ export function ExpensesPage() {
       </div>
 
       {/* List card */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-100/80 shadow-sm">
+      <div className="bg-white dark:bg-[var(--zf-surface)] rounded-3xl p-6 border border-slate-100/80 dark:border-[var(--zf-border)] shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <Receipt size={18} className="text-[var(--zf-accent)]" />
-          <h2 className="text-base font-bold text-slate-800">
+          <h2 className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">
             {visibleExpenses.length === 1
               ? '1 expense'
               : `${visibleExpenses.length} expenses`}
@@ -413,12 +407,12 @@ function SummaryCard({
   value: string
 }) {
   return (
-    <div className="bg-white rounded-3xl p-5 border border-slate-100/80 shadow-sm">
+    <div className="bg-white dark:bg-[var(--zf-surface)] rounded-3xl p-5 border border-slate-100/80 dark:border-[var(--zf-border)] shadow-sm">
       <div className="flex items-center gap-2 mb-3">
         <Icon size={18} className="text-[var(--zf-accent)]" />
-        <h2 className="text-sm font-bold text-slate-800">{label}</h2>
+        <h2 className="text-sm font-bold text-slate-800 dark:text-[var(--zf-text)]">{label}</h2>
       </div>
-      <p className="text-2xl font-extrabold text-slate-800 tracking-tight tabular-nums">
+      <p className="text-2xl font-extrabold text-slate-800 dark:text-[var(--zf-text)] tracking-tight tabular-nums">
         {value}
       </p>
     </div>

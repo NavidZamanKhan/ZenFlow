@@ -22,8 +22,8 @@ const eventSchema = z
 type EventFormValues = z.infer<typeof eventSchema>
 
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-[var(--zf-accent)] transition-all'
-const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5'
+  'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--zf-surface)] border border-slate-200 dark:border-[var(--zf-border)] text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-[var(--zf-accent)] transition-all'
+const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5'
 
 export interface EventFormDefaults {
   start: string
@@ -112,14 +112,14 @@ function EventForm({
         <input
           id="event-title"
           type="text"
-          placeholder="e.g. Client sync — Northwind"
+          placeholder="e.g. Design review with team"
           aria-invalid={errors.title ? true : undefined}
           aria-describedby={errors.title ? 'event-title-error' : undefined}
           className={inputClass}
           {...register('title')}
         />
         {errors.title ? (
-          <p id="event-title-error" role="alert" className="mt-1.5 text-xs text-red-600">
+          <p id="event-title-error" role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
             {errors.title.message}
           </p>
         ) : null}
@@ -127,26 +127,28 @@ function EventForm({
 
       <div>
         <label htmlFor="event-description" className={labelClass}>
-          Description <span className="text-slate-500 font-normal">(optional)</span>
+          Description <span className="text-slate-500 dark:text-slate-400 font-normal">(optional)</span>
         </label>
         <textarea
           id="event-description"
           rows={3}
-          placeholder="Add any details..."
+          placeholder="Add location, video call link, or notes..."
           className={`${inputClass} resize-none`}
           {...register('description')}
         />
       </div>
 
-      <label htmlFor="event-all-day" className="flex items-center gap-2.5 text-sm text-slate-600 font-medium">
+      <div className="flex items-center justify-between py-1">
+        <label htmlFor="event-allday" className="text-sm font-medium text-slate-700 dark:text-slate-200 cursor-pointer">
+          All-day event
+        </label>
         <input
-          id="event-all-day"
+          id="event-allday"
           type="checkbox"
-          className="w-4 h-4 rounded border-slate-300 accent-[var(--zf-accent)]"
+          className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[var(--zf-accent)] focus:ring-[var(--zf-accent)]"
           {...register('allDay')}
         />
-        All day
-      </label>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
@@ -162,7 +164,7 @@ function EventForm({
             {...register('start')}
           />
           {errors.start ? (
-            <p id="event-start-error" role="alert" className="mt-1.5 text-xs text-red-600">
+            <p id="event-start-error" role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
               {errors.start.message}
             </p>
           ) : null}
@@ -180,7 +182,7 @@ function EventForm({
             {...register('end')}
           />
           {errors.end ? (
-            <p id="event-end-error" role="alert" className="mt-1.5 text-xs text-red-600">
+            <p id="event-end-error" role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
               {errors.end.message}
             </p>
           ) : null}
@@ -192,7 +194,7 @@ function EventForm({
           <button
             type="button"
             onClick={() => onDelete(event)}
-            className="px-4 py-2.5 rounded-xl text-sm font-medium text-rose-500 hover:bg-rose-50 transition-colors"
+            className="px-4 py-2.5 rounded-xl text-sm font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
           >
             Delete
           </button>
@@ -203,7 +205,7 @@ function EventForm({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
+            className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
           >
             Cancel
           </button>

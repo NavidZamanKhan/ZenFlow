@@ -150,12 +150,12 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
       {/* LEFT — auth panel */}
       <main
         id="auth-main"
-        className="flex w-full flex-col bg-slate-50 px-6 py-8 sm:px-12 lg:w-[45%] lg:px-14 lg:py-10"
+        className="flex w-full flex-col bg-slate-50 dark:bg-[var(--zf-canvas)] px-6 py-8 sm:px-12 lg:w-[45%] lg:px-14 lg:py-10"
       >
         {/* logo */}
         <Link href="/" className="flex w-fit items-center gap-2.5" aria-label="ZenFlow home">
           <ZenFlowLogo className="size-8 rounded-full bg-blue-500 text-white" />
-          <span className="text-lg font-bold tracking-tight text-slate-900">ZenFlow</span>
+          <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-[var(--zf-text)]">ZenFlow</span>
         </Link>
 
         {/* centered content */}
@@ -163,16 +163,16 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
           <div className="mx-auto w-full max-w-[420px]">
             <PillBadge>{badge}</PillBadge>
 
-            <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-lg shadow-slate-200/60 min-[480px]:mt-5 min-[480px]:p-8">
+            <div className="mt-4 rounded-2xl border border-slate-100 dark:border-[var(--zf-border)] bg-white dark:bg-[var(--zf-surface)] p-6 shadow-lg shadow-slate-200/60 dark:shadow-black/40 min-[480px]:mt-5 min-[480px]:p-8">
               {/* tab switcher */}
               <div
-                className="relative grid grid-cols-2 rounded-full bg-slate-100 p-1"
+                className="relative grid grid-cols-2 rounded-full bg-slate-100 dark:bg-slate-800 p-1"
                 role="tablist"
                 aria-label="Authentication"
               >
                 <span
                   className={cn(
-                    'absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-white shadow-sm transition-transform duration-150 ease-out',
+                    'absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-white dark:bg-[var(--zf-surface)] shadow-sm transition-transform duration-150 ease-out',
                     tab === 'signup' && 'translate-x-full',
                   )}
                   aria-hidden="true"
@@ -188,7 +188,7 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
                     onClick={() => setTab(value)}
                     className={cn(
                       'relative z-10 rounded-full py-2.5 text-sm transition-colors duration-150',
-                      tab === value ? 'font-semibold text-slate-900' : 'text-slate-500 hover:text-slate-700',
+                      tab === value ? 'font-semibold text-slate-900 dark:text-[var(--zf-text)]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200',
                     )}
                   >
                     {value === 'login' ? 'Log in' : 'Sign up'}
@@ -196,10 +196,10 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
                 ))}
               </div>
 
-              <h1 className="mt-6 text-xl font-bold text-slate-900 min-[480px]:text-2xl">
+              <h1 className="mt-6 text-xl font-bold text-slate-900 dark:text-[var(--zf-text)] min-[480px]:text-2xl">
                 {heading}
               </h1>
-              <p className="mt-1.5 text-sm text-slate-500">{subheading}</p>
+              <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">{subheading}</p>
 
               <div
                 id="auth-tabpanel"
@@ -212,9 +212,9 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
 
               {/* divider */}
               <div className="my-5 flex items-center gap-3 min-[480px]:my-6" aria-hidden="true">
-                <span className="h-px flex-1 bg-slate-200" />
-                <span className="text-xs text-slate-400">or continue with</span>
-                <span className="h-px flex-1 bg-slate-200" />
+                <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                <span className="text-xs text-slate-400 dark:text-slate-500">or continue with</span>
+                <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
               </div>
 
               {/* Google One-Click Button */}
@@ -222,12 +222,12 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
                 <GoogleAuthButton />
               </div>
 
-              <p className="mt-5 text-center text-sm text-slate-500 min-[480px]:mt-6">
+              <p className="mt-5 text-center text-sm text-slate-500 dark:text-slate-400 min-[480px]:mt-6">
                 {footerPrompt}{' '}
                 <button
                   type="button"
                   onClick={() => setTab(tab === 'login' ? 'signup' : 'login')}
-                  className="font-medium text-blue-500 transition-colors duration-150 hover:text-blue-600"
+                  className="font-medium text-blue-500 dark:text-blue-400 transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-300"
                 >
                   {footerAction}
                 </button>
@@ -237,15 +237,15 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
         </div>
 
         {/* footer */}
-        <footer className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500">
+        <footer className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500 dark:text-slate-400">
           <span>© 2026 ZenFlow</span>
-          <a href="#" className="transition-colors duration-150 hover:text-slate-700">
+          <a href="#" className="transition-colors duration-150 hover:text-slate-700 dark:hover:text-slate-200">
             Terms
           </a>
-          <a href="#" className="transition-colors duration-150 hover:text-slate-700">
+          <a href="#" className="transition-colors duration-150 hover:text-slate-700 dark:hover:text-slate-200">
             Privacy
           </a>
-          <a href="#" className="transition-colors duration-150 hover:text-slate-700">
+          <a href="#" className="transition-colors duration-150 hover:text-slate-700 dark:hover:text-slate-200">
             Help center
           </a>
         </footer>

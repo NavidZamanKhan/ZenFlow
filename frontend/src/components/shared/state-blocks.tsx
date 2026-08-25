@@ -28,8 +28,8 @@ export function EmptyState({
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--zf-accent-soft)]">
         <Icon size={22} className="text-[var(--zf-accent)]" aria-hidden="true" />
       </div>
-      <h2 className="mb-1 text-sm font-semibold text-slate-700">{title}</h2>
-      <p className="mb-5 max-w-[260px] text-xs leading-relaxed text-slate-500">
+      <h2 className="mb-1 text-sm font-semibold text-slate-700 dark:text-slate-200">{title}</h2>
+      <p className="mb-5 max-w-[260px] text-xs leading-relaxed text-slate-500 dark:text-slate-400">
         {description}
       </p>
       {action}
@@ -55,15 +55,15 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        'flex flex-col items-center rounded-3xl border border-rose-100 bg-rose-50/40 px-5 py-10 text-center',
+        'flex flex-col items-center rounded-3xl border border-rose-100 dark:border-rose-950/60 bg-rose-50/40 dark:bg-rose-950/20 px-5 py-10 text-center',
         className,
       )}
     >
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/40">
         <AlertCircle size={22} className="text-rose-500" aria-hidden="true" />
       </div>
-      <h2 className="mb-1 text-sm font-semibold text-slate-700">{title}</h2>
-      <p className="mb-5 max-w-[260px] text-xs leading-relaxed text-slate-500">
+      <h2 className="mb-1 text-sm font-semibold text-slate-700 dark:text-slate-200">{title}</h2>
+      <p className="mb-5 max-w-[260px] text-xs leading-relaxed text-slate-500 dark:text-slate-400">
         {description}
       </p>
       {onRetry ? (

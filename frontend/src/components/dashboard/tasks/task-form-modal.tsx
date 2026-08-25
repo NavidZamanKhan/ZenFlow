@@ -17,8 +17,8 @@ const taskSchema = z.object({
 type TaskFormValues = z.infer<typeof taskSchema>
 
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-[var(--zf-accent)] transition-all'
-const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5'
+  'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--zf-surface)] border border-slate-200 dark:border-[var(--zf-border)] text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-[var(--zf-accent)] transition-all'
+const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5'
 
 const priorityLabels: Record<TaskPriority, string> = {
   low: 'Low',
@@ -91,7 +91,7 @@ function TaskForm({
           {...register('title')}
         />
         {errors.title ? (
-          <p id="task-title-error" role="alert" className="mt-1.5 text-xs text-red-600">
+          <p id="task-title-error" role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
             {errors.title.message}
           </p>
         ) : null}
@@ -99,12 +99,12 @@ function TaskForm({
 
       <div>
         <label htmlFor="task-description" className={labelClass}>
-          Description <span className="text-slate-500 font-normal">(optional)</span>
+          Description <span className="text-slate-500 dark:text-slate-400 font-normal">(optional)</span>
         </label>
         <textarea
           id="task-description"
           rows={3}
-          placeholder="Add any details..."
+          placeholder="Add details, links, or notes..."
           className={`${inputClass} resize-none`}
           {...register('description')}
         />
@@ -113,9 +113,14 @@ function TaskForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label htmlFor="task-due-date" className={labelClass}>
-            Due date
+            Due date <span className="text-slate-500 dark:text-slate-400 font-normal">(optional)</span>
           </label>
-          <input id="task-due-date" type="date" className={inputClass} {...register('dueDate')} />
+          <input
+            id="task-due-date"
+            type="date"
+            className={inputClass}
+            {...register('dueDate')}
+          />
         </div>
         <div>
           <label htmlFor="task-priority" className={labelClass}>
@@ -133,7 +138,7 @@ function TaskForm({
 
       <div>
         <label htmlFor="task-category" className={labelClass}>
-          Category <span className="text-slate-500 font-normal">(optional)</span>
+          Category <span className="text-slate-500 dark:text-slate-400 font-normal">(optional)</span>
         </label>
         <input
           id="task-category"
@@ -148,7 +153,7 @@ function TaskForm({
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
+          className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
         >
           Cancel
         </button>

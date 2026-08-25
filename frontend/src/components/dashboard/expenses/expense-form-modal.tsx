@@ -50,11 +50,22 @@ const expenseSchema = z
     }
   })
 
-type ExpenseFormValues = z.infer<typeof expenseSchema>
+type ExpenseFormValues = {
+  title: string
+  amount: string
+  category: (typeof EXPENSE_CATEGORIES)[number]
+  date: string
+  paymentMethod: (typeof PAYMENT_METHODS)[number]
+  notes: string
+  receiptImage: string
+  isRecurring: boolean
+  recurringInterval: (typeof RECURRING_INTERVALS)[number] | ''
+  tags: string
+}
 
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-[var(--zf-accent)] transition-all'
-const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5'
+  'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--zf-surface)] border border-slate-200 dark:border-[var(--zf-border)] text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-[var(--zf-accent)] transition-all'
+const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5'
 
 interface ExpenseFormModalProps {
   open: boolean
@@ -92,14 +103,14 @@ function ExpenseForm({
     mode: 'onTouched',
     defaultValues: {
       title: expense?.title ?? '',
-      amount: expense ? String(expense.amount) : '',
+      amount: expense?.amount !== undefined ? String(expense.amount) : '',
       category: expense?.category ?? 'Food',
       date: expense?.date ?? todayISODate(),
       paymentMethod: expense?.paymentMethod ?? 'Card',
       notes: expense?.notes ?? '',
       receiptImage: expense?.receiptImage ?? '',
       isRecurring: expense?.isRecurring ?? false,
-      recurringInterval: expense?.recurringInterval ?? '',
+      recurringInterval: (expense?.recurringInterval as any) ?? '',
       tags: expense?.tags.join(', ') ?? '',
     },
   })
@@ -107,6 +118,11 @@ function ExpenseForm({
   const isRecurring = useWatch({ control, name: 'isRecurring' })
 
   const submit = async (values: ExpenseFormValues) => {
+    const rawTags = values.tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean)
+
     const ok = await onSubmit({
       title: values.title.trim(),
       amount: Number(values.amount),
@@ -114,15 +130,10 @@ function ExpenseForm({
       date: values.date,
       paymentMethod: values.paymentMethod,
       notes: values.notes.trim(),
-      receiptImage: values.receiptImage.trim() || null,
+      receiptImage: values.receiptImage.trim(),
       isRecurring: values.isRecurring,
-      recurringInterval: values.isRecurring
-        ? (values.recurringInterval as (typeof RECURRING_INTERVALS)[number])
-        : null,
-      tags: values.tags
-        .split(',')
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      recurringInterval: values.isRecurring && values.recurringInterval ? values.recurringInterval : null,
+      tags: rawTags,
     })
     if (ok) onClose()
   }
@@ -136,17 +147,17 @@ function ExpenseForm({
         <input
           id="expense-title"
           type="text"
-          placeholder="e.g. Groceries at FreshMart"
+          placeholder="e.g. Blue Bottle Coffee"
           aria-invalid={errors.title ? true : undefined}
           aria-describedby={errors.title ? 'expense-title-error' : undefined}
           className={inputClass}
           {...register('title')}
         />
-        {errors.title ? (
-          <p id="expense-title-error" role="alert" className="mt-1.5 text-xs text-red-600">
+        {errors.title && (
+          <p id="expense-title-error" role="alert" className="mt-1.5 text-xs text-red-500 dark:text-red-400">
             {errors.title.message}
           </p>
-        ) : null}
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -156,7 +167,7 @@ function ExpenseForm({
           </label>
           <div className="relative">
             <span
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-semibold"
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500 dark:text-slate-400"
               aria-hidden="true"
             >
               {meta.symbol}
@@ -164,8 +175,8 @@ function ExpenseForm({
             <input
               id="expense-amount"
               type="number"
-              min="0"
               step="0.01"
+              min="0"
               placeholder="0.00"
               aria-invalid={errors.amount ? true : undefined}
               aria-describedby={errors.amount ? 'expense-amount-error' : undefined}
@@ -173,12 +184,13 @@ function ExpenseForm({
               {...register('amount')}
             />
           </div>
-          {errors.amount ? (
-            <p id="expense-amount-error" role="alert" className="mt-1.5 text-xs text-red-600">
+          {errors.amount && (
+            <p id="expense-amount-error" role="alert" className="mt-1.5 text-xs text-red-500 dark:text-red-400">
               {errors.amount.message}
             </p>
-          ) : null}
+          )}
         </div>
+
         <div>
           <label htmlFor="expense-date" className={labelClass}>
             Date
@@ -191,11 +203,11 @@ function ExpenseForm({
             className={inputClass}
             {...register('date')}
           />
-          {errors.date ? (
-            <p id="expense-date-error" role="alert" className="mt-1.5 text-xs text-red-600">
+          {errors.date && (
+            <p id="expense-date-error" role="alert" className="mt-1.5 text-xs text-red-500 dark:text-red-400">
               {errors.date.message}
             </p>
-          ) : null}
+          )}
         </div>
       </div>
 
@@ -212,6 +224,7 @@ function ExpenseForm({
             ))}
           </select>
         </div>
+
         <div>
           <label htmlFor="expense-payment" className={labelClass}>
             Payment method
@@ -228,12 +241,12 @@ function ExpenseForm({
 
       <div>
         <label htmlFor="expense-notes" className={labelClass}>
-          Notes <span className="text-slate-500 font-normal">(optional)</span>
+          Notes <span className="text-slate-500 dark:text-slate-400 font-normal">(optional)</span>
         </label>
         <textarea
           id="expense-notes"
           rows={2}
-          placeholder="Add any details..."
+          placeholder="Add any notes or context..."
           className={`${inputClass} resize-none`}
           {...register('notes')}
         />
@@ -241,12 +254,12 @@ function ExpenseForm({
 
       <div>
         <label htmlFor="expense-tags" className={labelClass}>
-          Tags <span className="text-slate-500 font-normal">(comma-separated, optional)</span>
+          Tags <span className="text-slate-500 dark:text-slate-400 font-normal">(comma-separated)</span>
         </label>
         <input
           id="expense-tags"
           type="text"
-          placeholder="e.g. work, personal"
+          placeholder="e.g. coffee, meeting, tax-deductible"
           className={inputClass}
           {...register('tags')}
         />
@@ -254,7 +267,7 @@ function ExpenseForm({
 
       <div>
         <label htmlFor="expense-receipt" className={labelClass}>
-          Receipt URL <span className="text-slate-500 font-normal">(optional)</span>
+          Receipt image URL <span className="text-slate-500 dark:text-slate-400 font-normal">(optional)</span>
         </label>
         <input
           id="expense-receipt"
@@ -265,14 +278,17 @@ function ExpenseForm({
         />
       </div>
 
-      <label className="flex items-center gap-2.5 text-sm text-slate-600 font-medium">
+      <div className="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-300 font-medium">
         <input
+          id="expense-recurring"
           type="checkbox"
-          className="w-4 h-4 rounded border-slate-300 accent-[var(--zf-accent)]"
+          className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 accent-[var(--zf-accent)]"
           {...register('isRecurring')}
         />
-        Recurring expense
-      </label>
+        <label htmlFor="expense-recurring" className="cursor-pointer">
+          Recurring expense
+        </label>
+      </div>
 
       {isRecurring && (
         <div>
@@ -288,7 +304,7 @@ function ExpenseForm({
             ))}
           </select>
           {errors.recurringInterval && (
-            <p className="mt-1.5 text-xs text-red-500">{errors.recurringInterval.message}</p>
+            <p className="mt-1.5 text-xs text-red-500 dark:text-red-400">{errors.recurringInterval.message}</p>
           )}
         </div>
       )}
@@ -297,7 +313,7 @@ function ExpenseForm({
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
+          className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
         >
           Cancel
         </button>

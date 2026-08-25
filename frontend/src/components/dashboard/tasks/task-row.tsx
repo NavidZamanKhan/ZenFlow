@@ -5,9 +5,9 @@ import { formatDate, isOverdue } from '@/lib/dates'
 import type { Task, TaskPriority } from '@/types/task'
 
 const priorityPill: Record<TaskPriority, string> = {
-  low: 'bg-[#F1F3F5] text-slate-500',
-  medium: 'bg-[#E2EEFC] text-[#1D70E8]',
-  high: 'bg-rose-50 text-rose-500',
+  low: 'bg-[#F1F3F5] text-slate-500 dark:bg-slate-800 dark:text-slate-300',
+  medium: 'bg-[#E2EEFC] text-[#1D70E8] dark:bg-blue-950/60 dark:text-blue-300',
+  high: 'bg-rose-50 text-rose-500 dark:bg-rose-950/60 dark:text-rose-300',
 }
 
 const priorityLabels: Record<TaskPriority, string> = {
@@ -40,7 +40,7 @@ export function TaskRow({
       className={`group flex items-center gap-3 py-2.5 px-2 rounded-xl transition-colors ${
         highlighted
           ? 'bg-[var(--zf-accent-soft)] ring-2 ring-[color-mix(in_srgb,var(--zf-accent)_35%,transparent)]'
-          : 'hover:bg-slate-50/50'
+          : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/40'
       }`}
     >
       {/* Checkbox */}
@@ -53,7 +53,7 @@ export function TaskRow({
         {task.completed ? (
           <CheckCircle2 size={18} className="text-[var(--zf-accent)]" />
         ) : (
-          <span className="block w-[18px] h-[18px] rounded-full border border-slate-300 hover:border-[var(--zf-accent)] transition-colors" />
+          <span className="block w-[18px] h-[18px] rounded-full border border-slate-300 dark:border-slate-600 hover:border-[var(--zf-accent)] transition-colors" />
         )}
       </button>
 
@@ -61,7 +61,7 @@ export function TaskRow({
       <div className="flex-1 min-w-0">
         <p
           className={`text-sm font-medium truncate transition-all ${
-            task.completed ? 'line-through text-slate-500' : 'text-slate-700'
+            task.completed ? 'line-through text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200'
           }`}
         >
           {task.title}
@@ -69,7 +69,7 @@ export function TaskRow({
         {task.dueDate && (
           <p
             className={`flex items-center gap-1 text-xs mt-0.5 font-medium ${
-              overdue ? 'text-rose-500' : 'text-slate-500'
+              overdue ? 'text-rose-500 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
             <CalendarDays size={12} aria-hidden="true" />
@@ -87,7 +87,7 @@ export function TaskRow({
           {priorityLabels[task.priority]}
         </span>
         {task.category && (
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F1F3F5] text-slate-500 whitespace-nowrap">
+          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F1F3F5] dark:bg-slate-800 text-slate-500 dark:text-slate-300 whitespace-nowrap">
             {task.category}
           </span>
         )}
@@ -99,7 +99,7 @@ export function TaskRow({
           type="button"
           onClick={() => onEdit(task)}
           aria-label={`Edit ${task.title}`}
-          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-[var(--zf-accent-soft)] hover:text-[var(--zf-accent)] transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-[var(--zf-accent-soft)] hover:text-[var(--zf-accent)] transition-colors"
         >
           <Pencil size={14} />
         </button>
@@ -107,7 +107,7 @@ export function TaskRow({
           type="button"
           onClick={() => onDelete(task)}
           aria-label={`Delete ${task.title}`}
-          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
         >
           <Trash2 size={14} />
         </button>

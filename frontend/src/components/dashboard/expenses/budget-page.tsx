@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
 
 const CARD_CLASS =
-  'rounded-3xl border border-slate-100/80 bg-white shadow-sm'
+  'rounded-3xl border border-slate-100/80 dark:border-[var(--zf-border)] bg-white dark:bg-[var(--zf-surface)] shadow-sm'
 
 function progressColor(percentage: number): string {
   if (percentage >= 100) return 'bg-rose-500'
@@ -217,11 +217,11 @@ export function BudgetPage() {
         <div className="mb-4">
           <h2
             id="category-budgets-heading"
-            className="text-base font-bold text-slate-800"
+            className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]"
           >
             Category budgets
           </h2>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Limits and spending are calculated for the current calendar month.
           </p>
         </div>
@@ -254,10 +254,10 @@ export function BudgetPage() {
 function PageHeading() {
   return (
     <div className="mb-6">
-      <p className="mb-0.5 text-sm font-medium text-slate-500">
+      <p className="mb-0.5 text-sm font-medium text-slate-500 dark:text-slate-400">
         Plan spending with confidence
       </p>
-      <h1 className="text-2xl font-bold tracking-tight text-slate-800">
+      <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-[var(--zf-text)]">
         Budget
       </h1>
     </div>
@@ -300,7 +300,7 @@ const MonthlyBudgetForm = function MonthlyBudgetForm({
           Monthly budget amount
         </label>
         <span
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-semibold"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 dark:text-slate-400 font-semibold"
           aria-hidden="true"
         >
           {meta.symbol}
@@ -316,7 +316,7 @@ const MonthlyBudgetForm = function MonthlyBudgetForm({
             if (amount !== null) setDraft(formatAmountInput(amount))
           }}
           placeholder="0.00"
-          className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-7 pr-3 text-sm text-slate-700 outline-none transition focus:border-transparent focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]"
+          className="h-10 w-full rounded-xl border border-slate-200 dark:border-[var(--zf-border)] bg-white dark:bg-[var(--zf-surface)] pl-7 pr-3 text-sm text-slate-700 dark:text-slate-100 outline-none transition focus:border-transparent focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]"
         />
       </div>
       <button
@@ -384,7 +384,7 @@ function CategoryBudgetRow({
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="truncate text-sm font-bold text-slate-800">
+              <h3 className="truncate text-sm font-bold text-slate-800 dark:text-[var(--zf-text)]">
                 {category}
               </h3>
               {threshold !== null ? (
@@ -392,8 +392,8 @@ function CategoryBudgetRow({
                   role="status"
                   className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                     threshold >= 100
-                      ? 'bg-rose-50 text-rose-600'
-                      : 'bg-amber-50 text-amber-700'
+                      ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'
+                      : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
                   }`}
                 >
                   <AlertTriangle size={11} aria-hidden="true" />
@@ -401,7 +401,7 @@ function CategoryBudgetRow({
                 </span>
               ) : null}
             </div>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Budget {format(budgetAmount)} · Spent {format(spent)}
               {' · '}Remaining {format(remaining)}
             </p>
@@ -417,7 +417,7 @@ function CategoryBudgetRow({
           </label>
           <div className="relative min-w-0 sm:w-36">
             <span
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-semibold"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 dark:text-slate-400 font-semibold"
               aria-hidden="true"
             >
               {meta.symbol}
@@ -433,13 +433,13 @@ function CategoryBudgetRow({
                 if (amount !== null) setDraft(formatAmountInput(amount))
               }}
               placeholder="0.00"
-              className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-7 pr-3 text-sm text-slate-700 outline-none transition focus:border-transparent focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]"
+              className="h-9 w-full rounded-xl border border-slate-200 dark:border-[var(--zf-border)] bg-white dark:bg-[var(--zf-surface)] pl-7 pr-3 text-sm text-slate-700 dark:text-slate-100 outline-none transition focus:border-transparent focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]"
             />
           </div>
           <button
             type="submit"
             disabled={saving}
-            className="h-9 rounded-xl bg-slate-50 px-3 text-xs font-semibold text-slate-600 transition-colors hover:bg-[var(--zf-accent-soft)] hover:text-[var(--zf-accent)] disabled:pointer-events-none disabled:opacity-60"
+            className="h-9 rounded-xl bg-slate-50 dark:bg-slate-800 px-3 text-xs font-semibold text-slate-600 dark:text-slate-200 transition-colors hover:bg-[var(--zf-accent-soft)] hover:text-[var(--zf-accent)] disabled:pointer-events-none disabled:opacity-60"
           >
             Save
           </button>
@@ -467,10 +467,10 @@ function SummaryStat({
 }) {
   return (
     <div className={`${CARD_CLASS} p-5`}>
-      <p className="text-xs font-medium text-slate-500">{label}</p>
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
       <p
         className={`mt-1 truncate text-2xl font-extrabold tracking-tight tabular-nums ${
-          warning ? 'text-rose-600' : 'text-slate-800'
+          warning ? 'text-rose-600 dark:text-rose-400' : 'text-slate-800 dark:text-[var(--zf-text)]'
         }`}
         title={value}
       >

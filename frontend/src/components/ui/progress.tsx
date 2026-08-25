@@ -25,7 +25,7 @@ export function Progress({
       aria-valuemax={100}
       aria-valuenow={Math.round(normalized)}
       className={cn(
-        'h-2 w-full overflow-hidden rounded-full bg-slate-100',
+        'h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800',
         className,
       )}
     >

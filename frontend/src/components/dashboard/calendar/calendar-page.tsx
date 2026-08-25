@@ -156,17 +156,17 @@ export function CalendarPage() {
   }
 
   const toolbarButton =
-    'zf-tap relative p-2 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors'
+    'zf-tap relative p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-colors'
 
   return (
     <div className="px-4 sm:px-8 py-8 max-w-6xl">
       {/* Page header */}
       <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
         <div>
-          <p className="text-slate-500 text-sm font-medium mb-0.5">Plan your time with intent</p>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Calendar</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-0.5">Plan your time with intent</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-[var(--zf-text)] tracking-tight">Calendar</h1>
         </div>
-        <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
+        <div className="flex items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#1D70E8]" aria-hidden="true" />
             Events
@@ -179,16 +179,16 @@ export function CalendarPage() {
       </div>
 
       {/* Calendar card */}
-      <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-100/80 shadow-sm">
+      <div className="bg-white dark:bg-[var(--zf-surface)] rounded-3xl p-4 sm:p-6 border border-slate-100/80 dark:border-[var(--zf-border)] shadow-sm">
         {/* Custom toolbar */}
         <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
           <div className="flex items-center gap-2">
             <CalendarDays size={18} className="text-[var(--zf-accent)]" />
-            <h2 className="text-base font-bold text-slate-800">{title || 'Calendar'}</h2>
+            <h2 className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">{title || 'Calendar'}</h2>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {/* View switcher */}
-            <div className="flex items-center bg-[#F1F3F5] rounded-xl p-1">
+            <div className="flex items-center bg-[#F1F3F5] dark:bg-slate-800 rounded-xl p-1">
               {VIEWS.map((view) => (
                 <button
                   key={view.id}
@@ -196,8 +196,8 @@ export function CalendarPage() {
                   onClick={() => changeView(view.id)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
                     activeView === view.id
-                      ? 'bg-white text-slate-800 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700'
+                      ? 'bg-white dark:bg-[var(--zf-surface)] text-slate-800 dark:text-slate-100 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                   }`}
                 >
                   {view.label}

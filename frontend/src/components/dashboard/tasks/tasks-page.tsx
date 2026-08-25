@@ -15,7 +15,7 @@ import type { Task, TaskSortKey, TaskStatusFilter } from '@/types/task'
 const priorityRank = { high: 0, medium: 1, low: 2 } as const
 
 const selectClass =
-  'px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-transparent transition-all'
+  'px-3 py-2 rounded-xl bg-slate-50 dark:bg-[var(--zf-surface)] border border-slate-100 dark:border-[var(--zf-border)] text-xs font-medium text-slate-600 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-transparent transition-all'
 
 export function TasksPage() {
   const {
@@ -97,10 +97,10 @@ export function TasksPage() {
     <div className="max-w-5xl px-4 py-8 sm:px-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="mb-0.5 text-sm font-medium text-slate-500">
+          <p className="mb-0.5 text-sm font-medium text-slate-500 dark:text-slate-400">
             Stay on top of your day
           </p>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-[var(--zf-text)]">
             Tasks
           </h1>
         </div>
@@ -128,7 +128,7 @@ export function TasksPage() {
           </label>
           <Search
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400"
             aria-hidden="true"
           />
           <input
@@ -137,7 +137,7 @@ export function TasksPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tasks..."
-            className="w-full rounded-xl border border-slate-100 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]"
+            className="w-full rounded-xl border border-slate-100 dark:border-[var(--zf-border)] bg-slate-50 dark:bg-[var(--zf-surface)] py-2 pl-9 pr-3 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]"
           />
         </div>
         <select
@@ -175,10 +175,10 @@ export function TasksPage() {
         </select>
       </div>
 
-      <div className="rounded-3xl border border-slate-100/80 bg-white p-4 shadow-sm sm:p-6">
+      <div className="rounded-3xl border border-slate-100/80 dark:border-[var(--zf-border)] bg-white dark:bg-[var(--zf-surface)] p-4 shadow-sm sm:p-6">
         <div className="mb-4 flex items-center gap-2">
           <ListTodo size={18} className="text-[var(--zf-accent)]" />
-          <h2 className="text-base font-bold text-slate-800">
+          <h2 className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">
             {status === 'completed'
               ? 'Completed'
               : status === 'active'

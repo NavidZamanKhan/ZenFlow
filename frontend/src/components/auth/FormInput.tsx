@@ -30,14 +30,14 @@ export function FormInput({
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between">
-        <label htmlFor={inputId} className="text-sm font-medium text-slate-700">
+        <label htmlFor={inputId} className="text-sm font-medium text-slate-700 dark:text-slate-200">
           {label}
         </label>
         {labelRight}
       </div>
       <div className="relative">
         <Icon
-          className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400 dark:text-slate-500"
           aria-hidden="true"
         />
         <input
@@ -46,9 +46,9 @@ export function FormInput({
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            'h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 text-sm text-slate-900 transition-colors duration-150 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40',
+            'h-11 w-full rounded-xl border border-slate-200 dark:border-[var(--zf-border)] bg-white dark:bg-[var(--zf-surface)] pl-10 text-sm text-slate-900 dark:text-slate-100 transition-colors duration-150 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40',
             isPassword ? 'pr-10' : 'pr-3.5',
-            error && 'border-red-400',
+            error && 'border-red-400 dark:border-red-500',
           )}
           {...props}
         />

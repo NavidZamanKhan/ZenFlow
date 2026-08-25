@@ -30,7 +30,7 @@ export function ExpenseRow({
       className={`group flex items-center gap-3 py-2.5 px-2 rounded-xl transition-colors ${
         highlighted
           ? 'bg-[var(--zf-accent-soft)] ring-2 ring-[color-mix(in_srgb,var(--zf-accent)_35%,transparent)]'
-          : 'hover:bg-slate-50/50'
+          : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/40'
       }`}
     >
       <div
@@ -42,15 +42,15 @@ export function ExpenseRow({
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-700 truncate">{expense.title}</p>
-        <p className="flex items-center gap-1.5 text-xs mt-0.5 font-medium text-slate-500">
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{expense.title}</p>
+        <p className="flex items-center gap-1.5 text-xs mt-0.5 font-medium text-slate-500 dark:text-slate-400">
           <span>{formatDisplayDate(expense.date)}</span>
           <span aria-hidden="true">·</span>
           <span>{expense.paymentMethod}</span>
           {expense.isRecurring && (
             <>
               <span aria-hidden="true">·</span>
-              <span className="inline-flex items-center gap-0.5 text-[#1D70E8]">
+              <span className="inline-flex items-center gap-0.5 text-[#1D70E8] dark:text-blue-400">
                 <Repeat2 size={11} aria-hidden="true" />
                 {expense.recurringInterval}
               </span>
@@ -60,12 +60,12 @@ export function ExpenseRow({
       </div>
 
       <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
-        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F1F3F5] text-slate-500 whitespace-nowrap">
+        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F1F3F5] dark:bg-slate-800 text-slate-500 dark:text-slate-300 whitespace-nowrap">
           {expense.category}
         </span>
       </div>
 
-      <p className="text-sm font-bold text-slate-800 tabular-nums flex-shrink-0">
+      <p className="text-sm font-bold text-slate-800 dark:text-slate-100 tabular-nums flex-shrink-0">
         {format(expense.amount)}
       </p>
 
@@ -74,7 +74,7 @@ export function ExpenseRow({
           type="button"
           onClick={() => onEdit(expense)}
           aria-label={`Edit ${expense.title}`}
-          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-[var(--zf-accent-soft)] hover:text-[var(--zf-accent)] transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-[var(--zf-accent-soft)] hover:text-[var(--zf-accent)] transition-colors"
         >
           <Pencil size={14} />
         </button>
@@ -82,7 +82,7 @@ export function ExpenseRow({
           type="button"
           onClick={() => onDelete(expense)}
           aria-label={`Delete ${expense.title}`}
-          className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+          className="zf-tap relative p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
         >
           <Trash2 size={14} />
         </button>

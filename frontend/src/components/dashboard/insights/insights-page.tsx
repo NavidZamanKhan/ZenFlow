@@ -43,7 +43,7 @@ import { formatDisplayDate } from '@/lib/format'
 import { useCurrency } from '@/lib/currency-context'
 import { buildInsightsAnalytics, type SpendingPoint } from '@/lib/insights-stats'
 
-const CARD_CLASS = 'bg-white rounded-3xl border border-slate-100/80 shadow-sm'
+const CARD_CLASS = 'bg-white dark:bg-[var(--zf-surface)] rounded-3xl border border-slate-100/80 dark:border-[var(--zf-border)] shadow-sm'
 const PRIMARY_BLUE = '#1D70E8'
 const SOFT_BLUE = '#67B2F5'
 const SOFT_TEAL = '#7EDCD6'
@@ -56,10 +56,11 @@ const PAYMENT_COLORS = [
 ]
 const AXIS_TICK = { fill: '#94A3B8', fontSize: 11, fontWeight: 500 }
 const TOOLTIP_STYLE = {
-  border: '1px solid #E8EDF3',
+  backgroundColor: 'var(--zf-surface, #FFFFFF)',
+  borderColor: 'var(--zf-border, #E8EDF3)',
   borderRadius: '14px',
-  boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
-  color: '#334155',
+  boxShadow: '0 8px 24px rgba(15, 23, 42, 0.15)',
+  color: 'var(--zf-text, #334155)',
   fontSize: '12px',
 }
 
@@ -103,14 +104,6 @@ export function InsightsPage() {
   if (error) {
     return (
       <div className="max-w-5xl px-4 py-8 sm:px-8">
-        <div className="mb-6">
-          <p className="mb-0.5 text-sm font-medium text-slate-500">
-            Understand your spending patterns
-          </p>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">
-            Insights
-          </h1>
-        </div>
         <ErrorState description={error} onRetry={reload} />
       </div>
     )
@@ -119,10 +112,10 @@ export function InsightsPage() {
   return (
     <div className="px-4 sm:px-8 py-8 max-w-5xl">
       <div className="mb-6">
-        <p className="text-slate-500 text-sm font-medium mb-0.5">
-          Understand your spending patterns
+        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-0.5">
+          Clarity on where your money flows
         </p>
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Insights</h1>
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-[var(--zf-text)] tracking-tight">Insights</h1>
       </div>
 
       {expenses.length === 0 ? (
@@ -131,32 +124,20 @@ export function InsightsPage() {
         <>
           <section aria-labelledby="summary-heading" className="mb-6">
             <h2 id="summary-heading" className="sr-only">
-              Spending summary
+              Expense summary cards
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-              <SummaryCard icon={Wallet} label="Total expenses" value={format(analytics.total)} />
-              <SummaryCard icon={CalendarDays} label="This month" value={format(analytics.thisMonth)} />
-              <SummaryCard icon={Clock3} label="Last month" value={format(analytics.lastMonth)} />
-              <SummaryCard icon={Activity} label="Average daily" value={format(analytics.averageDaily)} />
-              <SummaryCard icon={TrendingUp} label="Average monthly" value={format(analytics.averageMonthly)} />
-              <SummaryCard
-                icon={PieChartIcon}
-                label="Highest category"
-                value={analytics.highestCategory?.category ?? '—'}
-                compact
-              />
-              <SummaryCard
-                icon={Receipt}
-                label="Total transactions"
-                value={analytics.totalTransactions.toLocaleString()}
-              />
+              <SummaryCard icon={Wallet} label="Total spending" value={format(analytics.total)} />
+              <SummaryCard icon={Receipt} label="This month" value={format(analytics.thisMonth)} />
+              <SummaryCard icon={Clock3} label="Daily average" value={format(analytics.averageDaily)} />
+              <SummaryCard icon={CreditCard} label="Total transactions" value={analytics.totalTransactions.toLocaleString()} />
             </div>
           </section>
 
           <section aria-labelledby="charts-heading" className="mb-6">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 size={18} className="text-[var(--zf-accent)]" />
-              <h2 id="charts-heading" className="text-base font-bold text-slate-800">
+              <h2 id="charts-heading" className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">
                 Spending charts
               </h2>
             </div>
@@ -171,7 +152,7 @@ export function InsightsPage() {
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={analytics.monthlyTrend} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-                    <CartesianGrid stroke="#EEF2F6" strokeDasharray="3 3" vertical={false} />
+                    <CartesianGrid stroke="#EEF2F6" strokeDasharray="3 3" vertical={false} opacity={0.3} />
                     <XAxis dataKey="key" tickFormatter={monthLabel} tick={AXIS_TICK} axisLine={false} tickLine={false} />
                     <YAxis tickFormatter={compactCurrency} tick={AXIS_TICK} axisLine={false} tickLine={false} width={58} />
                     <Tooltip
@@ -249,14 +230,14 @@ export function InsightsPage() {
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={analytics.weeklySpending} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-                    <CartesianGrid stroke="#EEF2F6" strokeDasharray="3 3" vertical={false} />
+                    <CartesianGrid stroke="#EEF2F6" strokeDasharray="3 3" vertical={false} opacity={0.3} />
                     <XAxis dataKey="key" tickFormatter={weekdayLabel} tick={AXIS_TICK} axisLine={false} tickLine={false} />
                     <YAxis tickFormatter={compactCurrency} tick={AXIS_TICK} axisLine={false} tickLine={false} width={58} />
                     <Tooltip
                       formatter={(value) => format(Number(value))}
                       labelFormatter={(label) => dayLabel(String(label))}
                       contentStyle={TOOLTIP_STYLE}
-                      cursor={{ fill: '#F5F8FC' }}
+                      cursor={{ fill: 'rgba(29, 112, 232, 0.08)' }}
                     />
                     <Bar dataKey="amount" name="Spending" isAnimationActive={animateCharts} fill={SOFT_BLUE} radius={[7, 7, 2, 2]} maxBarSize={34} />
                   </BarChart>
@@ -278,7 +259,7 @@ export function InsightsPage() {
                         <stop offset="95%" stopColor={SOFT_TEAL} stopOpacity={0.04} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid stroke="#EEF2F6" strokeDasharray="3 3" vertical={false} />
+                    <CartesianGrid stroke="#EEF2F6" strokeDasharray="3 3" vertical={false} opacity={0.3} />
                     <XAxis
                       dataKey="key"
                       tickFormatter={(key) => String(Number(String(key).slice(8, 10)))}
@@ -360,7 +341,7 @@ export function InsightsPage() {
           <section className={`${CARD_CLASS} p-6 mb-6`} aria-labelledby="breakdown-heading">
             <div className="flex items-center gap-2 mb-4">
               <PieChartIcon size={18} className="text-[var(--zf-accent)]" />
-              <h2 id="breakdown-heading" className="text-base font-bold text-slate-800">
+              <h2 id="breakdown-heading" className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">
                 Spending breakdown
               </h2>
             </div>
@@ -369,7 +350,7 @@ export function InsightsPage() {
                 const meta = EXPENSE_CATEGORY_META[item.category]
                 const Icon = meta.icon
                 return (
-                  <div key={item.category} className="flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-slate-50/50 transition-colors">
+                  <div key={item.category} className="flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                     <div
                       className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
                       style={{ backgroundColor: meta.softBg, color: meta.color }}
@@ -379,17 +360,17 @@ export function InsightsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-3 mb-1.5">
-                        <p className="text-sm font-medium text-slate-700 truncate">{item.category}</p>
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{item.category}</p>
                         <div className="flex items-center gap-3 flex-shrink-0">
-                          <span className="text-xs font-medium text-slate-500 tabular-nums">
+                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 tabular-nums">
                             {item.percentage.toFixed(1)}%
                           </span>
-                          <span className="text-sm font-bold text-slate-800 tabular-nums">
+                          <span className="text-sm font-bold text-slate-800 dark:text-slate-100 tabular-nums">
                             {format(item.amount)}
                           </span>
                         </div>
                       </div>
-                      <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <div
                           className="h-full rounded-full"
                           style={{ width: `${item.percentage}%`, backgroundColor: meta.color }}
@@ -405,7 +386,7 @@ export function InsightsPage() {
           <section className="mb-6" aria-labelledby="analytics-heading">
             <div className="flex items-center gap-2 mb-4">
               <Sparkles size={18} className="text-[var(--zf-accent)]" />
-              <h2 id="analytics-heading" className="text-base font-bold text-slate-800">
+              <h2 id="analytics-heading" className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">
                 Smart analytics
               </h2>
             </div>
@@ -429,7 +410,7 @@ export function InsightsPage() {
           <section aria-labelledby="trends-heading">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp size={18} className="text-[var(--zf-accent)]" />
-              <h2 id="trends-heading" className="text-base font-bold text-slate-800">
+              <h2 id="trends-heading" className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">
                 Trends
               </h2>
             </div>
@@ -501,10 +482,10 @@ function SummaryCard({
     <div className={`${CARD_CLASS} p-5`}>
       <div className="flex items-center gap-2 mb-3">
         <Icon size={18} className="text-[var(--zf-accent)]" />
-        <h2 className="text-sm font-bold text-slate-800">{label}</h2>
+        <h2 className="text-sm font-bold text-slate-800 dark:text-[var(--zf-text)]">{label}</h2>
       </div>
       <p
-        className={`${compact ? 'text-xl' : 'text-2xl'} font-extrabold text-slate-800 tracking-tight tabular-nums truncate`}
+        className={`${compact ? 'text-xl' : 'text-2xl'} font-extrabold text-slate-800 dark:text-[var(--zf-text)] tracking-tight tabular-nums truncate`}
         title={value}
       >
         {value}
@@ -535,8 +516,8 @@ function ChartCard({
       <div className="flex items-start gap-2 mb-4">
         <Icon size={18} className="text-[var(--zf-accent)] mt-0.5 flex-shrink-0" />
         <div>
-          <h3 className="text-sm font-bold text-slate-800">{title}</h3>
-          <p className="text-xs text-slate-500 mt-0.5">{description}</p>
+          <h3 className="text-sm font-bold text-slate-800 dark:text-[var(--zf-text)]">{title}</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{description}</p>
         </div>
       </div>
       <div className="h-[270px]" role="img" aria-label={title}>
@@ -552,7 +533,7 @@ function ChartEmpty({ message }: { message: string }) {
       <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--zf-accent-soft)]">
         <BarChart3 size={18} className="text-[var(--zf-accent)]" />
       </div>
-      <p className="text-xs text-slate-500 leading-relaxed max-w-[240px]">{message}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-[240px]">{message}</p>
     </div>
   )
 }
@@ -570,9 +551,9 @@ function ChartLegend({
         <div key={item.label} className="flex items-center justify-between gap-3 py-1">
           <span className="flex items-center gap-2 min-w-0">
             <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-            <span className="text-xs font-medium text-slate-500 truncate">{item.label}</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">{item.label}</span>
           </span>
-          <span className="text-xs font-bold text-slate-700 tabular-nums">{item.value}</span>
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-200 tabular-nums">{item.value}</span>
         </div>
       ))}
     </div>
@@ -585,7 +566,7 @@ function InsightCard({ text }: { text: string }) {
       <div className="w-8 h-8 rounded-xl bg-[var(--zf-accent-soft)] flex items-center justify-center flex-shrink-0">
         <Sparkles size={15} className="text-[var(--zf-accent)]" />
       </div>
-      <p className="text-sm text-slate-600 leading-relaxed">{text}</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{text}</p>
     </div>
   )
 }
@@ -605,10 +586,10 @@ function TrendCard({
     <div className={`${CARD_CLASS} p-5`}>
       <div className="flex items-center gap-2 mb-3">
         <Icon size={17} className="text-[var(--zf-accent)]" />
-        <p className="text-xs font-semibold text-slate-500">{label}</p>
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</p>
       </div>
-      <p className="text-sm font-bold text-slate-800 truncate" title={value}>{value}</p>
-      <p className="text-xs text-slate-500 mt-1 tabular-nums">{detail}</p>
+      <p className="text-sm font-bold text-slate-800 dark:text-[var(--zf-text)] truncate" title={value}>{value}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 tabular-nums">{detail}</p>
     </div>
   )
 }
