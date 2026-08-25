@@ -67,7 +67,7 @@ export function AppearanceSettingsSection({
   appearance: AppearanceSettings
   onSave: (appearance: AppearanceSettings) => boolean
 }) {
-  const { setTheme, resolvedTheme } = useTheme()
+  const { theme: activeTheme, setTheme, resolvedTheme } = useTheme()
   const {
     control,
     handleSubmit,
@@ -78,12 +78,18 @@ export function AppearanceSettingsSection({
   } = useForm<AppearanceFormValues>({
     resolver: zodResolver(appearanceSchema),
     mode: 'onTouched',
-    defaultValues: appearance,
+    defaultValues: {
+      ...appearance,
+      theme: (activeTheme as AppearanceFormValues['theme']) || appearance.theme || 'light',
+    },
   })
 
   useEffect(() => {
-    reset(appearance)
-  }, [appearance, reset])
+    reset({
+      ...appearance,
+      theme: (activeTheme as AppearanceFormValues['theme']) || appearance.theme || 'light',
+    })
+  }, [appearance, activeTheme, reset])
 
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
     setValue('theme', newTheme, { shouldDirty: true })

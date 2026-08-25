@@ -21,13 +21,25 @@ function mergeStoredSettings(
 ): ZenFlowSettings {
   if (!isRecord(stored)) return defaults
 
+  const storedAppearance = isRecord(stored.appearance) ? stored.appearance : {}
+  const activeUiTheme =
+    typeof window !== 'undefined'
+      ? (localStorage.getItem('zenflow:ui-theme') as ZenFlowSettings['appearance']['theme'] | null)
+      : null
+
   return {
     profile: isRecord(stored.profile)
       ? { ...defaults.profile, ...stored.profile }
       : defaults.profile,
-    appearance: isRecord(stored.appearance)
-      ? { ...defaults.appearance, ...stored.appearance }
-      : defaults.appearance,
+    appearance: {
+      ...defaults.appearance,
+      ...storedAppearance,
+      theme:
+        activeUiTheme && ['light', 'dark', 'system'].includes(activeUiTheme)
+          ? activeUiTheme
+          : (storedAppearance.theme as ZenFlowSettings['appearance']['theme']) ||
+            defaults.appearance.theme,
+    },
     expensePreferences: isRecord(stored.expensePreferences)
       ? { ...defaults.expensePreferences, ...stored.expensePreferences }
       : defaults.expensePreferences,
@@ -95,6 +107,12 @@ export function useSettings() {
       try {
         const next = { ...settings, [section]: value }
         localStorage.setItem(settingsStorageKey(userEmail), JSON.stringify(next))
+        if (section === 'appearance') {
+          const app = value as ZenFlowSettings['appearance']
+          if (app.theme && typeof window !== 'undefined') {
+            localStorage.setItem('zenflow:ui-theme', app.theme)
+          }
+        }
         setSettings(next)
         return true
       } catch {

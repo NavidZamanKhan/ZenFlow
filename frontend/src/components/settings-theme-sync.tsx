@@ -19,16 +19,34 @@ import { useSettings } from '@/hooks/use-settings'
 export function SettingsThemeSync() {
   const { user } = useAuth()
   const { settings, loading } = useSettings()
-  const { setTheme } = useTheme()
-  const setThemeRef = useRef(setTheme)
-  setThemeRef.current = setTheme
+  const { theme: activeTheme, setTheme } = useTheme()
+  const initialSyncDone = useRef(false)
 
   const theme = settings.appearance.theme
 
   useEffect(() => {
     if (!user || loading) return
-    setThemeRef.current(theme)
-  }, [user, loading, theme])
+
+    // On initial load, if ui-theme is already stored in browser, don't clobber it
+    if (!initialSyncDone.current) {
+      initialSyncDone.current = true
+      const storedUiTheme =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('zenflow:ui-theme')
+          : null
+      if (storedUiTheme && ['light', 'dark', 'system'].includes(storedUiTheme)) {
+        // UI theme is already present, match next-themes
+        if (storedUiTheme !== activeTheme) {
+          setTheme(storedUiTheme)
+        }
+        return
+      }
+    }
+
+    if (theme && theme !== activeTheme) {
+      setTheme(theme)
+    }
+  }, [user, loading, theme, activeTheme, setTheme])
 
   return null
 }
