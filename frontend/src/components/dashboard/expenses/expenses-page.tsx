@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import {
   CalendarDays,
+  Globe,
   PiggyBank,
   Plus,
   Receipt,
@@ -16,7 +17,7 @@ import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
 import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
 import { Skeleton } from '@/components/ui/skeleton'
 import { monthlySpending, todaysSpending, totalExpenses } from '@/lib/expense-stats'
-import { formatCurrency } from '@/lib/format'
+import { useCurrency } from '@/lib/currency-context'
 import { todayISODate } from '@/lib/dates'
 import {
   EXPENSE_CATEGORIES,
@@ -42,6 +43,7 @@ function monthBounds(monthValue: string): { start: string; end: string } | null 
 }
 
 export function ExpensesPage() {
+  const { format, currency, rateAgainstUSD } = useCurrency()
   const {
     expenses,
     loading,
@@ -106,12 +108,24 @@ export function ExpensesPage() {
     })
 
     return [...filtered].sort((a, b) => {
-      if (sortKey === 'oldest') return a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt)
+      if (sortKey === 'newest') return b.date.localeCompare(a.date)
+      if (sortKey === 'oldest') return a.date.localeCompare(b.date)
       if (sortKey === 'highest') return b.amount - a.amount
       if (sortKey === 'lowest') return a.amount - b.amount
-      return b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)
+      return 0
     })
-  }, [expenses, search, category, paymentMethod, month, dateFrom, dateTo, minAmount, maxAmount, sortKey])
+  }, [
+    expenses,
+    search,
+    category,
+    paymentMethod,
+    month,
+    dateFrom,
+    dateTo,
+    minAmount,
+    maxAmount,
+    sortKey,
+  ])
 
   const openCreate = () => {
     setEditing(null)
@@ -123,10 +137,25 @@ export function ExpensesPage() {
     setFormOpen(true)
   }
 
+  const closeForm = () => {
+    setFormOpen(false)
+    setEditing(null)
+  }
+
   const confirmDelete = async () => {
     if (!deleting) return
     const ok = await deleteExpense(deleting.id)
     if (ok) setDeleting(null)
+  }
+
+  if (loading) return <div className="p-8">Loading...</div>
+
+  if (error) {
+    return (
+      <div className="px-4 sm:px-8 py-8 max-w-5xl">
+        <ErrorState description={error} onRetry={reload} />
+      </div>
+    )
   }
 
   const currentMonthValue = todayISODate().slice(0, 7)
@@ -135,7 +164,13 @@ export function ExpensesPage() {
     <div className="px-4 sm:px-8 py-8 max-w-5xl">
       <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
         <div>
-          <p className="text-slate-500 text-sm font-medium mb-0.5">Track where your money goes</p>
+          <div className="flex items-center gap-2.5">
+            <p className="text-slate-500 text-sm font-medium mb-0.5">Track where your money goes</p>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#1D70E8] border border-blue-100/60">
+              <Globe size={11} />
+              {currency} {currency !== 'USD' ? `(1 USD ≈ ${rateAgainstUSD.toFixed(2)} ${currency})` : ''}
+            </span>
+          </div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Expenses</h1>
         </div>
         <button
@@ -153,17 +188,17 @@ export function ExpensesPage() {
         <SummaryCard
           icon={Wallet}
           label="Total expenses"
-          value={formatCurrency(summary.total)}
+          value={format(summary.total)}
         />
         <SummaryCard
           icon={CalendarDays}
           label="Today's spending"
-          value={formatCurrency(summary.today)}
+          value={format(summary.today)}
         />
         <SummaryCard
           icon={Receipt}
           label="This month"
-          value={formatCurrency(summary.month)}
+          value={format(summary.month)}
         />
         <div className="bg-white rounded-3xl p-5 border border-slate-100/80 shadow-sm">
           <div className="flex items-center gap-2 mb-3">

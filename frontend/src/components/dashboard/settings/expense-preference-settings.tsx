@@ -3,12 +3,13 @@
 import { useEffect } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ReceiptText, Save } from 'lucide-react'
+import { ArrowRightLeft, Globe, Loader2, ReceiptText, RefreshCw, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
+import { useCurrency } from '@/lib/currency-context'
 import {
   EXPENSE_CATEGORIES,
   PAYMENT_METHODS,
@@ -19,7 +20,6 @@ import {
 } from '@/types/settings'
 import {
   SettingsField,
-  SettingsNote,
   SettingsSection,
   SettingsSelect,
 } from './settings-section'
@@ -37,14 +37,14 @@ const expensePreferenceSchema = z.object({
 type ExpensePreferenceFormValues = z.infer<typeof expensePreferenceSchema>
 
 const CURRENCY_OPTIONS = [
-  { value: 'USD', label: 'USD — US Dollar' },
-  { value: 'EUR', label: 'EUR — Euro' },
-  { value: 'GBP', label: 'GBP — British Pound' },
-  { value: 'BDT', label: 'BDT — Bangladeshi Taka' },
-  { value: 'INR', label: 'INR — Indian Rupee' },
-  { value: 'JPY', label: 'JPY — Japanese Yen' },
-  { value: 'CAD', label: 'CAD — Canadian Dollar' },
-  { value: 'AUD', label: 'AUD — Australian Dollar' },
+  { value: 'BDT', label: 'BDT — Bangladeshi Taka (৳)' },
+  { value: 'USD', label: 'USD — US Dollar ($)' },
+  { value: 'EUR', label: 'EUR — Euro (€)' },
+  { value: 'GBP', label: 'GBP — British Pound (£)' },
+  { value: 'INR', label: 'INR — Indian Rupee (₹)' },
+  { value: 'JPY', label: 'JPY — Japanese Yen (¥)' },
+  { value: 'CAD', label: 'CAD — Canadian Dollar (CA$)' },
+  { value: 'AUD', label: 'AUD — Australian Dollar (AU$)' },
 ] as const
 
 const DATE_FORMAT_OPTIONS = [
@@ -81,6 +81,8 @@ export function ExpensePreferenceSettingsSection({
   preferences: ExpensePreferenceSettings
   onSave: (preferences: ExpensePreferenceSettings) => boolean
 }) {
+  const { rates, rateAgainstUSD, lastUpdated, isLive, loadingRates, refreshRates } = useCurrency()
+
   const {
     control,
     handleSubmit,
@@ -100,8 +102,14 @@ export function ExpensePreferenceSettingsSection({
     control,
     name: 'defaultCategory',
   })
-  const categoryMeta = EXPENSE_CATEGORY_META[selectedCategory]
+  const selectedCurrency = useWatch({
+    control,
+    name: 'currency',
+  })
+
+  const categoryMeta = EXPENSE_CATEGORY_META[selectedCategory] || EXPENSE_CATEGORY_META.Food
   const CategoryIcon = categoryMeta.icon
+  const activeRate = rates[selectedCurrency] || 1
 
   const submitPreferences = (values: ExpensePreferenceFormValues) => {
     if (onSave(values)) {
@@ -111,12 +119,17 @@ export function ExpensePreferenceSettingsSection({
     }
   }
 
+  const handleRefreshRates = async () => {
+    await refreshRates()
+    toast.success('Live exchange rates updated from market data.')
+  }
+
   return (
     <SettingsSection
       id="expense-preferences"
       icon={ReceiptText}
       title="Expense preferences"
-      description="Set defaults that future expense workflows can consume."
+      description="Customize your currency, formatting defaults, and live exchange rates."
     >
       <form onSubmit={handleSubmit(submitPreferences)} noValidate>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -223,7 +236,46 @@ export function ExpensePreferenceSettingsSection({
           </SettingsField>
         </div>
 
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 mt-5">
+        {/* Live Exchange Rate Card */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-[#F4F8FD] p-4 mt-5">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-[#1D70E8] flex items-center justify-center flex-shrink-0">
+              <Globe size={16} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-bold text-slate-800">
+                  Live Market Exchange Rate
+                </p>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">
+                  {isLive ? 'Live' : 'Cached'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                $1.00 USD = <strong className="font-semibold text-slate-900">{activeRate.toFixed(2)} {selectedCurrency}</strong>
+                <span className="text-slate-400 ml-1.5">({lastUpdated})</span>
+              </p>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshRates}
+            disabled={loadingRates}
+            className="h-8 rounded-xl border-blue-200 bg-white text-xs font-semibold text-[#1D70E8] hover:bg-blue-50"
+          >
+            {loadingRates ? (
+              <Loader2 size={13} className="animate-spin mr-1.5" />
+            ) : (
+              <RefreshCw size={13} className="mr-1.5" />
+            )}
+            Refresh rate
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 mt-4">
           <div>
             <p className="text-sm font-semibold text-slate-700">24-hour time</p>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -244,14 +296,6 @@ export function ExpensePreferenceSettingsSection({
               />
             )}
           />
-        </div>
-
-        <div className="mt-5">
-          <SettingsNote>
-            These defaults are stored and ready for future consumers. Existing
-            Expenses and Insights formatting remains unchanged until a separate
-            app-wide preference integration is approved.
-          </SettingsNote>
         </div>
 
         <div className="flex justify-end mt-5">

@@ -1,24 +1,29 @@
 /**
  * Shared display formatters.
- * Currency/date preferences from Settings can later drive these helpers
- * without touching consuming components.
  */
 
-export type CurrencyCode = 'USD' | 'EUR' | 'BDT' | 'INR'
+import {
+  CurrencyCode,
+  CURRENCY_METADATA,
+} from './currency'
 
-const CURRENCY_LOCALES: Record<CurrencyCode, string> = {
-  USD: 'en-US',
-  EUR: 'de-DE',
-  BDT: 'en-BD',
-  INR: 'en-IN',
-}
+export type { CurrencyCode }
 
-export function formatCurrency(amount: number, currency: CurrencyCode = 'USD'): string {
-  return new Intl.NumberFormat(CURRENCY_LOCALES[currency], {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 2,
-  }).format(amount)
+export function formatCurrency(
+  amount: number,
+  currency: CurrencyCode = 'BDT',
+): string {
+  const meta = CURRENCY_METADATA[currency] || CURRENCY_METADATA.BDT
+  try {
+    return new Intl.NumberFormat(meta.locale, {
+      style: 'currency',
+      currency: meta.code,
+      maximumFractionDigits: meta.fractionDigits,
+      minimumFractionDigits: meta.fractionDigits,
+    }).format(amount)
+  } catch {
+    return `${meta.symbol}${amount.toFixed(meta.fractionDigits)}`
+  }
 }
 
 export type DateFormatPreference = 'MDY' | 'DMY'

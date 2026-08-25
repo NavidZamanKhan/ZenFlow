@@ -39,7 +39,8 @@ import { usePrefersReducedMotion } from '@/hooks/use-reduced-motion'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
-import { formatCurrency, formatDisplayDate } from '@/lib/format'
+import { formatDisplayDate } from '@/lib/format'
+import { useCurrency } from '@/lib/currency-context'
 import { buildInsightsAnalytics, type SpendingPoint } from '@/lib/insights-stats'
 
 const CARD_CLASS = 'bg-white rounded-3xl border border-slate-100/80 shadow-sm'
@@ -77,24 +78,25 @@ function weekdayLabel(key: string): string {
   return date.toLocaleDateString('en-US', { weekday: 'short' })
 }
 
-function compactCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    notation: 'compact',
-    maximumFractionDigits: 1,
-  }).format(value)
-}
-
 function hasSpending(points: SpendingPoint[]): boolean {
   return points.some((point) => point.amount > 0)
 }
 
 export function InsightsPage() {
   const { expenses, loading, error, reload } = useExpenses()
+  const { format, meta, convert } = useCurrency()
   const analytics = useMemo(() => buildInsightsAnalytics(expenses), [expenses])
   // Recharts animates entrances by default — disable under prefers-reduced-motion.
   const animateCharts = !usePrefersReducedMotion()
+
+  const compactCurrency = (value: number): string => {
+    return new Intl.NumberFormat(meta.locale, {
+      style: 'currency',
+      currency: meta.code,
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(convert(value))
+  }
 
   if (loading) return <InsightsLoading />
 
@@ -132,11 +134,11 @@ export function InsightsPage() {
               Spending summary
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-              <SummaryCard icon={Wallet} label="Total expenses" value={formatCurrency(analytics.total)} />
-              <SummaryCard icon={CalendarDays} label="This month" value={formatCurrency(analytics.thisMonth)} />
-              <SummaryCard icon={Clock3} label="Last month" value={formatCurrency(analytics.lastMonth)} />
-              <SummaryCard icon={Activity} label="Average daily" value={formatCurrency(analytics.averageDaily)} />
-              <SummaryCard icon={TrendingUp} label="Average monthly" value={formatCurrency(analytics.averageMonthly)} />
+              <SummaryCard icon={Wallet} label="Total expenses" value={format(analytics.total)} />
+              <SummaryCard icon={CalendarDays} label="This month" value={format(analytics.thisMonth)} />
+              <SummaryCard icon={Clock3} label="Last month" value={format(analytics.lastMonth)} />
+              <SummaryCard icon={Activity} label="Average daily" value={format(analytics.averageDaily)} />
+              <SummaryCard icon={TrendingUp} label="Average monthly" value={format(analytics.averageMonthly)} />
               <SummaryCard
                 icon={PieChartIcon}
                 label="Highest category"
@@ -173,7 +175,7 @@ export function InsightsPage() {
                     <XAxis dataKey="key" tickFormatter={monthLabel} tick={AXIS_TICK} axisLine={false} tickLine={false} />
                     <YAxis tickFormatter={compactCurrency} tick={AXIS_TICK} axisLine={false} tickLine={false} width={58} />
                     <Tooltip
-                      formatter={(value) => formatCurrency(Number(value))}
+                      formatter={(value) => format(Number(value))}
                       labelFormatter={(label) => monthLabel(String(label))}
                       contentStyle={TOOLTIP_STYLE}
                       cursor={{ stroke: '#D7E7FA', strokeWidth: 1 }}
@@ -204,7 +206,7 @@ export function InsightsPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Tooltip
-                          formatter={(value) => formatCurrency(Number(value))}
+                          formatter={(value) => format(Number(value))}
                           contentStyle={TOOLTIP_STYLE}
                         />
                         <Pie
@@ -251,7 +253,7 @@ export function InsightsPage() {
                     <XAxis dataKey="key" tickFormatter={weekdayLabel} tick={AXIS_TICK} axisLine={false} tickLine={false} />
                     <YAxis tickFormatter={compactCurrency} tick={AXIS_TICK} axisLine={false} tickLine={false} width={58} />
                     <Tooltip
-                      formatter={(value) => formatCurrency(Number(value))}
+                      formatter={(value) => format(Number(value))}
                       labelFormatter={(label) => dayLabel(String(label))}
                       contentStyle={TOOLTIP_STYLE}
                       cursor={{ fill: '#F5F8FC' }}
@@ -287,7 +289,7 @@ export function InsightsPage() {
                     />
                     <YAxis tickFormatter={compactCurrency} tick={AXIS_TICK} axisLine={false} tickLine={false} width={58} />
                     <Tooltip
-                      formatter={(value) => formatCurrency(Number(value))}
+                      formatter={(value) => format(Number(value))}
                       labelFormatter={(label) => dayLabel(String(label))}
                       contentStyle={TOOLTIP_STYLE}
                       cursor={{ stroke: '#D7E7FA', strokeWidth: 1 }}
@@ -318,7 +320,7 @@ export function InsightsPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Tooltip
-                          formatter={(value) => formatCurrency(Number(value))}
+                          formatter={(value) => format(Number(value))}
                           contentStyle={TOOLTIP_STYLE}
                         />
                         <Pie
@@ -383,7 +385,7 @@ export function InsightsPage() {
                             {item.percentage.toFixed(1)}%
                           </span>
                           <span className="text-sm font-bold text-slate-800 tabular-nums">
-                            {formatCurrency(item.amount)}
+                            {format(item.amount)}
                           </span>
                         </div>
                       </div>
@@ -410,13 +412,13 @@ export function InsightsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <InsightCard text={monthComparisonText(analytics.monthChangePercentage)} />
               <InsightCard
-                text={`${analytics.highestCategory?.category ?? 'No category'} is your highest spending category at ${formatCurrency(analytics.highestCategory?.amount ?? 0)}.`}
+                text={`${analytics.highestCategory?.category ?? 'No category'} is your highest spending category at ${format(analytics.highestCategory?.amount ?? 0)}.`}
               />
               <InsightCard
-                text={`${analytics.lowestCategory?.category ?? 'No category'} is your lowest active category at ${formatCurrency(analytics.lowestCategory?.amount ?? 0)}.`}
+                text={`${analytics.lowestCategory?.category ?? 'No category'} is your lowest active category at ${format(analytics.lowestCategory?.amount ?? 0)}.`}
               />
               <InsightCard
-                text={`Average spending is ${formatCurrency(analytics.averageDaily)} per active spending day.`}
+                text={`Average spending is ${format(analytics.averageDaily)} per active spending day.`}
               />
               <InsightCard
                 text={`${analytics.currentMonthTransactions.toLocaleString()} ${analytics.currentMonthTransactions === 1 ? 'transaction was' : 'transactions were'} recorded this month.`}
@@ -438,7 +440,7 @@ export function InsightsPage() {
                 value={analytics.biggestCategoryIncrease?.category ?? 'Not enough data'}
                 detail={
                   analytics.biggestCategoryIncrease
-                    ? `${formatCurrency(analytics.biggestCategoryIncrease.amount)} more than last month`
+                    ? `${format(analytics.biggestCategoryIncrease.amount)} more than last month`
                     : 'No category increased month over month'
                 }
               />
@@ -448,7 +450,7 @@ export function InsightsPage() {
                 value={analytics.biggestCategoryDecrease?.category ?? 'Not enough data'}
                 detail={
                   analytics.biggestCategoryDecrease
-                    ? `${formatCurrency(Math.abs(analytics.biggestCategoryDecrease.amount))} less than last month`
+                    ? `${format(Math.abs(analytics.biggestCategoryDecrease.amount))} less than last month`
                     : 'No category decreased month over month'
                 }
               />
@@ -462,18 +464,18 @@ export function InsightsPage() {
                 icon={CalendarDays}
                 label="Most expensive day"
                 value={analytics.mostExpensiveDay ? formatDisplayDate(analytics.mostExpensiveDay.date) : '—'}
-                detail={formatCurrency(analytics.mostExpensiveDay?.amount ?? 0)}
+                detail={format(analytics.mostExpensiveDay?.amount ?? 0)}
               />
               <TrendCard
                 icon={CircleDollarSign}
                 label="Largest single expense"
                 value={analytics.largestExpense?.title ?? '—'}
-                detail={formatCurrency(analytics.largestExpense?.amount ?? 0)}
+                detail={format(analytics.largestExpense?.amount ?? 0)}
               />
               <TrendCard
                 icon={Receipt}
                 label="Average transaction value"
-                value={formatCurrency(analytics.averageTransactionValue)}
+                value={format(analytics.averageTransactionValue)}
                 detail={`Across ${analytics.totalTransactions.toLocaleString()} transactions`}
               />
             </div>

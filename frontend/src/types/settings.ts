@@ -1,10 +1,10 @@
 import type { ExpenseCategory, PaymentMethod } from '@/types/expense'
 
 export const SETTINGS_CURRENCIES = [
+  'BDT',
   'USD',
   'EUR',
   'GBP',
-  'BDT',
   'INR',
   'JPY',
   'CAD',
@@ -73,7 +73,7 @@ export function createDefaultSettings(
       density: 'comfortable',
     },
     expensePreferences: {
-      currency: 'USD',
+      currency: 'BDT',
       dateFormat: 'MM/DD/YYYY',
       numberFormat: '1,234.56',
       firstDayOfWeek: 'Sunday',

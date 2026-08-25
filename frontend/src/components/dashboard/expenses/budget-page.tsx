@@ -8,7 +8,7 @@ import { useExpenses } from '@/hooks/use-expenses'
 import { todayISODate } from '@/lib/dates'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
 import { spendingByCategory } from '@/lib/expense-stats'
-import { formatCurrency } from '@/lib/format'
+import { useCurrency } from '@/lib/currency-context'
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from '@/types/expense'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -47,6 +47,7 @@ function formatAmountInput(amount: number): string {
 }
 
 export function BudgetPage() {
+  const { format, meta } = useCurrency()
   const {
     budget,
     hasBudget,
@@ -169,11 +170,11 @@ export function BudgetPage() {
       <PageHeading />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <SummaryStat label="Monthly budget" value={formatCurrency(budget.monthlyTotal)} />
-        <SummaryStat label="Spent this month" value={formatCurrency(totalSpent)} />
+        <SummaryStat label="Monthly budget" value={format(budget.monthlyTotal)} />
+        <SummaryStat label="Spent this month" value={format(totalSpent)} />
         <SummaryStat
           label="Remaining"
-          value={formatCurrency(remaining)}
+          value={format(remaining)}
           warning={remaining < 0}
         />
       </div>
@@ -272,8 +273,9 @@ type MonthlyBudgetFormProps = {
 const MonthlyBudgetForm = function MonthlyBudgetForm({
   value,
   onSave,
-  submitLabel = 'Save',
+  submitLabel = 'Save budget',
 }: MonthlyBudgetFormProps) {
+  const { meta } = useCurrency()
   const [draft, setDraft] = useState(
     value > 0 ? formatAmountInput(value) : '',
   )
@@ -283,7 +285,7 @@ const MonthlyBudgetForm = function MonthlyBudgetForm({
     event.preventDefault()
     const amount = parseAmount(draft)
     if (amount === null) {
-      toast.error('Enter a valid budget amount.')
+      toast.error('Enter a valid monthly budget amount.')
       return
     }
     setSaving(true)
@@ -292,16 +294,16 @@ const MonthlyBudgetForm = function MonthlyBudgetForm({
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-2 sm:flex-row">
-      <label className="sr-only" htmlFor={`monthly-budget-${submitLabel}`}>
-        Monthly budget amount
-      </label>
+    <form onSubmit={submit} className="flex gap-2">
       <div className="relative min-w-0 flex-1">
+        <label htmlFor={`monthly-budget-${submitLabel}`} className="sr-only">
+          Monthly budget amount
+        </label>
         <span
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-semibold"
           aria-hidden="true"
         >
-          $
+          {meta.symbol}
         </span>
         <input
           id={`monthly-budget-${submitLabel}`}
@@ -344,12 +346,13 @@ function CategoryBudgetRow({
   thresholds,
   onSave,
 }: CategoryBudgetRowProps) {
+  const { format, meta } = useCurrency()
   const [draft, setDraft] = useState(
     budgetAmount > 0 ? formatAmountInput(budgetAmount) : '',
   )
   const [saving, setSaving] = useState(false)
-  const meta = EXPENSE_CATEGORY_META[category]
-  const Icon = meta.icon
+  const categoryMeta = EXPENSE_CATEGORY_META[category]
+  const Icon = categoryMeta.icon
   const remaining = budgetAmount - spent
   const percentage = budgetAmount > 0 ? (spent / budgetAmount) * 100 : 0
   const threshold = budgetAmount > 0
@@ -374,7 +377,7 @@ function CategoryBudgetRow({
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div
             className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
-            style={{ backgroundColor: meta.softBg, color: meta.color }}
+            style={{ backgroundColor: categoryMeta.softBg, color: categoryMeta.color }}
             aria-hidden="true"
           >
             <Icon size={17} />
@@ -399,8 +402,8 @@ function CategoryBudgetRow({
               ) : null}
             </div>
             <p className="mt-1 text-xs text-slate-500">
-              Budget {formatCurrency(budgetAmount)} · Spent {formatCurrency(spent)}
-              {' · '}Remaining {formatCurrency(remaining)}
+              Budget {format(budgetAmount)} · Spent {format(spent)}
+              {' · '}Remaining {format(remaining)}
             </p>
           </div>
         </div>
@@ -414,10 +417,10 @@ function CategoryBudgetRow({
           </label>
           <div className="relative min-w-0 sm:w-36">
             <span
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-semibold"
               aria-hidden="true"
             >
-              $
+              {meta.symbol}
             </span>
             <input
               id={`budget-${category}`}

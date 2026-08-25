@@ -2,7 +2,8 @@
 
 import { Pencil, Repeat2, Trash2 } from 'lucide-react'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
-import { formatCurrency, formatDisplayDate } from '@/lib/format'
+import { formatDisplayDate } from '@/lib/format'
+import { useCurrency } from '@/lib/currency-context'
 import type { Expense } from '@/types/expense'
 
 interface ExpenseRowProps {
@@ -19,6 +20,7 @@ export function ExpenseRow({
   onDelete,
   highlighted = false,
 }: ExpenseRowProps) {
+  const { format } = useCurrency()
   const meta = EXPENSE_CATEGORY_META[expense.category]
   const Icon = meta.icon
 
@@ -64,7 +66,7 @@ export function ExpenseRow({
       </div>
 
       <p className="text-sm font-bold text-slate-800 tabular-nums flex-shrink-0">
-        {formatCurrency(expense.amount)}
+        {format(expense.amount)}
       </p>
 
       <div className="zf-row-actions flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
