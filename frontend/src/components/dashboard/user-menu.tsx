@@ -1,14 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import {
-  GraduationCap,
-  HelpCircle,
-  LogOut,
-  Palette,
-  Settings,
-  UserRound,
-} from 'lucide-react'
+import { LogOut, Settings, UserRound } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import {
@@ -85,7 +78,7 @@ export function UserMenu({ className }: UserMenuProps) {
         <DropdownMenuGroup>
           <DropdownMenuItem
             className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-slate-700 focus:bg-slate-50 focus:text-slate-800"
-            onClick={() => go('/dashboard/settings#profile')}
+            onClick={() => go('/dashboard/profile')}
           >
             <UserRound size={16} className="text-slate-500" aria-hidden="true" />
             My Profile
@@ -97,36 +90,6 @@ export function UserMenu({ className }: UserMenuProps) {
           >
             <Settings size={16} className="text-slate-500" aria-hidden="true" />
             Settings
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            disabled
-            className="gap-2.5 rounded-xl px-2.5 py-2 text-slate-500"
-          >
-            <GraduationCap size={16} aria-hidden="true" />
-            <span className="flex-1">Student Mode</span>
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-              Soon
-            </span>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-slate-700 focus:bg-slate-50 focus:text-slate-800"
-            onClick={() => go('/dashboard/settings#appearance')}
-          >
-            <Palette size={16} className="text-slate-500" aria-hidden="true" />
-            Appearance
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            disabled
-            className="gap-2.5 rounded-xl px-2.5 py-2 text-slate-500"
-          >
-            <HelpCircle size={16} aria-hidden="true" />
-            <span className="flex-1">Help</span>
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-              Soon
-            </span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
