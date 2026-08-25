@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Grid3x3, Menu, Search, X } from 'lucide-react'
 import { HeaderActions } from './header-actions'
 import { ZenflowSearch } from './zenflow-search'
@@ -30,14 +31,18 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
           <Menu size={20} aria-hidden="true" />
         </button>
 
-        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5">
+        <Link
+          href="/dashboard"
+          aria-label="ZenFlow home"
+          className="flex min-w-0 flex-1 items-center gap-2 transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] sm:gap-2.5"
+        >
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--zf-accent)] shadow-sm">
             <Grid3x3 size={16} className="text-white" aria-hidden="true" />
           </div>
           <span className="truncate text-base font-bold tracking-tight text-slate-800">
             ZenFlow
           </span>
-        </div>
+        </Link>
 
         <HeaderActions className="gap-1.5" />
 

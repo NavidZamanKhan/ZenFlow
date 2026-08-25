@@ -87,12 +87,17 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
       </div>
 
       {/* Logo — brand mark, not a page heading (pages own the sole <h1>) */}
-      <div className="flex items-center gap-3 px-6 py-4">
+      <Link
+        href="/dashboard"
+        onClick={onNavigate}
+        aria-label="ZenFlow home"
+        className="flex items-center gap-3 px-6 py-4 transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]"
+      >
         <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--zf-accent)] shadow-sm">
           <Grid3x3 size={18} className="text-white" aria-hidden="true" />
         </div>
         <p className="text-lg font-bold tracking-tight text-slate-800">ZenFlow</p>
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4" aria-label="Main">
