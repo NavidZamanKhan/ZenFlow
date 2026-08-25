@@ -14,6 +14,7 @@ import { useTasks } from '@/hooks/use-tasks'
 import { useExpenses } from '@/hooks/use-expenses'
 import { useBudget } from '@/hooks/use-budget'
 import { useEvents } from '@/hooks/use-events'
+import { useCurrency } from '@/lib/currency-context'
 import type { Notification } from '@/types/notification'
 
 type NotificationsContextValue = {
@@ -55,6 +56,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { expenses } = useExpenses()
   const { budget } = useBudget()
   const { events } = useEvents()
+  const { currency } = useCurrency()
 
   const [readIds, setReadIds] = useState<Set<string>>(() => new Set())
 
@@ -71,8 +73,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       budget,
       events,
       readIds,
+      currency,
     })
-  }, [tasks, expenses, budget, events, readIds])
+  }, [tasks, expenses, budget, events, readIds, currency])
 
   const unreadCount = useMemo(
     () => notifications.reduce((count, item) => count + (item.read ? 0 : 1), 0),

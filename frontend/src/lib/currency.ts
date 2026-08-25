@@ -223,15 +223,21 @@ export function formatMoney(
       : amount
 
   const meta = CURRENCY_METADATA[currency] || CURRENCY_METADATA.BDT
+  const formattedNumber = Math.abs(converted).toLocaleString('en-US', {
+    maximumFractionDigits: meta.fractionDigits,
+    minimumFractionDigits: meta.fractionDigits,
+  })
 
-  try {
-    return new Intl.NumberFormat(meta.locale, {
-      style: 'currency',
-      currency: meta.code,
-      maximumFractionDigits: meta.fractionDigits,
-      minimumFractionDigits: meta.fractionDigits,
-    }).format(converted)
-  } catch {
-    return `${meta.symbol}${converted.toFixed(meta.fractionDigits)}`
-  }
+  const prefix = converted < 0 ? '-' : ''
+
+  if (currency === 'BDT') return `${prefix}৳${formattedNumber}`
+  if (currency === 'USD') return `${prefix}$${formattedNumber}`
+  if (currency === 'EUR') return `${prefix}€${formattedNumber}`
+  if (currency === 'GBP') return `${prefix}£${formattedNumber}`
+  if (currency === 'INR') return `${prefix}₹${formattedNumber}`
+  if (currency === 'JPY') return `${prefix}¥${formattedNumber}`
+  if (currency === 'CAD') return `${prefix}CA$${formattedNumber}`
+  if (currency === 'AUD') return `${prefix}AU$${formattedNumber}`
+
+  return `${prefix}${meta.symbol}${formattedNumber}`
 }

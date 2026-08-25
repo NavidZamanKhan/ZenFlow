@@ -43,7 +43,7 @@ function monthBounds(monthValue: string): { start: string; end: string } | null 
 }
 
 export function ExpensesPage() {
-  const { format, currency, rateAgainstUSD } = useCurrency()
+  const { format, currency, rateAgainstUSD, meta } = useCurrency()
   const {
     expenses,
     loading,
@@ -300,7 +300,7 @@ export function ExpensesPage() {
           step="0.01"
           value={minAmount}
           onChange={(e) => setMinAmount(e.target.value)}
-          placeholder="Min $"
+          placeholder={`Min ${meta.symbol}`}
           aria-label="Minimum amount"
           className={`${selectClass} w-24`}
         />
@@ -310,7 +310,7 @@ export function ExpensesPage() {
           step="0.01"
           value={maxAmount}
           onChange={(e) => setMaxAmount(e.target.value)}
-          placeholder="Max $"
+          placeholder={`Max ${meta.symbol}`}
           aria-label="Maximum amount"
           className={`${selectClass} w-24`}
         />

@@ -5,6 +5,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { Modal } from '@/components/shared/modal'
 import { todayISODate } from '@/lib/dates'
+import { useCurrency } from '@/lib/currency-context'
 import {
   EXPENSE_CATEGORIES,
   PAYMENT_METHODS,
@@ -80,6 +81,7 @@ function ExpenseForm({
   onClose,
   onSubmit,
 }: Pick<ExpenseFormModalProps, 'expense' | 'onClose' | 'onSubmit'>) {
+  const { meta } = useCurrency()
   const {
     register,
     handleSubmit,
@@ -150,19 +152,27 @@ function ExpenseForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label htmlFor="expense-amount" className={labelClass}>
-            Amount
+            Amount ({meta.code})
           </label>
-          <input
-            id="expense-amount"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            aria-invalid={errors.amount ? true : undefined}
-            aria-describedby={errors.amount ? 'expense-amount-error' : undefined}
-            className={inputClass}
-            {...register('amount')}
-          />
+          <div className="relative">
+            <span
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-semibold"
+              aria-hidden="true"
+            >
+              {meta.symbol}
+            </span>
+            <input
+              id="expense-amount"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              aria-invalid={errors.amount ? true : undefined}
+              aria-describedby={errors.amount ? 'expense-amount-error' : undefined}
+              className={`${inputClass} pl-8`}
+              {...register('amount')}
+            />
+          </div>
           {errors.amount ? (
             <p id="expense-amount-error" role="alert" className="mt-1.5 text-xs text-red-600">
               {errors.amount.message}

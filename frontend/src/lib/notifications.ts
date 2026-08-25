@@ -1,4 +1,5 @@
 import { formatDate, formatTime, todayISODate, toISODate } from '@/lib/dates'
+import { formatMoney, type CurrencyCode } from '@/lib/currency'
 import type { Budget } from '@/types/budget'
 import type { CalendarEvent } from '@/types/event'
 import type { Expense } from '@/types/expense'
@@ -24,6 +25,7 @@ export type DeriveNotificationsParams = {
   budget: Budget
   events: CalendarEvent[]
   readIds: Set<string>
+  currency?: CurrencyCode
 }
 
 /**
@@ -35,6 +37,7 @@ export function deriveNotifications({
   budget,
   events,
   readIds,
+  currency = 'BDT',
 }: DeriveNotificationsParams): Notification[] {
   const today = todayISODate()
   const tomorrow = tomorrowISODate()
@@ -137,13 +140,16 @@ export function deriveNotifications({
   // Overall Monthly Total Alert
   if (budget.monthlyTotal > 0) {
     const ratio = totalSpent / budget.monthlyTotal
+    const formattedSpent = formatMoney(totalSpent, currency)
+    const formattedBudget = formatMoney(budget.monthlyTotal, currency)
+
     if (ratio >= 1.0) {
       const id = `notif-budget-total-100-${currentMonth}`
       list.push({
         id,
         type: 'budget',
         title: 'Monthly budget exceeded',
-        description: `You've spent $${totalSpent.toFixed(0)} of your $${budget.monthlyTotal.toFixed(0)} total budget.`,
+        description: `You've spent ${formattedSpent} of your ${formattedBudget} total budget.`,
         read: readIds.has(id),
         timestamp: new Date().toISOString(),
         href: '/dashboard/expenses/budget',
@@ -154,7 +160,7 @@ export function deriveNotifications({
         id,
         type: 'budget',
         title: 'Monthly budget at 90%',
-        description: `You've used $${totalSpent.toFixed(0)} (${Math.round(ratio * 100)}%) of your $${budget.monthlyTotal.toFixed(0)} limit.`,
+        description: `You've used ${formattedSpent} (${Math.round(ratio * 100)}%) of your ${formattedBudget} limit.`,
         read: readIds.has(id),
         timestamp: new Date().toISOString(),
         href: '/dashboard/expenses/budget',
@@ -165,7 +171,7 @@ export function deriveNotifications({
         id,
         type: 'budget',
         title: 'Monthly budget at 80%',
-        description: `You've used $${totalSpent.toFixed(0)} (${Math.round(ratio * 100)}%) of your $${budget.monthlyTotal.toFixed(0)} limit.`,
+        description: `You've used ${formattedSpent} (${Math.round(ratio * 100)}%) of your ${formattedBudget} limit.`,
         read: readIds.has(id),
         timestamp: new Date().toISOString(),
         href: '/dashboard/expenses/budget',
@@ -181,6 +187,8 @@ export function deriveNotifications({
 
       const spent = categorySpent[catName] || 0
       const ratio = spent / catBudget
+      const formattedCategorySpent = formatMoney(spent, currency)
+      const formattedCategoryBudget = formatMoney(catBudget, currency)
 
       if (ratio >= 1.0) {
         const id = `notif-budget-cat-100-${catName}-${currentMonth}`
@@ -188,7 +196,7 @@ export function deriveNotifications({
           id,
           type: 'budget',
           title: `Budget exceeded: ${catName}`,
-          description: `You've spent $${spent.toFixed(0)} of your $${catBudget.toFixed(0)} ${catName} budget.`,
+          description: `You've spent ${formattedCategorySpent} of your ${formattedCategoryBudget} ${catName} budget.`,
           read: readIds.has(id),
           timestamp: new Date().toISOString(),
           href: '/dashboard/expenses/budget',
@@ -199,7 +207,7 @@ export function deriveNotifications({
           id,
           type: 'budget',
           title: `Budget alert: ${catName} at 90%`,
-          description: `You've used $${spent.toFixed(0)} of your $${catBudget.toFixed(0)} ${catName} budget this month.`,
+          description: `You've used ${formattedCategorySpent} of your ${formattedCategoryBudget} ${catName} budget this month.`,
           read: readIds.has(id),
           timestamp: new Date().toISOString(),
           href: '/dashboard/expenses/budget',
@@ -210,7 +218,7 @@ export function deriveNotifications({
           id,
           type: 'budget',
           title: `Budget alert: ${catName} at 80%`,
-          description: `You've used $${spent.toFixed(0)} of your $${catBudget.toFixed(0)} ${catName} budget this month.`,
+          description: `You've used ${formattedCategorySpent} of your ${formattedCategoryBudget} ${catName} budget this month.`,
           read: readIds.has(id),
           timestamp: new Date().toISOString(),
           href: '/dashboard/expenses/budget',

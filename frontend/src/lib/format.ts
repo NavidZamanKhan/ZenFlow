@@ -5,6 +5,7 @@
 import {
   CurrencyCode,
   CURRENCY_METADATA,
+  formatMoney,
 } from './currency'
 
 export type { CurrencyCode }
@@ -13,17 +14,7 @@ export function formatCurrency(
   amount: number,
   currency: CurrencyCode = 'BDT',
 ): string {
-  const meta = CURRENCY_METADATA[currency] || CURRENCY_METADATA.BDT
-  try {
-    return new Intl.NumberFormat(meta.locale, {
-      style: 'currency',
-      currency: meta.code,
-      maximumFractionDigits: meta.fractionDigits,
-      minimumFractionDigits: meta.fractionDigits,
-    }).format(amount)
-  } catch {
-    return `${meta.symbol}${amount.toFixed(meta.fractionDigits)}`
-  }
+  return formatMoney(amount, currency)
 }
 
 export type DateFormatPreference = 'MDY' | 'DMY'

@@ -35,7 +35,7 @@ function currentThreshold(
 }
 
 function parseAmount(value: string): number | null {
-  const amount = Number(value.replace(/[$,\s]/g, ''))
+  const amount = Number(value.replace(/[^\d.-]/g, ''))
   return Number.isFinite(amount) && amount >= 0 ? amount : null
 }
 
