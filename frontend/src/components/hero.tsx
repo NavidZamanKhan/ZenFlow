@@ -26,7 +26,7 @@ export function Hero() {
           <Reveal delay={160}>
             <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-pretty">
               ZenFlow helps professionals organize tasks, manage reminders, track expenses, and stay
-              focused — all with one clean, quiet dashboard.
+              focused with one clean, quiet dashboard.
             </p>
           </Reveal>
 
