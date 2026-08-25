@@ -147,10 +147,12 @@ export function RemindersCard({
   }
 
   return (
-    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5">
+    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:shadow-black/20 dark:hover:shadow-black/30">
       <div className="mb-6 flex items-center gap-2">
         <Bell size={18} className="text-[var(--zf-accent)]" aria-hidden="true" />
-        <h2 className="text-base font-bold text-slate-800">Reminders</h2>
+        <h2 className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">
+          Reminders
+        </h2>
       </div>
 
       <div className="space-y-3 px-1">
@@ -166,7 +168,7 @@ export function RemindersCard({
             </div>
           ))
         ) : reminders.length === 0 ? (
-          <p className="py-6 text-center text-sm text-slate-500">
+          <p className="py-6 text-center text-sm text-slate-500 dark:text-[var(--zf-text-muted)]">
             Nothing due in the next 7 days. Upcoming tasks and events will
             appear here.
           </p>
@@ -189,10 +191,10 @@ export function RemindersCard({
                   aria-hidden="true"
                 />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-slate-700">
+                  <p className="truncate text-sm font-medium text-slate-700 dark:text-[var(--zf-text)]">
                     {item.title}
                   </p>
-                  <p className="mt-0.5 text-xs font-medium text-slate-500">
+                  <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-[var(--zf-text-muted)]">
                     {item.whenLabel}
                   </p>
                 </div>
@@ -205,7 +207,7 @@ export function RemindersCard({
                     disabled={pendingId === item.id}
                     onClick={() => completeTask(item.task)}
                     aria-label={`Mark ${item.title} complete`}
-                    className="zf-tap relative rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-[#E2EEFC] hover:text-[#1D70E8] disabled:pointer-events-none disabled:opacity-60"
+                    className="zf-tap relative rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-[var(--zf-accent-soft)] hover:text-[var(--zf-accent)] disabled:pointer-events-none disabled:opacity-60 dark:text-[var(--zf-text-muted)]"
                   >
                     <Check size={14} />
                   </button>
@@ -215,7 +217,7 @@ export function RemindersCard({
                   disabled={pendingId === item.id}
                   onClick={() => snooze(item)}
                   aria-label={`Snooze ${item.title} by one day`}
-                  className="zf-tap relative rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:pointer-events-none disabled:opacity-60"
+                  className="zf-tap relative rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:pointer-events-none disabled:opacity-60 dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-soft-fill)] dark:hover:text-[var(--zf-text)]"
                 >
                   <Clock3 size={14} />
                 </button>
@@ -227,7 +229,7 @@ export function RemindersCard({
       </div>
 
       {!loading && reminders.length > 0 ? (
-        <p className="mt-4 text-[11px] text-slate-500">
+        <p className="mt-4 text-[11px] text-slate-500 dark:text-[var(--zf-text-muted)]">
           Blue = task due dates · Teal = calendar events. Events can be snoozed
           but not marked complete (no completion field on events).
         </p>

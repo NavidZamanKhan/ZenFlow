@@ -87,12 +87,12 @@ function SetPasswordModal({
   return (
     <Modal open={open} title="Set account password" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <p className="text-xs leading-relaxed text-slate-500">
+        <p className="text-xs leading-relaxed text-slate-500 dark:text-[var(--zf-text-muted)]">
           Create a password so you can sign in using your email address in addition to Google One-Click login.
         </p>
 
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+          <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)]">
             New password
           </label>
           <div className="relative">
@@ -108,7 +108,7 @@ function SetPasswordModal({
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-[var(--zf-text-muted)] dark:hover:text-[var(--zf-text)]"
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -116,7 +116,7 @@ function SetPasswordModal({
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+          <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)]">
             Confirm new password
           </label>
           <input
@@ -130,7 +130,7 @@ function SetPasswordModal({
           />
         </div>
 
-        <div className="rounded-xl bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-500">
+        <div className="rounded-xl bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-500 dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text-muted)]">
           Password must contain at least 8 characters, an uppercase letter, a lowercase letter, a digit, and a special character.
         </div>
 
@@ -139,7 +139,7 @@ function SetPasswordModal({
             type="button"
             variant="ghost"
             onClick={onClose}
-            className="h-10 rounded-xl px-4 text-slate-500"
+            className="h-10 rounded-xl px-4 text-slate-500 dark:text-[var(--zf-text-muted)]"
           >
             Cancel
           </Button>
@@ -242,7 +242,7 @@ function ChangePasswordModal({
   return (
     <Modal open={open} title="Change password" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <p className="text-xs leading-relaxed text-slate-500">
+        <p className="text-xs leading-relaxed text-slate-500 dark:text-[var(--zf-text-muted)]">
           For your security, a 6-digit verification code will be sent to{' '}
           <strong className="font-semibold text-slate-700">{user?.email}</strong>.
         </p>
@@ -269,7 +269,7 @@ function ChangePasswordModal({
           <>
             <div>
               <div className="mb-1.5 flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-700">
+                <label className="text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)]">
                   Verification code
                 </label>
                 <button
@@ -294,7 +294,7 @@ function ChangePasswordModal({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)]">
                 New password
               </label>
               <div className="relative">
@@ -310,7 +310,7 @@ function ChangePasswordModal({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-[var(--zf-text-muted)] dark:hover:text-[var(--zf-text)]"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -318,7 +318,7 @@ function ChangePasswordModal({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)]">
                 Confirm new password
               </label>
               <input
@@ -337,7 +337,7 @@ function ChangePasswordModal({
                 type="button"
                 variant="ghost"
                 onClick={onClose}
-                className="h-10 rounded-xl px-4 text-slate-500"
+                className="h-10 rounded-xl px-4 text-slate-500 dark:text-[var(--zf-text-muted)]"
               >
                 Cancel
               </Button>
@@ -490,7 +490,7 @@ function DeleteAccountModal({
               <h3 className="text-base font-bold text-slate-900">
                 Are you absolutely sure?
               </h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-500 dark:text-[var(--zf-text-muted)]">
                 This will immediately and permanently delete your account for{' '}
                 <strong className="font-semibold text-slate-700">{user?.email}</strong>.
                 All tasks, calendar events, expenses, and budgets will be wiped forever.
@@ -503,7 +503,7 @@ function DeleteAccountModal({
                 variant="outline"
                 disabled={submitting}
                 onClick={() => setConfirmStep(false)}
-                className="h-11 flex-1 rounded-xl border-slate-200 text-xs font-semibold text-slate-700"
+                className="h-11 flex-1 rounded-xl border-slate-200 text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)]"
               >
                 <ArrowLeft size={14} className="mr-1.5" />
                 Back
@@ -537,7 +537,7 @@ function DeleteAccountModal({
                 </p>
               </div>
             </div>
-            <p className="text-xs leading-relaxed text-slate-500">
+            <p className="text-xs leading-relaxed text-slate-500 dark:text-[var(--zf-text-muted)]">
               To verify your identity, we will send an account deletion code to{' '}
               <strong className="font-semibold text-slate-700">{user?.email}</strong>.
             </p>
@@ -562,7 +562,7 @@ function DeleteAccountModal({
           <form onSubmit={handleProceedToConfirm} className="space-y-4">
             <div>
               <div className="mb-1.5 flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-700">
+                <label className="text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)]">
                   Verification code
                 </label>
                 <button
@@ -587,7 +587,7 @@ function DeleteAccountModal({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)]">
                 Confirm your password
               </label>
               <div className="relative">
@@ -603,7 +603,7 @@ function DeleteAccountModal({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-[var(--zf-text-muted)] dark:hover:text-[var(--zf-text)]"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -615,7 +615,7 @@ function DeleteAccountModal({
                 type="button"
                 variant="ghost"
                 onClick={onClose}
-                className="h-10 rounded-xl px-4 text-slate-500"
+                className="h-10 rounded-xl px-4 text-slate-500 dark:text-[var(--zf-text-muted)]"
               >
                 Cancel
               </Button>
@@ -658,14 +658,16 @@ export function SecuritySettingsSection() {
       >
         <div className="space-y-6">
           {/* Password & Security Card */}
-          <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50/50 p-5 sm:flex-row sm:items-center">
+          <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50/50 p-5 sm:flex-row sm:items-center dark:border-[var(--zf-border)] dark:bg-[var(--zf-soft-fill)]">
             <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E2EEFC] text-[#1D70E8]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--zf-accent-soft)] text-[var(--zf-accent)]">
                 <ShieldCheck size={18} />
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-800">Password</p>
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="text-sm font-bold text-slate-800 dark:text-[var(--zf-text)]">
+                  Password
+                </p>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-[var(--zf-text-muted)]">
                   {user?.hasPassword
                     ? 'Your account is secured with a password.'
                     : 'You signed in with Google OAuth. Set a password to also log in with email.'}
@@ -678,7 +680,7 @@ export function SecuritySettingsSection() {
                 type="button"
                 variant="outline"
                 onClick={() => setChangePasswordModalOpen(true)}
-                className="h-10 rounded-xl border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                className="h-10 rounded-xl border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)] shadow-sm hover:bg-slate-50 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:text-[var(--zf-text)] dark:hover:bg-[var(--zf-elevated)]"
               >
                 <KeyRound size={14} className="mr-2" />
                 Change password
@@ -687,7 +689,7 @@ export function SecuritySettingsSection() {
               <Button
                 type="button"
                 onClick={() => setSetPasswordModalOpen(true)}
-                className="h-10 rounded-xl bg-[#1D70E8] px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-600"
+                className="h-10 rounded-xl bg-[var(--zf-accent)] px-4 text-xs font-semibold text-white shadow-sm hover:bg-[var(--zf-accent-hover)]"
               >
                 <KeyRound size={14} className="mr-2" />
                 Set password
@@ -696,15 +698,17 @@ export function SecuritySettingsSection() {
           </div>
 
           {/* Danger Zone: Delete Account */}
-          <div className="rounded-2xl border border-rose-200 bg-rose-50/40 p-5">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50/40 p-5 dark:border-rose-900/60 dark:bg-rose-950/30">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400">
                   <ShieldAlert size={18} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-rose-900">Danger Zone</p>
-                  <p className="mt-0.5 text-xs text-rose-700">
+                  <p className="text-sm font-bold text-rose-900 dark:text-rose-300">
+                    Danger Zone
+                  </p>
+                  <p className="mt-0.5 text-xs text-rose-700 dark:text-rose-400/90">
                     Permanently delete your ZenFlow account and all workspace data.
                   </p>
                 </div>
@@ -713,7 +717,7 @@ export function SecuritySettingsSection() {
               <Button
                 type="button"
                 onClick={() => setDeleteAccountModalOpen(true)}
-                className="h-10 rounded-xl border border-rose-300 bg-white px-4 text-xs font-semibold text-rose-600 shadow-sm hover:bg-rose-50"
+                className="h-10 rounded-xl border border-rose-300 bg-white px-4 text-xs font-semibold text-rose-600 shadow-sm hover:bg-rose-50 dark:border-rose-800 dark:bg-[var(--zf-surface)] dark:text-rose-400 dark:hover:bg-rose-950/40"
               >
                 <Trash2 size={14} className="mr-2" />
                 Delete account

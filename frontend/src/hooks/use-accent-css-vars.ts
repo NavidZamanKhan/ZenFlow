@@ -1,18 +1,21 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useTheme } from 'next-themes'
 import { applyAccentColor } from '@/lib/accent'
 import { useSettings } from '@/hooks/use-settings'
 
 /**
- * Keeps :root --zf-accent* in sync with the saved appearance.accentColor.
- * Pair with applyAccentColor() on Appearance save so updates apply without remount.
+ * Keeps :root --zf-accent* in sync with the saved appearance.accentColor
+ * and the resolved light/dark theme (for theme-aware --zf-accent-soft).
  */
 export function useAccentCssVars() {
   const { settings, loading } = useSettings()
+  const { resolvedTheme } = useTheme()
 
   useEffect(() => {
     if (loading) return
-    applyAccentColor(settings.appearance.accentColor)
-  }, [loading, settings.appearance.accentColor])
+    const theme = resolvedTheme === 'dark' ? 'dark' : 'light'
+    applyAccentColor(settings.appearance.accentColor, theme)
+  }, [loading, settings.appearance.accentColor, resolvedTheme])
 }

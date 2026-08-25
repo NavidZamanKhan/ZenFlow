@@ -17,10 +17,10 @@ export function Greeting({ remainingTasks = 0, loading = false }: GreetingProps)
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div className="min-w-0">
-        <p className="mb-0.5 text-sm font-medium text-slate-500">
+        <p className="mb-0.5 text-sm font-medium text-slate-500 dark:text-[var(--zf-text-muted)]">
           Good morning, {displayName}
         </p>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-800">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-[var(--zf-text)]">
           Today&apos;s focus
         </h1>
       </div>

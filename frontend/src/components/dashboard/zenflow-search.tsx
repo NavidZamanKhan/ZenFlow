@@ -167,7 +167,7 @@ export function ZenflowSearch({
       </label>
       <Search
         size={14}
-        className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-slate-500"
+        className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-slate-500 dark:text-[var(--zf-text-muted)]"
         aria-hidden="true"
       />
       <input
@@ -194,7 +194,7 @@ export function ZenflowSearch({
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
         className={cn(
-          'w-full rounded-xl border border-slate-100 bg-slate-50 py-1.5 pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1D70E8]',
+          'w-full rounded-xl border border-slate-100 bg-slate-50 py-1.5 pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--zf-accent)] dark:border-[var(--zf-border)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text)] dark:placeholder:text-[var(--zf-text-muted)]',
           inputClassName,
         )}
       />
@@ -204,7 +204,7 @@ export function ZenflowSearch({
           id={listboxId}
           role="listbox"
           aria-label="Search results"
-          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-[min(24rem,70vh)] overflow-y-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-lg shadow-slate-200/60"
+          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-[min(24rem,70vh)] overflow-y-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-lg shadow-slate-200/60 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:shadow-black/40"
         >
           {showLoading ? (
             <div className="space-y-2 p-2" aria-label="Searching" role="status">
@@ -221,7 +221,7 @@ export function ZenflowSearch({
           ) : null}
 
           {showEmpty ? (
-            <p className="px-3 py-8 text-center text-xs leading-relaxed text-slate-500">
+            <p className="px-3 py-8 text-center text-xs leading-relaxed text-slate-500 dark:text-[var(--zf-text-muted)]">
               Nothing matches &ldquo;{debouncedQuery.trim()}&rdquo;. Try a page
               name, task, expense, or event.
             </p>
@@ -230,7 +230,7 @@ export function ZenflowSearch({
           {showResults
             ? grouped.map(({ group, items }) => (
                 <div key={group} className="mb-1 last:mb-0">
-                  <p className="px-2 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                  <p className="px-2 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-[var(--zf-text-muted)]">
                     {SEARCH_GROUP_LABEL[group]}
                   </p>
                   <ul className="space-y-0.5">
@@ -252,14 +252,16 @@ export function ZenflowSearch({
                             className={cn(
                               'flex w-full items-start gap-3 rounded-xl px-2 py-2 text-left transition-colors',
                               active
-                                ? 'bg-[#E2EEFC] text-[#1D70E8]'
-                                : 'text-slate-700 hover:bg-slate-50',
+                                ? 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent)]'
+                                : 'text-slate-700 hover:bg-slate-50 dark:text-[var(--zf-text)] dark:hover:bg-[var(--zf-soft-fill)]',
                             )}
                           >
                             <span
                               className={cn(
                                 'mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl',
-                                active ? 'bg-white/80' : 'bg-slate-50',
+                                active
+                                  ? 'bg-white/80 dark:bg-[var(--zf-elevated)]'
+                                  : 'bg-slate-50 dark:bg-[var(--zf-soft-fill)]',
                               )}
                             >
                               <Icon size={15} aria-hidden="true" />
@@ -273,8 +275,8 @@ export function ZenflowSearch({
                                   className={cn(
                                     'mt-0.5 block truncate text-[11px]',
                                     active
-                                      ? 'text-[#1D70E8]/80'
-                                      : 'text-slate-500',
+                                      ? 'text-[var(--zf-accent)]/80'
+                                      : 'text-slate-500 dark:text-[var(--zf-text-muted)]',
                                   )}
                                 >
                                   {item.subtitle}

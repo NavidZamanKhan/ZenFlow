@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth'
 import { CurrencyProvider } from '@/lib/currency-context'
+import { SettingsThemeSync } from '@/components/settings-theme-sync'
+import { ThemeProvider } from '@/components/theme-provider'
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' })
@@ -51,11 +53,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans antialiased" suppressHydrationWarning>
-        <AuthProvider>
-          <CurrencyProvider>
-            {children}
-          </CurrencyProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <CurrencyProvider>
+              <SettingsThemeSync />
+              {children}
+            </CurrencyProvider>
+          </AuthProvider>
+        </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

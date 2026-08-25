@@ -14,10 +14,10 @@ export function ProfilePage() {
   return (
     <div className="max-w-5xl px-4 py-8 sm:px-8">
       <div className="mb-6">
-        <p className="mb-0.5 text-sm font-medium text-slate-500">
+        <p className="mb-0.5 text-sm font-medium text-slate-500 dark:text-[var(--zf-text-muted)]">
           Your personal information
         </p>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-800">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-[var(--zf-text)]">
           My Profile
         </h1>
       </div>

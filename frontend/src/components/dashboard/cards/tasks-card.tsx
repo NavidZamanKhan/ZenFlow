@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import type { Task, TaskInput, TaskPriority } from '@/types/task'
 
 const priorityDot: Record<TaskPriority, string> = {
-  low: 'bg-slate-300',
+  low: 'bg-slate-300 dark:bg-slate-500',
   medium: 'bg-[#1D70E8]',
   high: 'bg-rose-500',
 }
@@ -51,13 +51,13 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
   }
 
   return (
-    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5">
+    <div className="rounded-3xl border border-slate-100/80 bg-white p-6 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md motion-safe:hover:-translate-y-0.5 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:shadow-black/20 dark:hover:shadow-black/30">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ListTodo size={18} className="text-[var(--zf-accent)]" aria-hidden="true" />
-          <h2 className="text-base font-bold text-slate-800">Tasks</h2>
+          <h2 className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">Tasks</h2>
         </div>
-        <p className="text-xs font-medium text-slate-500 tabular-nums">
+        <p className="text-xs font-medium text-slate-500 tabular-nums dark:text-[var(--zf-text-muted)]">
           {loading ? '…' : `${completedCount}/${tasks.length} completed`}
         </p>
       </div>
@@ -66,14 +66,14 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
         <button
           type="button"
           onClick={() => setFormOpen(true)}
-          className="inline-flex items-center gap-1 rounded-xl bg-[var(--zf-accent-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--zf-accent)] transition-colors hover:bg-[color-mix(in_srgb,var(--zf-accent)_18%,white)]"
+          className="inline-flex items-center gap-1 rounded-xl bg-[var(--zf-accent-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--zf-accent)] transition-colors hover:bg-[color-mix(in_srgb,var(--zf-accent)_18%,white)] dark:hover:bg-[color-mix(in_srgb,var(--zf-accent)_28%,var(--zf-surface))]"
         >
           <Plus size={13} aria-hidden="true" />
           Add task
         </button>
         <Link
           href="/dashboard/tasks"
-          className="rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
+          className="rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-soft-fill)] dark:hover:text-[var(--zf-text)]"
         >
           View all
         </Link>
@@ -92,7 +92,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
             </div>
           ))
         ) : visibleTasks.length === 0 ? (
-          <p className="px-2 py-6 text-center text-sm text-slate-500">
+          <p className="px-2 py-6 text-center text-sm text-slate-500 dark:text-[var(--zf-text-muted)]">
             No tasks yet. Add one to get started.
           </p>
         ) : (
@@ -106,7 +106,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                 type="button"
                 disabled={pendingId === task.id}
                 onClick={() => handleToggle(task)}
-                className="group flex w-full items-start justify-between gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-slate-50/50 disabled:pointer-events-none disabled:opacity-60"
+                className="group flex w-full items-start justify-between gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-slate-50/50 disabled:pointer-events-none disabled:opacity-60 dark:hover:bg-[var(--zf-soft-fill)]/60"
               >
                 <div className="flex min-w-0 items-start gap-3">
                   <div className="mt-0.5 flex-shrink-0">
@@ -132,7 +132,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.12 }}
-                          className="block h-[18px] w-[18px] rounded-full border border-slate-300 transition-colors group-hover:border-[var(--zf-accent)]"
+                          className="block h-[18px] w-[18px] rounded-full border border-slate-300 transition-colors group-hover:border-[var(--zf-accent)] dark:border-[var(--zf-border)]"
                         />
                       )}
                     </AnimatePresence>
@@ -142,8 +142,8 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                     <p
                       className={`truncate text-sm font-medium transition-all ${
                         task.completed
-                          ? 'text-slate-500 line-through'
-                          : 'text-slate-700'
+                          ? 'text-slate-500 line-through dark:text-[var(--zf-text-muted)]'
+                          : 'text-slate-700 dark:text-[var(--zf-text)]'
                       }`}
                     >
                       {task.title}
@@ -157,7 +157,9 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                       {task.dueDate ? (
                         <span
                           className={`inline-flex items-center gap-1 text-[11px] font-medium ${
-                            overdue ? 'text-rose-500' : 'text-slate-500'
+                            overdue
+                              ? 'text-rose-500'
+                              : 'text-slate-500 dark:text-[var(--zf-text-muted)]'
                           }`}
                         >
                           <CalendarDays size={11} aria-hidden="true" />
@@ -169,7 +171,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                 </div>
 
                 {task.category ? (
-                  <span className="flex-shrink-0 rounded-full bg-[#F1F3F5] px-2.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-slate-500">
+                  <span className="flex-shrink-0 rounded-full bg-[#F1F3F5] px-2.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-slate-500 dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text-muted)]">
                     {task.category}
                   </span>
                 ) : null}

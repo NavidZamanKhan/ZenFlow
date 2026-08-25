@@ -95,6 +95,48 @@
   --sidebar-ring: oklch(0.7 0.11 245);
 }
 
+.dark {
+  color-scheme: dark;
+  /* ZenFlow dark palette (approved Phase 1) */
+  --zf-canvas: #0f1419;
+  --zf-surface: #1a2332;
+  --zf-elevated: #243044;
+  --zf-border: #2e3a4d;
+  --zf-text: #e8eef6;
+  --zf-text-muted: #94a3b8;
+  --zf-soft-fill: #1e293b;
+  /* Soft accent default for dark — runtime may override via applyAccentColor */
+  --zf-accent-soft: color-mix(in srgb, #1d70e8 20%, #1a2332);
+  /* Map shadcn semantic tokens to the same palette */
+  --background: #0f1419;
+  --foreground: #e8eef6;
+  --card: #1a2332;
+  --card-foreground: #e8eef6;
+  --popover: #1a2332;
+  --popover-foreground: #e8eef6;
+  --primary: #1d70e8;
+  --primary-foreground: #ffffff;
+  --secondary: #1e293b;
+  --secondary-foreground: #e8eef6;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #e8eef6;
+  /* Keep existing destructive rose */
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #2e3a4d;
+  --input: #2e3a4d;
+  --ring: #1d70e8;
+  --sidebar: #1a2332;
+  --sidebar-foreground: #e8eef6;
+  --sidebar-primary: #1d70e8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #e8eef6;
+  --sidebar-border: #2e3a4d;
+  --sidebar-ring: #1d70e8;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

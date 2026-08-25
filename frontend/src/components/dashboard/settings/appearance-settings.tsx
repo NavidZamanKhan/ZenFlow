@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Laptop, Moon, Palette, Save, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
@@ -26,43 +27,26 @@ const appearanceSchema = z.object({
 
 type AppearanceFormValues = z.infer<typeof appearanceSchema>
 
-/** Only Light is interactive until dark/system theming ships. */
 const THEME_OPTIONS = [
   {
     value: 'light',
     label: 'Light',
-    description: 'ZenFlow’s current appearance',
+    description: 'Bright workspace with light surfaces',
     icon: Sun,
-    disabled: false,
   },
   {
     value: 'dark',
     label: 'Dark',
-    description: 'Full theme support coming soon',
+    description: 'Dimmed surfaces for low-light focus',
     icon: Moon,
-    disabled: true,
   },
   {
     value: 'system',
     label: 'System',
-    description: 'Automatic switching coming soon',
+    description: 'Match your device appearance setting',
     icon: Laptop,
-    disabled: true,
   },
 ] as const
-
-function formValuesFromAppearance(
-  appearance: AppearanceSettings,
-): AppearanceFormValues {
-  // Coerce legacy dark/system saves onto Light so the only enabled option is selected.
-  return {
-    ...appearance,
-    theme:
-      appearance.theme === 'dark' || appearance.theme === 'system'
-        ? 'light'
-        : appearance.theme,
-  }
-}
 
 const ACCENT_OPTIONS = [
   { value: 'blue', label: 'ZenFlow blue', color: '#1D70E8' },
@@ -83,6 +67,7 @@ export function AppearanceSettingsSection({
   appearance: AppearanceSettings
   onSave: (appearance: AppearanceSettings) => boolean
 }) {
+  const { setTheme, resolvedTheme } = useTheme()
   const {
     control,
     handleSubmit,
@@ -91,18 +76,25 @@ export function AppearanceSettingsSection({
   } = useForm<AppearanceFormValues>({
     resolver: zodResolver(appearanceSchema),
     mode: 'onTouched',
-    defaultValues: formValuesFromAppearance(appearance),
+    defaultValues: appearance,
   })
 
   useEffect(() => {
-    reset(formValuesFromAppearance(appearance))
+    reset(appearance)
   }, [appearance, reset])
 
   const submitAppearance = (values: AppearanceFormValues) => {
-    // Theme radios for dark/system are disabled; never persist those stubs.
-    const next: AppearanceSettings = { ...values, theme: 'light' }
-    if (onSave(next)) {
-      applyAccentColor(next.accentColor)
+    if (onSave(values)) {
+      setTheme(values.theme)
+      const themeForAccent =
+        values.theme === 'dark'
+          ? 'dark'
+          : values.theme === 'light'
+            ? 'light'
+            : resolvedTheme === 'dark'
+              ? 'dark'
+              : 'light'
+      applyAccentColor(values.accentColor, themeForAccent)
       toast.success('Appearance preferences saved.')
     } else {
       toast.error('Could not save appearance preferences.')
@@ -114,7 +106,7 @@ export function AppearanceSettingsSection({
       id="appearance"
       icon={Palette}
       title="Appearance"
-      description="Choose how you want your workspace to look in future updates."
+      description="Choose how you want your workspace to look."
     >
       <form onSubmit={handleSubmit(submitAppearance)} noValidate>
         <SettingsField label="Theme">
@@ -124,51 +116,33 @@ export function AppearanceSettingsSection({
             render={({ field }) => (
               <RadioGroup
                 value={field.value}
-                onValueChange={(value) => {
-                  if (value === 'light') field.onChange(value)
-                }}
+                onValueChange={field.onChange}
                 className="grid grid-cols-1 gap-3 sm:grid-cols-3"
               >
                 {THEME_OPTIONS.map((option) => {
                   const Icon = option.icon
-                  const isDisabled = option.disabled
                   return (
                     <label
                       key={option.value}
-                      aria-disabled={isDisabled || undefined}
                       className={cn(
-                        'flex items-start gap-3 rounded-2xl border border-slate-200 p-3 transition-colors sm:p-4',
-                        isDisabled
-                          ? 'cursor-not-allowed bg-slate-50/80 opacity-55'
-                          : 'cursor-pointer has-[[data-checked]]:border-[#1D70E8] has-[[data-checked]]:bg-[#F5F9FE] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#1D70E8]/30',
+                        'flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-3 transition-colors sm:p-4 dark:border-[var(--zf-border)]',
+                        'has-[[data-checked]]:border-[var(--zf-accent)] has-[[data-checked]]:bg-[var(--zf-accent-soft)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]',
                       )}
                     >
                       <RadioGroupItem
                         value={option.value}
-                        disabled={isDisabled}
-                        className={cn(
-                          'mt-0.5',
-                          !isDisabled &&
-                            'focus-visible:border-[#1D70E8] focus-visible:ring-2 focus-visible:ring-[#1D70E8]/30',
-                        )}
+                        className="mt-0.5 focus-visible:border-[var(--zf-accent)] focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]"
                       />
                       <span>
-                        <span
-                          className={cn(
-                            'flex items-center gap-1.5 text-sm font-semibold',
-                            isDisabled ? 'text-slate-500' : 'text-slate-700',
-                          )}
-                        >
+                        <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-[var(--zf-text)]">
                           <Icon
                             size={15}
-                            className={
-                              isDisabled ? 'text-slate-400' : 'text-[#1D70E8]'
-                            }
+                            className="text-[var(--zf-accent)]"
                             aria-hidden="true"
                           />
                           {option.label}
                         </span>
-                        <span className="mt-1 block text-xs leading-relaxed text-slate-500">
+                        <span className="mt-1 block text-xs leading-relaxed text-slate-500 dark:text-[var(--zf-text-muted)]">
                           {option.description}
                         </span>
                       </span>
@@ -197,14 +171,14 @@ export function AppearanceSettingsSection({
                   {ACCENT_OPTIONS.map((option) => (
                     <label
                       key={option.value}
-                      className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 has-[[data-checked]]:border-[var(--zf-accent)] has-[[data-checked]]:bg-[var(--zf-accent-soft)]"
+                      className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 has-[[data-checked]]:border-[var(--zf-accent)] has-[[data-checked]]:bg-[var(--zf-accent-soft)] dark:border-[var(--zf-border)]"
                     >
                       <RadioGroupItem value={option.value} />
                       <span
                         className="h-3 w-3 rounded-full"
                         style={{ backgroundColor: option.color }}
                       />
-                      <span className="text-xs font-medium text-slate-600">
+                      <span className="text-xs font-medium text-slate-600 dark:text-[var(--zf-text-muted)]">
                         {option.label}
                       </span>
                     </label>
@@ -235,10 +209,10 @@ export function AppearanceSettingsSection({
 
         <div className="mt-5">
           <SettingsNote>
-            Preferences are saved locally. Accent color currently updates dashboard
-            chrome (navigation, brand mark, focus rings, and Settings save actions).
+            Preferences are saved locally. Accent color updates dashboard chrome
+            (navigation, brand mark, focus rings, and Settings save actions).
             Page CTAs, charts, and category colors still use the default blue until a
-            future pass. Dark mode and density remain forthcoming.
+            future pass. Density remains forthcoming.
           </SettingsNote>
         </div>
 

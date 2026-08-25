@@ -51,21 +51,24 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
           <motion.div
             ref={panelRef}
             tabIndex={-1}
-            className="relative w-full max-w-md max-h-[85dvh] overflow-y-auto bg-white rounded-3xl p-6 border border-slate-100/80 shadow-xl outline-none"
+            className="relative max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-slate-100/80 bg-white p-6 shadow-xl outline-none dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:shadow-black/40"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.2, ease: EASE }}
           >
-            <div className="flex items-center justify-between mb-5">
-              <h2 id={titleId} className="text-base font-bold text-slate-800">
+            <div className="mb-5 flex items-center justify-between">
+              <h2
+                id={titleId}
+                className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]"
+              >
                 {title}
               </h2>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="zf-tap relative p-1.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8]"
+                className="zf-tap relative rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-soft-fill)] dark:hover:text-[var(--zf-text)]"
               >
                 <X size={16} aria-hidden="true" />
               </button>

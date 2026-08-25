@@ -46,7 +46,7 @@ export function UserMenu({ className }: UserMenuProps) {
       <DropdownMenuTrigger
         aria-label="User menu"
         className={cn(
-          'zf-tap flex h-9 w-9 items-center justify-center rounded-full bg-[#E2EEFC] text-sm font-bold text-[#1D70E8] transition-colors hover:bg-[#D6E8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8]',
+          'zf-tap flex h-9 w-9 items-center justify-center rounded-full bg-[#E2EEFC] text-sm font-bold text-[#1D70E8] transition-colors hover:bg-[#D6E8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:bg-[var(--zf-accent-soft)] dark:text-[var(--zf-accent)] dark:hover:bg-[var(--zf-elevated)]',
           className,
         )}
       >
@@ -58,46 +58,54 @@ export function UserMenu({ className }: UserMenuProps) {
         side="bottom"
         sideOffset={8}
         collisionPadding={12}
-        className="w-[min(16rem,calc(100vw-2rem))] min-w-0 rounded-2xl border border-slate-100 bg-white p-1.5 text-slate-800 shadow-lg shadow-slate-200/60 ring-0"
+        className="w-[min(16rem,calc(100vw-2rem))] min-w-0 rounded-2xl border border-slate-100 bg-white p-1.5 text-slate-800 shadow-lg shadow-slate-200/60 ring-0 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:text-[var(--zf-text)] dark:shadow-black/40"
       >
         <DropdownMenuGroup>
           <DropdownMenuLabel className="px-2.5 py-2.5">
-            <span className="block truncate text-sm font-semibold text-slate-800">
+            <span className="block truncate text-sm font-semibold text-slate-800 dark:text-[var(--zf-text)]">
               {displayName}
             </span>
             {email ? (
-              <span className="mt-0.5 block truncate text-xs font-normal text-slate-500">
+              <span className="mt-0.5 block truncate text-xs font-normal text-slate-500 dark:text-[var(--zf-text-muted)]">
                 {email}
               </span>
             ) : null}
           </DropdownMenuLabel>
         </DropdownMenuGroup>
 
-        <DropdownMenuSeparator className="bg-slate-100" />
+        <DropdownMenuSeparator className="bg-slate-100 dark:bg-[var(--zf-border)]" />
 
         <DropdownMenuGroup>
           <DropdownMenuItem
-            className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-slate-700 focus:bg-slate-50 focus:text-slate-800"
+            className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-slate-700 focus:bg-slate-50 focus:text-slate-800 dark:text-[var(--zf-text)] dark:focus:bg-[var(--zf-soft-fill)] dark:focus:text-[var(--zf-text)]"
             onClick={() => go('/dashboard/profile')}
           >
-            <UserRound size={16} className="text-slate-500" aria-hidden="true" />
+            <UserRound
+              size={16}
+              className="text-slate-500 dark:text-[var(--zf-text-muted)]"
+              aria-hidden="true"
+            />
             My Profile
           </DropdownMenuItem>
 
           <DropdownMenuItem
-            className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-slate-700 focus:bg-slate-50 focus:text-slate-800"
+            className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-slate-700 focus:bg-slate-50 focus:text-slate-800 dark:text-[var(--zf-text)] dark:focus:bg-[var(--zf-soft-fill)] dark:focus:text-[var(--zf-text)]"
             onClick={() => go('/dashboard/settings')}
           >
-            <Settings size={16} className="text-slate-500" aria-hidden="true" />
+            <Settings
+              size={16}
+              className="text-slate-500 dark:text-[var(--zf-text-muted)]"
+              aria-hidden="true"
+            />
             Settings
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
-        <DropdownMenuSeparator className="bg-slate-100" />
+        <DropdownMenuSeparator className="bg-slate-100 dark:bg-[var(--zf-border)]" />
 
         <DropdownMenuItem
           variant="destructive"
-          className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-red-600 focus:bg-red-50 focus:text-red-700"
+          className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-red-600 focus:bg-red-50 focus:text-red-700 dark:text-red-400 dark:focus:bg-red-950/40 dark:focus:text-red-300"
           onClick={() => {
             void logout()
           }}

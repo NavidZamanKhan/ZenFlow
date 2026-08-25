@@ -275,9 +275,9 @@ export function ExpensePreferenceSettingsSection({
                 />
               )}
             />
-            <span className="flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-500">
+            <span className="mt-2 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-[var(--zf-text-muted)]">
               <span
-                className="w-6 h-6 rounded-lg flex items-center justify-center"
+                className="flex h-6 w-6 items-center justify-center rounded-lg"
                 style={{
                   color: categoryMeta.color,
                   backgroundColor: categoryMeta.softBg,
@@ -291,23 +291,28 @@ export function ExpensePreferenceSettingsSection({
         </div>
 
         {/* Live Exchange Rate Card */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-[#F4F8FD] p-4 mt-5">
+        <div className="mt-5 flex flex-col justify-between gap-3 rounded-2xl border border-blue-100 bg-[#F4F8FD] p-4 sm:flex-row sm:items-center dark:border-[var(--zf-border)] dark:bg-[var(--zf-accent-soft)]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-[#1D70E8] flex items-center justify-center flex-shrink-0">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-[var(--zf-accent)]">
               <Globe size={16} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <p className="text-xs font-bold text-slate-800">
+                <p className="text-xs font-bold text-slate-800 dark:text-[var(--zf-text)]">
                   Live Market Exchange Rate
                 </p>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">
+                <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
                   {isLive ? 'Live' : 'Cached'}
                 </span>
               </div>
-              <p className="text-xs text-slate-600 mt-0.5">
-                $1.00 USD = <strong className="font-semibold text-slate-900">{activeRate.toFixed(2)} {selectedCurrency}</strong>
-                <span className="text-slate-400 ml-1.5">({lastUpdated})</span>
+              <p className="mt-0.5 text-xs text-slate-600 dark:text-[var(--zf-text-muted)]">
+                $1.00 USD ={' '}
+                <strong className="font-semibold text-slate-900 dark:text-[var(--zf-text)]">
+                  {activeRate.toFixed(2)} {selectedCurrency}
+                </strong>
+                <span className="ml-1.5 text-slate-400 dark:text-[var(--zf-text-muted)]">
+                  ({lastUpdated})
+                </span>
               </p>
             </div>
           </div>
@@ -318,10 +323,10 @@ export function ExpensePreferenceSettingsSection({
             size="sm"
             onClick={handleRefreshRates}
             disabled={loadingRates}
-            className="h-8 rounded-xl border-blue-200 bg-white text-xs font-semibold text-[#1D70E8] hover:bg-blue-50"
+            className="h-8 rounded-xl border-blue-200 bg-white text-xs font-semibold text-[var(--zf-accent)] hover:bg-blue-50 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:hover:bg-[var(--zf-elevated)]"
           >
             {loadingRates ? (
-              <Loader2 size={13} className="animate-spin mr-1.5" />
+              <Loader2 size={13} className="mr-1.5 animate-spin" />
             ) : (
               <RefreshCw size={13} className="mr-1.5" />
             )}
@@ -329,10 +334,12 @@ export function ExpensePreferenceSettingsSection({
           </Button>
         </div>
 
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 mt-4">
+        <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 dark:border-[var(--zf-border)] dark:bg-[var(--zf-soft-fill)]">
           <div>
-            <p className="text-sm font-semibold text-slate-700">24-hour time</p>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-sm font-semibold text-slate-700 dark:text-[var(--zf-text)]">
+              24-hour time
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-[var(--zf-text-muted)]">
               Store times as 24-hour instead of 12-hour display.
             </p>
           </div>
@@ -346,7 +353,7 @@ export function ExpensePreferenceSettingsSection({
                   field.onChange(checked ? '24-hour' : '12-hour')
                 }
                 aria-label="Use 24-hour time"
-                className="data-checked:bg-[#1D70E8]"
+                className="data-checked:bg-[var(--zf-accent)]"
               />
             )}
           />

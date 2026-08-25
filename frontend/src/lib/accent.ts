@@ -14,16 +14,29 @@ export const ACCENT_PALETTES: Record<AccentColor, AccentPalette> = {
   coral: { base: '#F97316', hover: '#EA580C', soft: '#FFEDD5' },
 }
 
+/** Dark surface used when mixing a readable soft accent tint. */
+const DARK_SURFACE = '#1A2332'
+
 /**
  * Writes the active accent palette onto :root as --zf-accent*.
- * Call on dashboard load and immediately after a successful Appearance save.
+ * In dark mode, --zf-accent-soft is a color-mix of the accent into the dark
+ * surface (~20%) so soft fills stay legible; light mode keeps pastel softs.
+ * Base and hover are unchanged across themes.
  */
-export function applyAccentColor(accent: AccentColor = 'blue'): void {
+export function applyAccentColor(
+  accent: AccentColor = 'blue',
+  resolvedTheme: 'light' | 'dark' = 'light',
+): void {
   if (typeof document === 'undefined') return
 
   const palette = ACCENT_PALETTES[accent] ?? ACCENT_PALETTES.blue
   const root = document.documentElement
+  const soft =
+    resolvedTheme === 'dark'
+      ? `color-mix(in srgb, ${palette.base} 20%, ${DARK_SURFACE})`
+      : palette.soft
+
   root.style.setProperty('--zf-accent', palette.base)
   root.style.setProperty('--zf-accent-hover', palette.hover)
-  root.style.setProperty('--zf-accent-soft', palette.soft)
+  root.style.setProperty('--zf-accent-soft', soft)
 }

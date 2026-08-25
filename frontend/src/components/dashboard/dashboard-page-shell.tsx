@@ -40,7 +40,7 @@ export function DashboardPageShell({ children }: { children: ReactNode }) {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-1 flex-col overflow-hidden bg-white">
+      <div className="flex flex-1 flex-col overflow-hidden bg-white dark:bg-[var(--zf-canvas)]">
         <div className="flex-1 overflow-auto">{children}</div>
       </div>
     </DashboardLayout>

@@ -151,11 +151,11 @@ export function ProfileSettingsSection({
       description="Manage the personal details shown in your local workspace."
     >
       <form onSubmit={handleSubmit(submitProfile)} noValidate>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative w-fit">
             <Avatar className="size-20">
               {avatarPreview && <AvatarImage src={avatarPreview} alt="" />}
-              <AvatarFallback className="bg-[#E2EEFC] text-[#1D70E8] text-lg font-bold">
+              <AvatarFallback className="bg-[var(--zf-accent-soft)] text-lg font-bold text-[var(--zf-accent)]">
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -164,7 +164,7 @@ export function ProfileSettingsSection({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 aria-label="Choose profile image"
-                className="absolute -right-1 -bottom-1 w-8 h-8 rounded-xl bg-[#1D70E8] text-white flex items-center justify-center border-2 border-white shadow-sm"
+                className="absolute -right-1 -bottom-1 flex h-8 w-8 items-center justify-center rounded-xl border-2 border-white bg-[var(--zf-accent)] text-white shadow-sm dark:border-[var(--zf-surface)]"
               >
                 <Camera size={14} />
               </button>
@@ -178,11 +178,13 @@ export function ProfileSettingsSection({
             />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-bold text-slate-800">
+            <p className="text-sm font-bold text-slate-800 dark:text-[var(--zf-text)]">
               {profile.fullName || 'ZenFlow user'}
             </p>
-            <p className="text-xs text-slate-500 mt-0.5">{profile.email}</p>
-            <p className="text-xs text-slate-500 mt-1.5">
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-[var(--zf-text-muted)]">
+              {profile.email}
+            </p>
+            <p className="mt-1.5 text-xs text-slate-500 dark:text-[var(--zf-text-muted)]">
               Avatar previews last for this browser session only.
             </p>
           </div>
@@ -191,7 +193,7 @@ export function ProfileSettingsSection({
               type="button"
               variant="outline"
               onClick={() => setEditing(true)}
-              className="h-10 px-4 rounded-xl border-slate-200 text-slate-600"
+              className="h-10 rounded-xl border-slate-200 px-4 text-slate-600 dark:border-[var(--zf-border)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text)] dark:hover:bg-[var(--zf-elevated)]"
             >
               <Pencil size={15} />
               Edit profile
@@ -283,8 +285,8 @@ export function ProfileSettingsSection({
 
         <div className="mt-5">
           <SettingsNote>
-            These profile details are stored locally for Settings. They do not
-            update your authentication account or upload an avatar.
+            These profile details are stored locally. They do not update your
+            authentication account or upload an avatar.
           </SettingsNote>
         </div>
 
@@ -294,7 +296,7 @@ export function ProfileSettingsSection({
               type="button"
               variant="ghost"
               onClick={cancelEditing}
-              className="h-10 px-4 rounded-xl text-slate-500"
+              className="h-10 rounded-xl px-4 text-slate-500 dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-soft-fill)] dark:hover:text-[var(--zf-text)]"
             >
               Cancel
             </Button>
