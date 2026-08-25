@@ -17,5 +17,9 @@ export function useAccentCssVars() {
     if (loading) return
     const theme = resolvedTheme === 'dark' ? 'dark' : 'light'
     applyAccentColor(settings.appearance.accentColor, theme)
-  }, [loading, settings.appearance.accentColor, resolvedTheme])
+    const density = settings.appearance.density || 'comfortable'
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-density', density)
+    }
+  }, [loading, settings.appearance.accentColor, settings.appearance.density, resolvedTheme])
 }

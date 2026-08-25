@@ -142,6 +142,9 @@ export function AppearanceSettingsSection({
 
   const handleDensityChange = (newDensity: 'comfortable' | 'compact') => {
     setValue('density', newDensity, { shouldDirty: true })
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-density', newDensity)
+    }
     onSave({ ...getValues(), density: newDensity })
   }
 
@@ -157,6 +160,9 @@ export function AppearanceSettingsSection({
               ? 'dark'
               : 'light'
       applyAccentColor(values.accentColor, themeForAccent)
+      if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-density', values.density)
+      }
       toast.success('Appearance preferences saved.')
     } else {
       toast.error('Could not save appearance preferences.')
@@ -259,7 +265,7 @@ export function AppearanceSettingsSection({
 
           <SettingsField
             label="Display density"
-            helper="Saved now; global spacing support is coming soon."
+            helper="Choose between comfortable spacing or data-dense compact layout."
           >
             <Controller
               control={control}
