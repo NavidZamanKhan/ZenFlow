@@ -33,7 +33,7 @@ export function applyAccentColor(
   const root = document.documentElement
   const soft =
     resolvedTheme === 'dark'
-      ? `color-mix(in srgb, ${palette.base} 20%, ${DARK_SURFACE})`
+      ? `color-mix(in srgb, ${palette.base} 12%, ${DARK_SURFACE})`
       : palette.soft
 
   root.style.setProperty('--zf-accent', palette.base)

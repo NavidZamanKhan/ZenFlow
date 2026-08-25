@@ -189,8 +189,9 @@ export function AppearanceSettingsSection({
                     <label
                       key={option.value}
                       className={cn(
-                        'flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-3 transition-colors sm:p-4 dark:border-[var(--zf-border)]',
-                        'has-[[data-checked]]:border-[var(--zf-accent)] has-[[data-checked]]:bg-[var(--zf-accent-soft)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]',
+                        'flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-3 transition-colors sm:p-4 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]',
+                        'has-[[data-checked]]:border-[var(--zf-accent)] has-[[data-checked]]:bg-[var(--zf-accent-soft)] dark:has-[[data-checked]]:border-[var(--zf-accent)] dark:has-[[data-checked]]:bg-[var(--zf-accent-soft)]',
+                        'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]',
                       )}
                     >
                       <RadioGroupItem
@@ -239,7 +240,7 @@ export function AppearanceSettingsSection({
                   {ACCENT_OPTIONS.map((option) => (
                     <label
                       key={option.value}
-                      className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 has-[[data-checked]]:border-[var(--zf-accent)] has-[[data-checked]]:bg-[var(--zf-accent-soft)] dark:border-[var(--zf-border)]"
+                      className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 has-[[data-checked]]:border-[var(--zf-accent)] has-[[data-checked]]:bg-[var(--zf-accent-soft)] dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:has-[[data-checked]]:border-[var(--zf-accent)] dark:has-[[data-checked]]:bg-[var(--zf-accent-soft)]"
                     >
                       <RadioGroupItem value={option.value} />
                       <span

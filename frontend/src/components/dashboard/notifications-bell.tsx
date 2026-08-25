@@ -27,8 +27,8 @@ const TYPE_ICON: Record<NotificationType, LucideIcon> = {
 }
 
 const TYPE_ICON_WRAP: Record<NotificationType, string> = {
-  budget: 'bg-[#E2EEFC] text-[#1D70E8] dark:bg-[var(--zf-accent-soft)] dark:text-[var(--zf-accent)]',
-  task: 'bg-[#E2EEFC] text-[#1D70E8] dark:bg-[var(--zf-accent-soft)] dark:text-[var(--zf-accent)]',
+  budget: 'bg-[#E2EEFC] text-[#1D70E8] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent)]',
+  task: 'bg-[#E2EEFC] text-[#1D70E8] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent)]',
   reminder: 'bg-teal-50 text-teal-600 dark:bg-teal-950/50 dark:text-teal-400',
 }
 
@@ -50,7 +50,7 @@ function NotificationRow({
           'flex w-full items-start gap-3 rounded-xl px-2 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]',
           notification.read
             ? 'hover:bg-slate-50/80 opacity-75 dark:hover:bg-[var(--zf-soft-fill)]/80'
-            : 'bg-[#F5F9FE] hover:bg-[#E2EEFC]/70 dark:bg-[var(--zf-accent-soft)] dark:hover:bg-[var(--zf-elevated)]',
+            : 'bg-[#F5F9FE] hover:bg-[#E2EEFC]/70 dark:bg-[var(--zf-soft-fill)] dark:hover:bg-[var(--zf-elevated)]',
         )}
       >
         <span
@@ -157,7 +157,7 @@ export function NotificationsBell() {
 
         {showEmpty ? (
           <div className="px-4 py-10 text-center">
-            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#E2EEFC] dark:bg-[var(--zf-accent-soft)]">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#E2EEFC] dark:bg-[var(--zf-soft-fill)]">
               <Bell size={18} className="text-[#1D70E8] dark:text-[var(--zf-accent)]" aria-hidden="true" />
             </div>
             <p className="text-sm font-semibold text-slate-700 dark:text-[var(--zf-text)]">

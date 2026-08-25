@@ -131,7 +131,7 @@ export function SettingsSelect({
 
 export function SettingsNote({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-[#D7E7FA] bg-[#F5F9FE] px-4 py-3 text-xs leading-relaxed text-slate-500 dark:border-[var(--zf-border)] dark:bg-[var(--zf-accent-soft)] dark:text-[var(--zf-text-muted)]">
+    <div className="rounded-2xl border border-[#D7E7FA] bg-[#F5F9FE] px-4 py-3 text-xs leading-relaxed text-slate-500 dark:border-[var(--zf-border)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text-muted)]">
       {children}
     </div>
   )

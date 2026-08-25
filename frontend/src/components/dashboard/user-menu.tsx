@@ -46,7 +46,7 @@ export function UserMenu({ className }: UserMenuProps) {
       <DropdownMenuTrigger
         aria-label="User menu"
         className={cn(
-          'zf-tap flex h-9 w-9 items-center justify-center rounded-full bg-[#E2EEFC] text-sm font-bold text-[#1D70E8] transition-colors hover:bg-[#D6E8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:bg-[var(--zf-accent-soft)] dark:text-[var(--zf-accent)] dark:hover:bg-[var(--zf-elevated)]',
+          'zf-tap flex h-9 w-9 items-center justify-center rounded-full bg-[#E2EEFC] text-sm font-bold text-[#1D70E8] transition-colors hover:bg-[#D6E8FA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent)] dark:hover:bg-[var(--zf-elevated)]',
           className,
         )}
       >

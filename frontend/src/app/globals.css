@@ -106,7 +106,7 @@
   --zf-text-muted: #94a3b8;
   --zf-soft-fill: #1e293b;
   /* Soft accent default for dark — runtime may override via applyAccentColor */
-  --zf-accent-soft: color-mix(in srgb, #1d70e8 20%, #1a2332);
+  --zf-accent-soft: color-mix(in srgb, #1d70e8 12%, #1a2332);
   /* Map shadcn semantic tokens to the same palette */
   --background: #0f1419;
   --foreground: #e8eef6;

@@ -291,7 +291,7 @@ export function ExpensePreferenceSettingsSection({
         </div>
 
         {/* Live Exchange Rate Card */}
-        <div className="mt-5 flex flex-col justify-between gap-3 rounded-2xl border border-blue-100 bg-[#F4F8FD] p-4 sm:flex-row sm:items-center dark:border-[var(--zf-border)] dark:bg-[var(--zf-accent-soft)]">
+        <div className="mt-5 flex flex-col justify-between gap-3 rounded-2xl border border-blue-100 bg-[#F4F8FD] p-4 sm:flex-row sm:items-center dark:border-[var(--zf-border)] dark:bg-[var(--zf-soft-fill)]">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-[var(--zf-accent)]">
               <Globe size={16} />
