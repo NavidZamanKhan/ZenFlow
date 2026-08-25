@@ -3,8 +3,8 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth'
+import { SettingsProvider } from '@/hooks/use-settings'
 import { CurrencyProvider } from '@/lib/currency-context'
-import { SettingsThemeSync } from '@/components/settings-theme-sync'
 import { ThemeProvider } from '@/components/theme-provider'
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
@@ -55,10 +55,11 @@ export default function RootLayout({
       <body className="font-sans antialiased" suppressHydrationWarning>
         <ThemeProvider>
           <AuthProvider>
-            <CurrencyProvider>
-              <SettingsThemeSync />
-              {children}
-            </CurrencyProvider>
+            <SettingsProvider>
+              <CurrencyProvider>
+                {children}
+              </CurrencyProvider>
+            </SettingsProvider>
           </AuthProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}

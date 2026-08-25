@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Laptop, Moon, Palette, Save, Sun } from 'lucide-react'
@@ -68,6 +68,16 @@ export function AppearanceSettingsSection({
   onSave: (appearance: AppearanceSettings) => boolean
 }) {
   const { theme: activeTheme, setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const currentTheme = (mounted && activeTheme
+    ? activeTheme
+    : appearance.theme || 'light') as AppearanceFormValues['theme']
+
   const {
     control,
     handleSubmit,
@@ -80,16 +90,22 @@ export function AppearanceSettingsSection({
     mode: 'onTouched',
     defaultValues: {
       ...appearance,
-      theme: (activeTheme as AppearanceFormValues['theme']) || appearance.theme || 'light',
+      theme: currentTheme,
     },
   })
 
   useEffect(() => {
+    if (mounted && activeTheme) {
+      setValue('theme', activeTheme as AppearanceFormValues['theme'])
+    }
+  }, [mounted, activeTheme, setValue])
+
+  useEffect(() => {
     reset({
       ...appearance,
-      theme: (activeTheme as AppearanceFormValues['theme']) || appearance.theme || 'light',
+      theme: currentTheme,
     })
-  }, [appearance, activeTheme, reset])
+  }, [appearance, currentTheme, reset])
 
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
     setValue('theme', newTheme, { shouldDirty: true })

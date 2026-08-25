@@ -1,6 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { useAuth } from '@/lib/auth'
 import {
   createDefaultSettings,
@@ -46,7 +53,20 @@ function mergeStoredSettings(
   } as ZenFlowSettings
 }
 
-export function useSettings() {
+interface SettingsContextType {
+  settings: ZenFlowSettings
+  loading: boolean
+  error: string | null
+  reload: () => void
+  updateSection: <Section extends keyof ZenFlowSettings>(
+    section: Section,
+    value: ZenFlowSettings[Section],
+  ) => boolean
+}
+
+const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
+
+export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
   const userEmail = user?.email ?? ''
   const [settings, setSettings] = useState<ZenFlowSettings>(() =>
@@ -57,36 +77,37 @@ export function useSettings() {
   const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
-    if (!userEmail) return
+    if (!userEmail) {
+      setSettings(createDefaultSettings())
+      setLoading(false)
+      return
+    }
 
     let cancelled = false
-    queueMicrotask(() => {
-      if (cancelled) return
-      setLoading(true)
-      setError(null)
-      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
-      const defaults = createDefaultSettings(
-        userEmail,
-        user?.fullName ?? '',
-        timeZone,
-      )
+    setLoading(true)
+    setError(null)
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+    const defaults = createDefaultSettings(
+      userEmail,
+      user?.fullName ?? '',
+      timeZone,
+    )
 
-      try {
-        const raw = localStorage.getItem(settingsStorageKey(userEmail))
-        const stored: unknown = raw ? JSON.parse(raw) : null
-        if (!cancelled) {
-          setSettings(mergeStoredSettings(stored, defaults))
-          setError(null)
-        }
-      } catch {
-        if (!cancelled) {
-          setSettings(defaults)
-          setError('Could not load your saved settings.')
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
+    try {
+      const raw = localStorage.getItem(settingsStorageKey(userEmail))
+      const stored: unknown = raw ? JSON.parse(raw) : null
+      if (!cancelled) {
+        setSettings(mergeStoredSettings(stored, defaults))
+        setError(null)
       }
-    })
+    } catch {
+      if (!cancelled) {
+        setSettings(defaults)
+        setError('Could not load your saved settings.')
+      }
+    } finally {
+      if (!cancelled) setLoading(false)
+    }
 
     return () => {
       cancelled = true
@@ -122,5 +143,22 @@ export function useSettings() {
     [settings, userEmail],
   )
 
-  return { settings, loading, error, reload, updateSection }
+  const value = useMemo(
+    () => ({ settings, loading, error, reload, updateSection }),
+    [settings, loading, error, reload, updateSection],
+  )
+
+  return (
+    <SettingsContext.Provider value={value}>
+      {children}
+    </SettingsContext.Provider>
+  )
+}
+
+export function useSettings() {
+  const context = useContext(SettingsContext)
+  if (!context) {
+    throw new Error('useSettings must be used within a SettingsProvider')
+  }
+  return context
 }
