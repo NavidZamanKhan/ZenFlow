@@ -6,14 +6,13 @@ import { ErrorState } from '@/components/shared/state-blocks'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AppearanceSettingsSection } from './appearance-settings'
 import { ExpensePreferenceSettingsSection } from './expense-preference-settings'
-import { ProfileSettingsSection } from './profile-settings'
 import { SecuritySettingsSection } from './security-settings'
 import { SETTINGS_CARD_CLASS } from './settings-section'
 
 export function SettingsPage() {
   const { settings, loading, error, reload, updateSection } = useSettings()
 
-  // Honor hash deep-links from global search (e.g. /dashboard/settings#profile or #security).
+  // Honor hash deep-links from global search (e.g. #appearance or #security).
   useEffect(() => {
     if (loading) return
     const id = window.location.hash.replace(/^#/, '')
@@ -47,10 +46,6 @@ export function SettingsPage() {
       ) : null}
 
       <div className="space-y-8">
-        <ProfileSettingsSection
-          profile={settings.profile}
-          onSave={(profile) => updateSection('profile', profile)}
-        />
         <AppearanceSettingsSection
           appearance={settings.appearance}
           onSave={(appearance) => updateSection('appearance', appearance)}
