@@ -11,9 +11,16 @@ import { Switch } from '@/components/ui/switch'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
 import { useCurrency } from '@/lib/currency-context'
 import {
+  apiGetBudget,
+  apiGetExpenses,
+  apiUpdateBudget,
+  apiUpdateExpense,
+} from '@/lib/api'
+import {
   EXPENSE_CATEGORIES,
   PAYMENT_METHODS,
 } from '@/types/expense'
+import type { ExpenseCategory } from '@/types/expense'
 import {
   SETTINGS_CURRENCIES,
   type ExpensePreferenceSettings,
@@ -111,7 +118,54 @@ export function ExpensePreferenceSettingsSection({
   const CategoryIcon = categoryMeta.icon
   const activeRate = rates[selectedCurrency] || 1
 
-  const submitPreferences = (values: ExpensePreferenceFormValues) => {
+  const submitPreferences = async (values: ExpensePreferenceFormValues) => {
+    const oldCurrency = preferences.currency
+    const newCurrency = values.currency
+
+    if (oldCurrency && newCurrency && oldCurrency !== newCurrency) {
+      const oldRate = rates[oldCurrency] || 1
+      const newRate = rates[newCurrency] || 1
+      const factor = newRate / oldRate
+
+      try {
+        // 1. Convert existing expenses in database
+        const allExpenses = await apiGetExpenses()
+        if (allExpenses && allExpenses.length > 0) {
+          await Promise.all(
+            allExpenses.map((exp) =>
+              apiUpdateExpense(exp.id, {
+                amount: Math.round(exp.amount * factor * 100) / 100,
+              }),
+            ),
+          )
+        }
+
+        // 2. Convert existing budget in database
+        const currentBudget = await apiGetBudget()
+        if (currentBudget && currentBudget.monthlyTotal > 0) {
+          const newCategoryBudgets: Partial<Record<ExpenseCategory, number>> = {}
+          for (const [cat, amt] of Object.entries(currentBudget.categoryBudgets)) {
+            newCategoryBudgets[cat as ExpenseCategory] =
+              Math.round((amt as number) * factor * 100) / 100
+          }
+          await apiUpdateBudget({
+            monthlyTotal:
+              Math.round(currentBudget.monthlyTotal * factor * 100) / 100,
+            categoryBudgets: newCategoryBudgets as Record<ExpenseCategory, number>,
+          })
+        }
+
+        if (onSave(values)) {
+          toast.success(
+            `Currency converted from ${oldCurrency} to ${newCurrency} at market rate (1 ${oldCurrency} = ${factor.toFixed(4)} ${newCurrency}).`,
+          )
+        }
+        return
+      } catch {
+        // Continue to save preferences even if network update had issues
+      }
+    }
+
     if (onSave(values)) {
       toast.success('Expense preferences saved.')
     } else {

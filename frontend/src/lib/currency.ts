@@ -192,31 +192,36 @@ export async function fetchExchangeRates(forceRefresh = false): Promise<Exchange
 }
 
 /**
- * Converts an amount from a base currency (default USD) to a target currency.
+ * Converts an amount from one currency to another using exchange rates.
  */
 export function convertAmount(
   amount: number,
-  targetCurrency: CurrencyCode = 'BDT',
+  toCurrency: CurrencyCode = 'BDT',
   rates: Record<CurrencyCode, number> = FALLBACK_RATES_USD_BASE,
   fromCurrency: CurrencyCode = 'USD',
 ): number {
-  if (fromCurrency === targetCurrency) return amount
+  if (fromCurrency === toCurrency || !amount) return amount
   const fromRate = rates[fromCurrency] || 1
-  const toRate = rates[targetCurrency] || 1
+  const toRate = rates[toCurrency] || 1
   const inUSD = amount / fromRate
   return inUSD * toRate
 }
 
 /**
  * Formats an amount into the localized currency string (e.g. ৳12,500.00 or $100.00).
+ * If fromCurrency is provided and differs from currency, it converts the amount first.
  */
 export function formatMoney(
   amount: number,
   currency: CurrencyCode = 'BDT',
   rates: Record<CurrencyCode, number> = FALLBACK_RATES_USD_BASE,
-  fromCurrency: CurrencyCode = 'USD',
+  fromCurrency?: CurrencyCode,
 ): string {
-  const converted = convertAmount(amount, currency, rates, fromCurrency)
+  const converted =
+    fromCurrency && fromCurrency !== currency
+      ? convertAmount(amount, currency, rates, fromCurrency)
+      : amount
+
   const meta = CURRENCY_METADATA[currency] || CURRENCY_METADATA.BDT
 
   try {

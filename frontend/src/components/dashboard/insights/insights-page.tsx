@@ -95,7 +95,7 @@ export function InsightsPage() {
       currency: meta.code,
       notation: 'compact',
       maximumFractionDigits: 1,
-    }).format(convert(value))
+    }).format(value)
   }
 
   if (loading) return <InsightsLoading />

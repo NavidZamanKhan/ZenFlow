@@ -55,14 +55,15 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   }, [loadRates])
 
   const convert = useCallback(
-    (amount: number, fromCurrency: CurrencyCode = 'USD'): number => {
+    (amount: number, fromCurrency?: CurrencyCode): number => {
+      if (!fromCurrency || fromCurrency === activeCurrency) return amount
       return convertAmount(amount, activeCurrency, rates, fromCurrency)
     },
     [activeCurrency, rates],
   )
 
   const format = useCallback(
-    (amount: number, fromCurrency: CurrencyCode = 'USD'): string => {
+    (amount: number, fromCurrency?: CurrencyCode): string => {
       return formatMoney(amount, activeCurrency, rates, fromCurrency)
     },
     [activeCurrency, rates],
