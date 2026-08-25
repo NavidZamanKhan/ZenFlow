@@ -69,7 +69,7 @@ export function LoginForm() {
         labelRight={
           <a
             href="#"
-            className="text-sm text-blue-500 transition-colors duration-150 hover:text-blue-600"
+            className="text-sm text-[var(--zf-accent)] transition-colors duration-150 hover:opacity-80"
           >
             Forgot password?
           </a>
@@ -79,7 +79,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="h-12 w-full rounded-xl bg-blue-500 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-600 disabled:pointer-events-none disabled:opacity-60"
+        className="h-12 w-full rounded-xl bg-[var(--zf-accent)] text-sm font-semibold text-white transition-colors duration-150 hover:bg-[var(--zf-accent-hover)] disabled:pointer-events-none disabled:opacity-60"
       >
         {isSubmitting ? 'Logging in…' : 'Log in'}
       </button>

@@ -291,9 +291,9 @@ export function ExpensePreferenceSettingsSection({
         </div>
 
         {/* Live Exchange Rate Card */}
-        <div className="mt-5 flex flex-col justify-between gap-3 rounded-2xl border border-blue-100 bg-[#F4F8FD] p-4 sm:flex-row sm:items-center dark:border-[var(--zf-border)] dark:bg-[var(--zf-soft-fill)]">
+        <div className="mt-5 flex flex-col justify-between gap-3 rounded-2xl border border-[var(--zf-accent-light-border)] bg-[var(--zf-accent-light-bg)] p-4 sm:flex-row sm:items-center dark:border-[var(--zf-border)] dark:bg-[var(--zf-soft-fill)]">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-[var(--zf-accent)]">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--zf-accent-soft)] text-[var(--zf-accent)]">
               <Globe size={16} />
             </div>
             <div>
@@ -323,7 +323,7 @@ export function ExpensePreferenceSettingsSection({
             size="sm"
             onClick={handleRefreshRates}
             disabled={loadingRates}
-            className="h-8 rounded-xl border-blue-200 bg-white text-xs font-semibold text-[var(--zf-accent)] hover:bg-blue-50 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:hover:bg-[var(--zf-elevated)]"
+            className="h-8 rounded-xl border-[var(--zf-accent-light-border)] bg-white text-xs font-semibold text-[var(--zf-accent)] hover:bg-[var(--zf-accent-soft)] dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:hover:bg-[var(--zf-elevated)]"
           >
             {loadingRates ? (
               <Loader2 size={13} className="mr-1.5 animate-spin" />

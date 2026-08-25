@@ -27,8 +27,8 @@ const TYPE_ICON: Record<NotificationType, LucideIcon> = {
 }
 
 const TYPE_ICON_WRAP: Record<NotificationType, string> = {
-  budget: 'bg-[#E2EEFC] text-[#1D70E8] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent)]',
-  task: 'bg-[#E2EEFC] text-[#1D70E8] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent)]',
+  budget: 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent)]',
+  task: 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent)]',
   reminder: 'bg-teal-50 text-teal-600 dark:bg-teal-950/50 dark:text-teal-400',
 }
 
@@ -50,7 +50,7 @@ function NotificationRow({
           'flex w-full items-start gap-3 rounded-xl px-2 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]',
           notification.read
             ? 'hover:bg-slate-50/80 opacity-75 dark:hover:bg-[var(--zf-soft-fill)]/80'
-            : 'bg-[#F5F9FE] hover:bg-[#E2EEFC]/70 dark:bg-[var(--zf-soft-fill)] dark:hover:bg-[var(--zf-elevated)]',
+            : 'bg-[var(--zf-accent-light-bg)] hover:bg-[var(--zf-accent-soft)]/70 dark:bg-[var(--zf-soft-fill)] dark:hover:bg-[var(--zf-elevated)]',
         )}
       >
         <span
@@ -145,7 +145,7 @@ export function NotificationsBell() {
                   type="button"
                   onClick={() => markAllAsRead()}
                   title="Mark all as read"
-                  className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-medium text-[#1D70E8] transition-colors hover:bg-[#E2EEFC] dark:text-[var(--zf-accent)] dark:hover:bg-[var(--zf-accent-soft)]"
+                  className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-medium text-[var(--zf-accent)] transition-colors hover:bg-[var(--zf-accent-soft)] dark:text-[var(--zf-accent)] dark:hover:bg-[var(--zf-accent-soft)]"
                 >
                   <CheckCheck size={12} aria-hidden="true" />
                   <span>Mark all read</span>
@@ -157,8 +157,8 @@ export function NotificationsBell() {
 
         {showEmpty ? (
           <div className="px-4 py-10 text-center">
-            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#E2EEFC] dark:bg-[var(--zf-soft-fill)]">
-              <Bell size={18} className="text-[#1D70E8] dark:text-[var(--zf-accent)]" aria-hidden="true" />
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--zf-accent-soft)] dark:bg-[var(--zf-soft-fill)]">
+              <Bell size={18} className="text-[var(--zf-accent)]" aria-hidden="true" />
             </div>
             <p className="text-sm font-semibold text-slate-700 dark:text-[var(--zf-text)]">
               You&apos;re all caught up
@@ -184,7 +184,7 @@ export function NotificationsBell() {
             <button
               type="button"
               onClick={() => markAllAsRead()}
-              className="w-full rounded-xl px-3 py-2 text-center text-xs font-semibold text-[#1D70E8] transition-colors hover:bg-[#E2EEFC] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-accent)] dark:hover:bg-[var(--zf-accent-soft)]"
+              className="w-full rounded-xl px-3 py-2 text-center text-xs font-semibold text-[var(--zf-accent)] transition-colors hover:bg-[var(--zf-accent-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-accent)] dark:hover:bg-[var(--zf-accent-soft)]"
             >
               Mark all as read
             </button>

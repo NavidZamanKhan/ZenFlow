@@ -41,10 +41,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
 import { formatDisplayDate } from '@/lib/format'
 import { useCurrency } from '@/lib/currency-context'
+import { useSettings } from '@/hooks/use-settings'
 import { buildInsightsAnalytics, type SpendingPoint } from '@/lib/insights-stats'
 
 const CARD_CLASS = 'bg-white dark:bg-[var(--zf-surface)] rounded-3xl border border-slate-100/80 dark:border-[var(--zf-border)] shadow-sm'
-const PRIMARY_BLUE = '#1D70E8'
 const SOFT_BLUE = '#67B2F5'
 const SOFT_TEAL = '#7EDCD6'
 const PAYMENT_COLORS = [
@@ -86,6 +86,13 @@ function hasSpending(points: SpendingPoint[]): boolean {
 export function InsightsPage() {
   const { expenses, loading, error, reload } = useExpenses()
   const { format, meta, convert } = useCurrency()
+  const { settings } = useSettings()
+  const accentColor = useMemo(() => {
+    const palettes: Record<string, string> = {
+      blue: '#1D70E8', teal: '#14B8A6', violet: '#8B5CF6', coral: '#F97316',
+    }
+    return palettes[settings.appearance.accentColor] || palettes.blue
+  }, [settings.appearance.accentColor])
   const analytics = useMemo(() => buildInsightsAnalytics(expenses), [expenses])
   // Recharts animates entrances by default — disable under prefers-reduced-motion.
   const animateCharts = !usePrefersReducedMotion()
@@ -159,16 +166,16 @@ export function InsightsPage() {
                       formatter={(value) => format(Number(value))}
                       labelFormatter={(label) => monthLabel(String(label))}
                       contentStyle={TOOLTIP_STYLE}
-                      cursor={{ stroke: '#D7E7FA', strokeWidth: 1 }}
+                      cursor={{ stroke: 'var(--zf-accent-light-border, #D7E7FA)', strokeWidth: 1 }}
                     />
                     <Line
                       type="monotone"
                       dataKey="amount"
                       name="Spending"
                       isAnimationActive={animateCharts}
-                      stroke={PRIMARY_BLUE}
+                      stroke={accentColor}
                       strokeWidth={2.5}
-                      dot={{ r: 3, fill: '#FFFFFF', stroke: PRIMARY_BLUE, strokeWidth: 2 }}
+                      dot={{ r: 3, fill: '#FFFFFF', stroke: accentColor, strokeWidth: 2 }}
                       activeDot={{ r: 5 }}
                     />
                   </LineChart>
@@ -273,7 +280,7 @@ export function InsightsPage() {
                       formatter={(value) => format(Number(value))}
                       labelFormatter={(label) => dayLabel(String(label))}
                       contentStyle={TOOLTIP_STYLE}
-                      cursor={{ stroke: '#D7E7FA', strokeWidth: 1 }}
+                      cursor={{ stroke: 'var(--zf-accent-light-border, #D7E7FA)', strokeWidth: 1 }}
                     />
                     <Area
                       type="monotone"

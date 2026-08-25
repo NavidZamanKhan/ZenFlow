@@ -146,7 +146,7 @@ function SetPasswordModal({
           <Button
             type="submit"
             disabled={submitting}
-            className="h-10 rounded-xl bg-[#1D70E8] px-5 font-medium text-white hover:bg-blue-600"
+            className="h-10 rounded-xl bg-[var(--zf-accent)] px-5 font-medium text-white hover:bg-[var(--zf-accent-hover)]"
           >
             {submitting ? (
               <span className="flex items-center gap-2">
@@ -253,7 +253,7 @@ function ChangePasswordModal({
               type="button"
               onClick={handleSendOtp}
               disabled={sendingOtp}
-              className="h-11 w-full rounded-xl bg-[#1D70E8] font-medium text-white hover:bg-blue-600"
+              className="h-11 w-full rounded-xl bg-[var(--zf-accent)] font-medium text-white hover:bg-[var(--zf-accent-hover)]"
             >
               {sendingOtp ? (
                 <span className="flex items-center gap-2">
@@ -276,7 +276,7 @@ function ChangePasswordModal({
                   type="button"
                   onClick={handleSendOtp}
                   disabled={sendingOtp}
-                  className="text-[11px] font-medium text-blue-600 hover:text-blue-700 disabled:opacity-60"
+                  className="text-[11px] font-medium text-[var(--zf-accent)] hover:opacity-80 disabled:opacity-60"
                 >
                   {sendingOtp ? 'Sending...' : 'Resend code'}
                 </button>
@@ -344,7 +344,7 @@ function ChangePasswordModal({
               <Button
                 type="submit"
                 disabled={submitting}
-                className="h-10 rounded-xl bg-[#1D70E8] px-5 font-medium text-white hover:bg-blue-600"
+                className="h-10 rounded-xl bg-[var(--zf-accent)] px-5 font-medium text-white hover:bg-[var(--zf-accent-hover)]"
               >
                 {submitting ? (
                   <span className="flex items-center gap-2">
@@ -473,7 +473,7 @@ function DeleteAccountModal({
                 onClose()
                 onOpenSetPassword()
               }}
-              className="h-11 w-full rounded-xl bg-[#1D70E8] font-medium text-white hover:bg-blue-600"
+              className="h-11 w-full rounded-xl bg-[var(--zf-accent)] font-medium text-white hover:bg-[var(--zf-accent-hover)]"
             >
               <KeyRound size={16} className="mr-2" />
               Set password first

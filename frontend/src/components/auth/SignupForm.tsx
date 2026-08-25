@@ -143,21 +143,21 @@ export function SignupForm() {
               type="checkbox"
               aria-invalid={errors.terms ? true : undefined}
               aria-describedby={errors.terms ? 'signup-terms-error' : undefined}
-              className="mt-0.5 size-4 shrink-0 rounded border-slate-300 accent-blue-500"
+              className="mt-0.5 size-4 shrink-0 rounded border-slate-300 accent-[var(--zf-accent)]"
               {...register('terms')}
             />
             <span>
               I agree to the{' '}
               <a
                 href="#"
-                className="text-blue-600 transition-colors duration-150 hover:text-blue-700"
+                className="text-[var(--zf-accent)] transition-colors duration-150 hover:opacity-80"
               >
                 Terms
               </a>{' '}
               and{' '}
               <a
                 href="#"
-                className="text-blue-600 transition-colors duration-150 hover:text-blue-700"
+                className="text-[var(--zf-accent)] transition-colors duration-150 hover:opacity-80"
               >
                 Privacy Policy
               </a>
@@ -173,7 +173,7 @@ export function SignupForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="h-12 w-full rounded-xl bg-blue-500 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-600 disabled:pointer-events-none disabled:opacity-60"
+          className="h-12 w-full rounded-xl bg-[var(--zf-accent)] text-sm font-semibold text-white transition-colors duration-150 hover:bg-[var(--zf-accent-hover)] disabled:pointer-events-none disabled:opacity-60"
         >
           {isSubmitting ? 'Creating account…' : 'Create account'}
         </button>

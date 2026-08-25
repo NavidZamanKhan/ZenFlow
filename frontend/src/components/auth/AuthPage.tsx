@@ -41,8 +41,8 @@ const copy: Record<
 
 function PillBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-1.5 text-xs font-medium text-blue-600">
-      <span className="size-1.5 rounded-full bg-blue-500" aria-hidden="true" />
+    <span className="inline-flex items-center gap-2 rounded-full bg-[var(--zf-accent-soft)] px-3.5 py-1.5 text-xs font-medium text-[var(--zf-accent)]">
+      <span className="size-1.5 rounded-full bg-[var(--zf-accent)]" aria-hidden="true" />
       {children}
     </span>
   )
@@ -101,11 +101,11 @@ function GoogleAuthButton() {
       type="button"
       disabled={loading}
       onClick={() => handleGoogleLogin()}
-      className="zf-tap flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8] disabled:cursor-not-allowed disabled:opacity-60"
+      className="zf-tap flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] disabled:cursor-not-allowed disabled:opacity-60"
     >
       {loading ? (
         <div
-          className="size-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"
+          className="size-4 animate-spin rounded-full border-2 border-[var(--zf-accent)] border-t-transparent"
           aria-hidden="true"
         />
       ) : (
@@ -133,7 +133,7 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
       <div className="flex min-h-screen items-center justify-center bg-slate-50" role="status">
         <div className="flex flex-col items-center gap-3">
           <div
-            className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
+            className="w-8 h-8 border-4 border-[var(--zf-accent)] border-t-transparent rounded-full animate-spin"
             aria-hidden="true"
           />
           <p className="text-sm font-medium text-slate-600">Connecting...</p>
@@ -154,7 +154,7 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
       >
         {/* logo */}
         <Link href="/" className="flex w-fit items-center gap-2.5" aria-label="ZenFlow home">
-          <ZenFlowLogo className="size-8 rounded-full bg-blue-500 text-white" />
+          <ZenFlowLogo className="size-8 rounded-full bg-[var(--zf-accent)] text-white" />
           <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-[var(--zf-text)]">ZenFlow</span>
         </Link>
 
@@ -227,7 +227,7 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
                 <button
                   type="button"
                   onClick={() => setTab(tab === 'login' ? 'signup' : 'login')}
-                  className="font-medium text-blue-500 dark:text-blue-400 transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-300"
+                  className="font-medium text-[var(--zf-accent)] transition-colors duration-150 hover:opacity-80"
                 >
                   {footerAction}
                 </button>

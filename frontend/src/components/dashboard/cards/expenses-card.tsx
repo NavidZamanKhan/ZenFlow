@@ -12,7 +12,7 @@ import type { Budget } from '@/types/budget'
 import type { Expense } from '@/types/expense'
 
 const FALLBACK_SEGMENT_COLORS = [
-  'bg-[#1D70E8]',
+  'bg-[var(--zf-accent)]',
   'bg-[#67B2F5]',
   'bg-[#7EDCD6]',
   'bg-[#8B5CF6]',

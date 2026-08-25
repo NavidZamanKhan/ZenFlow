@@ -11,7 +11,7 @@ const tasks = [
 const reminders = [
   { label: 'Standup with team', time: '9:30 AM', dot: 'bg-teal-400' },
   { label: 'Dentist appointment', time: '2:00 PM', dot: 'bg-rose-400' },
-  { label: 'Send invoice #402', time: '5:15 PM', dot: 'bg-blue-400' },
+  { label: 'Send invoice #402', time: '5:15 PM', dot: 'bg-[var(--zf-accent)]' },
 ]
 
 // heights as % of the chart container
@@ -39,7 +39,7 @@ export function DashboardPreview() {
           <p className="text-sm text-slate-500">Good morning, Maya</p>
           <p className="text-lg font-bold text-slate-900">Today&apos;s focus</p>
         </div>
-        <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600">
+        <span className="rounded-full bg-[var(--zf-accent-soft)] px-2.5 py-1 text-xs font-medium text-[var(--zf-accent)]">
           4 tasks
         </span>
       </div>
@@ -56,7 +56,7 @@ export function DashboardPreview() {
               <span
                 className={cn(
                   'flex size-4.5 shrink-0 items-center justify-center rounded-full',
-                  task.done ? 'bg-blue-500 text-white' : 'border-2 border-slate-300',
+                  task.done ? 'bg-[var(--zf-accent)] text-white' : 'border-2 border-slate-300',
                 )}
                 aria-hidden="true"
               >
@@ -107,7 +107,7 @@ export function DashboardPreview() {
             {bars.map((height, i) => (
               <span
                 key={i}
-                className="w-2.5 rounded-full bg-blue-400"
+                className="w-2.5 rounded-full bg-[var(--zf-accent)]"
                 style={{ height: `${height * 2}px` }}
               />
             ))}

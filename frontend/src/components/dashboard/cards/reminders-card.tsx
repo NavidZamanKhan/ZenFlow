@@ -186,7 +186,7 @@ export function RemindersCard({
               >
                 <div
                   className={`mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full ${
-                    item.kind === 'task' ? 'bg-[#1D70E8]' : 'bg-[#7EDCD6]'
+                    item.kind === 'task' ? 'bg-[var(--zf-accent)]' : 'bg-[#7EDCD6]'
                   }`}
                   aria-hidden="true"
                 />

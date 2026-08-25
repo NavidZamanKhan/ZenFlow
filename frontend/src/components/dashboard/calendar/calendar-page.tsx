@@ -168,7 +168,7 @@ export function CalendarPage() {
         </div>
         <div className="flex items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400">
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#1D70E8]" aria-hidden="true" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--zf-accent)]" aria-hidden="true" />
             Events
           </span>
           <span className="flex items-center gap-1.5">

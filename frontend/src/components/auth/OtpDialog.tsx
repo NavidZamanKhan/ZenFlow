@@ -211,7 +211,7 @@ export function OtpDialog({ open, pendingRegistrationId, email, onClose }: OtpDi
               onKeyDown={(e) => handleKeyDown(i, e)}
               disabled={submitting || expired}
               aria-label={`Digit ${i + 1} of ${OTP_LENGTH}`}
-              className="h-12 w-11 rounded-xl border border-slate-200 bg-white text-center text-lg font-semibold text-slate-900 transition-colors duration-150 outline-none placeholder:text-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 disabled:opacity-50"
+              className="h-12 w-11 rounded-xl border border-slate-200 bg-white text-center text-lg font-semibold text-slate-900 transition-colors duration-150 outline-none placeholder:text-slate-300 focus:border-[var(--zf-accent)] focus:ring-2 focus:ring-[var(--zf-accent)]/30 disabled:opacity-50"
             />
           ))}
         </div>
@@ -237,7 +237,7 @@ export function OtpDialog({ open, pendingRegistrationId, email, onClose }: OtpDi
           type="button"
           onClick={handleSubmit}
           disabled={submitting || expired || digits.some((d) => !d)}
-          className="h-11 w-full rounded-xl bg-blue-500 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-600 disabled:pointer-events-none disabled:opacity-60"
+          className="h-11 w-full rounded-xl bg-[var(--zf-accent)] text-sm font-semibold text-white transition-colors duration-150 hover:bg-[var(--zf-accent-hover)] disabled:pointer-events-none disabled:opacity-60"
         >
           {submitting ? 'Verifying…' : 'Verify'}
         </button>
@@ -252,7 +252,7 @@ export function OtpDialog({ open, pendingRegistrationId, email, onClose }: OtpDi
             <button
               type="button"
               onClick={handleResend}
-              className="text-xs font-medium text-blue-500 transition-colors duration-150 hover:text-blue-600"
+              className="text-xs font-medium text-[var(--zf-accent)] transition-colors duration-150 hover:opacity-80"
             >
               Resend verification code
             </button>

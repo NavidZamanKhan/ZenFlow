@@ -160,7 +160,7 @@ export function ExpensesPage() {
         <div>
           <div className="flex items-center gap-2.5">
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-0.5">Track where your money goes</p>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-[#1D70E8] dark:text-blue-300 border border-blue-100/60 dark:border-blue-900/60">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--zf-accent-soft)] dark:bg-[var(--zf-soft-fill)] text-[var(--zf-accent)] border border-[var(--zf-accent-light-border)] dark:border-[var(--zf-border)]">
               <Globe size={11} />
               {currency} {currency !== 'USD' ? `(1 USD ≈ ${rateAgainstUSD.toFixed(2)} ${currency})` : ''}
             </span>

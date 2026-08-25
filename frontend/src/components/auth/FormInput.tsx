@@ -46,7 +46,7 @@ export function FormInput({
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            'h-11 w-full rounded-xl border border-slate-200 dark:border-[var(--zf-border)] bg-white dark:bg-[var(--zf-surface)] pl-10 text-sm text-slate-900 dark:text-slate-100 transition-colors duration-150 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40',
+            'h-11 w-full rounded-xl border border-slate-200 dark:border-[var(--zf-border)] bg-white dark:bg-[var(--zf-surface)] pl-10 text-sm text-slate-900 dark:text-slate-100 transition-colors duration-150 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-[var(--zf-accent)] focus:ring-2 focus:ring-[var(--zf-accent)]/30',
             isPassword ? 'pr-10' : 'pr-3.5',
             error && 'border-red-400 dark:border-red-500',
           )}
@@ -57,7 +57,7 @@ export function FormInput({
             type="button"
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
-            className="zf-tap absolute top-1/2 right-3 -translate-y-1/2 rounded p-1 text-slate-500 transition-colors duration-150 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D70E8]"
+            className="zf-tap absolute top-1/2 right-3 -translate-y-1/2 rounded p-1 text-slate-500 transition-colors duration-150 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]"
           >
             {showPassword ? (
               <EyeOff className="size-4" aria-hidden="true" />

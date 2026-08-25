@@ -12,7 +12,7 @@ import type { Task, TaskInput, TaskPriority } from '@/types/task'
 
 const priorityDot: Record<TaskPriority, string> = {
   low: 'bg-slate-300 dark:bg-slate-500',
-  medium: 'bg-[#1D70E8]',
+  medium: 'bg-[var(--zf-accent)]',
   high: 'bg-rose-500',
 }
 

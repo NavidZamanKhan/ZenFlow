@@ -50,7 +50,7 @@ export function ExpenseRow({
           {expense.isRecurring && (
             <>
               <span aria-hidden="true">·</span>
-              <span className="inline-flex items-center gap-0.5 text-[#1D70E8] dark:text-blue-400">
+              <span className="inline-flex items-center gap-0.5 text-[var(--zf-accent)]">
                 <Repeat2 size={11} aria-hidden="true" />
                 {expense.recurringInterval}
               </span>
