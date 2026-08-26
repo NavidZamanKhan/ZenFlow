@@ -3,11 +3,9 @@
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Laptop, Moon, Palette, Save, Sun } from 'lucide-react'
+import { Laptop, Moon, Palette, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { toast } from 'sonner'
 import { z } from 'zod'
-import { Button } from '@/components/ui/button'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { applyAccentColor } from '@/lib/accent'
 import { cn } from '@/lib/utils'
@@ -78,14 +76,7 @@ export function AppearanceSettingsSection({
     ? activeTheme
     : appearance.theme || 'light') as AppearanceFormValues['theme']
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    setValue,
-    getValues,
-    formState: { isSubmitting },
-  } = useForm<AppearanceFormValues>({
+  const { control, reset, setValue, getValues } = useForm<AppearanceFormValues>({
     resolver: zodResolver(appearanceSchema),
     mode: 'onTouched',
     defaultValues: {
@@ -148,27 +139,6 @@ export function AppearanceSettingsSection({
     onSave({ ...getValues(), density: newDensity })
   }
 
-  const submitAppearance = (values: AppearanceFormValues) => {
-    if (onSave(values)) {
-      setTheme(values.theme)
-      const themeForAccent =
-        values.theme === 'dark'
-          ? 'dark'
-          : values.theme === 'light'
-            ? 'light'
-            : resolvedTheme === 'dark'
-              ? 'dark'
-              : 'light'
-      applyAccentColor(values.accentColor, themeForAccent)
-      if (typeof document !== 'undefined') {
-        document.documentElement.setAttribute('data-density', values.density)
-      }
-      toast.success('Appearance preferences saved.')
-    } else {
-      toast.error('Could not save appearance preferences.')
-    }
-  }
-
   return (
     <SettingsSection
       id="appearance"
@@ -176,7 +146,7 @@ export function AppearanceSettingsSection({
       title="Appearance"
       description="Choose how you want your workspace to look."
     >
-      <form onSubmit={handleSubmit(submitAppearance)} noValidate>
+      <div>
         <SettingsField label="Theme">
           <Controller
             control={control}
@@ -290,18 +260,7 @@ export function AppearanceSettingsSection({
             (navigation, brand mark, focus rings, and Settings actions).
           </SettingsNote>
         </div>
-
-        <div className="mt-5 flex justify-end">
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="h-10 rounded-xl bg-[var(--zf-accent)] px-4 text-white hover:bg-[var(--zf-accent-hover)]"
-          >
-            <Save size={15} />
-            Save appearance
-          </Button>
-        </div>
-      </form>
+      </div>
     </SettingsSection>
   )
 }
