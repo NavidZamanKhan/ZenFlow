@@ -32,7 +32,12 @@ import {
 } from '@/lib/zenflow-search'
 import { cn } from '@/lib/utils'
 
-const EASE = [0.32, 0.72, 0, 1] as const
+const SPRING_BOUNCE = {
+  type: 'spring',
+  damping: 18,
+  stiffness: 320,
+  mass: 0.75,
+} as const
 
 /** Global event helper to trigger Spotlight from anywhere in the app */
 export function openSpotlight() {
@@ -98,19 +103,16 @@ export function SpotlightModal() {
       setQuery('')
       setDebouncedQuery('')
       setActiveIndex(0)
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         inputRef.current?.focus()
-      }, 50)
+      })
     }
   }, [open])
 
-  // Debounce query
+  // Sync query instantly
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(query)
-      setActiveIndex(0)
-    }, 120)
-    return () => clearTimeout(timer)
+    setDebouncedQuery(query)
+    setActiveIndex(0)
   }, [query])
 
   // Compute results
@@ -198,22 +200,22 @@ export function SpotlightModal() {
         >
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-md"
+            className="fixed inset-0 bg-slate-900/45 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: EASE }}
+            transition={{ duration: 0.15 }}
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
 
-          {/* Spotlight Card */}
+          {/* Spotlight Card with Bouncy Spring Animation */}
           <motion.div
             className="relative flex max-h-[75vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-2xl backdrop-blur-xl dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]/95 dark:shadow-black/60"
-            initial={{ opacity: 0, scale: 0.96, y: -16 }}
+            initial={{ opacity: 0, scale: 0.84, y: -28 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: -10 }}
-            transition={{ duration: 0.2, ease: EASE }}
+            exit={{ opacity: 0, scale: 0.9, y: -16, transition: { duration: 0.15 } }}
+            transition={SPRING_BOUNCE}
           >
             {/* Search Input Bar */}
             <div className="relative flex items-center border-b border-slate-100 px-4 py-3.5 sm:px-5 sm:py-4 dark:border-[var(--zf-border)]">

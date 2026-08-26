@@ -76,30 +76,32 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
         className,
       )}
     >
-      {/* Search + header actions */}
-      <div className="flex items-center gap-4 px-6 pb-4 pt-6">
-        <ZenflowSearch
-          id="sidebar-zenflow-search"
-          className="min-w-0 flex-1"
-          onNavigate={onNavigate}
-        />
+      {/* Brand logo + header actions */}
+      <div className="flex items-center justify-between px-5 pb-2 pt-5">
+        <Link
+          href="/dashboard"
+          onClick={onNavigate}
+          aria-label="ZenFlow home"
+          className="flex items-center gap-2.5 transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]"
+        >
+          <div className="flex h-8.5 w-8.5 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--zf-accent)] shadow-sm">
+            <Grid3x3 size={17} className="text-white" aria-hidden="true" />
+          </div>
+          <p className="text-lg font-bold tracking-tight text-slate-800 dark:text-[var(--zf-text)]">
+            ZenFlow
+          </p>
+        </Link>
         <HeaderActions />
       </div>
 
-      {/* Logo — brand mark, not a page heading (pages own the sole <h1>) */}
-      <Link
-        href="/dashboard"
-        onClick={onNavigate}
-        aria-label="ZenFlow home"
-        className="flex items-center gap-3 px-6 py-4 transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]"
-      >
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--zf-accent)] shadow-sm">
-          <Grid3x3 size={18} className="text-white" aria-hidden="true" />
-        </div>
-        <p className="text-lg font-bold tracking-tight text-slate-800 dark:text-[var(--zf-text)]">
-          ZenFlow
-        </p>
-      </Link>
+      {/* Dedicated full-width search bar */}
+      <div className="px-5 py-2">
+        <ZenflowSearch
+          id="sidebar-zenflow-search"
+          className="w-full"
+          onNavigate={onNavigate}
+        />
+      </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4" aria-label="Main">
