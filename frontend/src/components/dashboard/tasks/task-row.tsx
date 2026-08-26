@@ -58,25 +58,39 @@ export function TaskRow({
       </button>
 
       {/* Title + meta */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <p
-          className={`text-sm font-medium truncate transition-all ${
-            task.completed ? 'line-through text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200'
+          className={`truncate text-sm font-medium transition-all ${
+            task.completed
+              ? 'text-slate-500 line-through dark:text-slate-400'
+              : 'text-slate-700 dark:text-slate-200'
           }`}
         >
           {task.title}
         </p>
-        {task.dueDate && (
-          <p
-            className={`flex items-center gap-1 text-xs mt-0.5 font-medium ${
-              overdue ? 'text-rose-500 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'
-            }`}
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+          {task.dueDate ? (
+            <span
+              className={`inline-flex items-center gap-1 ${
+                overdue ? 'text-rose-500 dark:text-rose-400' : ''
+              }`}
+            >
+              <CalendarDays size={12} aria-hidden="true" />
+              {formatDate(task.dueDate)}
+              {overdue ? '  · Overdue' : ''}
+            </span>
+          ) : null}
+          <span
+            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium whitespace-nowrap sm:hidden ${priorityPill[task.priority]}`}
           >
-            <CalendarDays size={12} aria-hidden="true" />
-            {formatDate(task.dueDate)}
-            {overdue && ' · Overdue'}
-          </p>
-        )}
+            {priorityLabels[task.priority]}
+          </span>
+          {task.category ? (
+            <span className="inline-flex rounded-full bg-[#F1F3F5] px-2 py-0.5 text-[10px] font-medium whitespace-nowrap text-slate-500 dark:bg-slate-800 dark:text-slate-300 sm:hidden">
+              {task.category}
+            </span>
+          ) : null}
+        </div>
       </div>
 
       {/* Pills */}
