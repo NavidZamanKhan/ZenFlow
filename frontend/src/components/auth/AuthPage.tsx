@@ -252,13 +252,13 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
       </main>
 
       {/* RIGHT — decorative panel */}
-      <div className="hidden w-[55%] flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-16 lg:flex">
+      <div className="hidden w-[55%] flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-16 dark:from-[var(--zf-canvas)] dark:to-[var(--zf-surface)] lg:flex">
         <div className="mx-auto w-full max-w-[560px]">
           <PillBadge>One calm workspace for everything</PillBadge>
-          <h2 className="mt-5 text-4xl leading-tight font-bold text-slate-900 text-balance">
+          <h2 className="mt-5 text-4xl leading-tight font-bold text-balance text-slate-900 dark:text-[var(--zf-text)]">
             Your whole day, beautifully in one place.
           </h2>
-          <p className="mt-4 max-w-[460px] text-base text-slate-500">
+          <p className="mt-4 max-w-[460px] text-base text-slate-500 dark:text-[var(--zf-text-muted)]">
             Tasks, calendar, reminders, and expenses — organized into a single, quiet workspace
             built for focus.
           </p>
@@ -269,13 +269,13 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
 
           <div className="mt-8 flex items-center gap-8">
             <div>
-              <p className="text-2xl font-bold text-slate-900">12k+</p>
-              <p className="text-sm text-slate-500">calm professionals</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-[var(--zf-text)]">12k+</p>
+              <p className="text-sm text-slate-500 dark:text-[var(--zf-text-muted)]">calm professionals</p>
             </div>
-            <span className="h-10 w-px bg-slate-300/70" aria-hidden="true" />
+            <span className="h-10 w-px bg-slate-300/70 dark:bg-[var(--zf-border)]" aria-hidden="true" />
             <div>
-              <p className="text-2xl font-bold text-slate-900">4.9</p>
-              <p className="text-sm text-slate-500">average rating</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-[var(--zf-text)]">4.9</p>
+              <p className="text-sm text-slate-500 dark:text-[var(--zf-text-muted)]">average rating</p>
             </div>
           </div>
         </div>
