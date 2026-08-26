@@ -32,7 +32,7 @@ export function ExpensesCard({
   hasBudget,
   loading,
 }: ExpensesCardProps) {
-  const { format } = useCurrency()
+  const { format, currency, convert } = useCurrency()
   const month = todayISODate().slice(0, 7)
 
   const monthExpenses = useMemo(
@@ -40,9 +40,16 @@ export function ExpensesCard({
     [expenses, month],
   )
 
+  const budgetCurrency = budget.currency || 'BDT'
+  const monthlyTotalInDisplayCurrency = useMemo(() => {
+    if (!budget.monthlyTotal) return 0
+    if (budgetCurrency === currency) return budget.monthlyTotal
+    return convert(budget.monthlyTotal, budgetCurrency)
+  }, [budget.monthlyTotal, budgetCurrency, currency, convert])
+
   const spent = monthExpenses.reduce((sum, expense) => sum + expense.amount, 0)
-  const remaining = budget.monthlyTotal - spent
-  const showBudget = hasBudget && budget.monthlyTotal > 0
+  const remaining = monthlyTotalInDisplayCurrency - spent
+  const showBudget = hasBudget && monthlyTotalInDisplayCurrency > 0
 
   const segments = useMemo(() => {
     const totals = spendingByCategory(monthExpenses)
@@ -115,7 +122,7 @@ export function ExpensesCard({
                 Budget
               </p>
               <p className="mt-0.5 text-sm font-bold text-slate-800 tabular-nums dark:text-[var(--zf-text)]">
-                {format(budget.monthlyTotal)}
+                {format(monthlyTotalInDisplayCurrency)}
               </p>
             </div>
             <div className="rounded-2xl bg-slate-50 px-3 py-2.5 dark:bg-[var(--zf-soft-fill)]">

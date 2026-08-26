@@ -47,7 +47,7 @@ function formatAmountInput(amount: number): string {
 }
 
 export function BudgetPage() {
-  const { format, meta } = useCurrency()
+  const { format, currency, convert, meta } = useCurrency()
   const {
     budget,
     hasBudget,
@@ -66,6 +66,28 @@ export function BudgetPage() {
   } = useExpenses()
   const month = todayISODate().slice(0, 7)
 
+  const budgetCurrency = budget.currency || 'BDT'
+  const monthlyTotalInDisplayCurrency = useMemo(() => {
+    if (!budget.monthlyTotal) return 0
+    if (budgetCurrency === currency) return budget.monthlyTotal
+    return convert(budget.monthlyTotal, budgetCurrency)
+  }, [budget.monthlyTotal, budgetCurrency, currency, convert])
+
+  const categoryBudgetsInDisplayCurrency = useMemo(() => {
+    const res: Record<ExpenseCategory, number> = {} as Record<ExpenseCategory, number>
+    for (const cat of EXPENSE_CATEGORIES) {
+      const raw = budget.categoryBudgets[cat] ?? 0
+      if (!raw) {
+        res[cat] = 0
+      } else if (budgetCurrency === currency) {
+        res[cat] = raw
+      } else {
+        res[cat] = convert(raw, budgetCurrency)
+      }
+    }
+    return res
+  }, [budget.categoryBudgets, budgetCurrency, currency, convert])
+
   const currentMonthExpenses = useMemo(
     () => expenses.filter((expense) => expense.date.startsWith(month)),
     [expenses, month],
@@ -83,7 +105,7 @@ export function BudgetPage() {
     if (!hasBudget || budgetLoading || expensesLoading) return
 
     const candidates = EXPENSE_CATEGORIES.flatMap((category) => {
-      const limit = budget.categoryBudgets[category]
+      const limit = categoryBudgetsInDisplayCurrency[category]
       if (limit <= 0) return []
       const percentage = ((categorySpending[category] ?? 0) / limit) * 100
       return budget.warningThresholds
@@ -102,6 +124,7 @@ export function BudgetPage() {
     })
   }, [
     budget,
+    categoryBudgetsInDisplayCurrency,
     budgetLoading,
     categorySpending,
     expensesLoading,
@@ -142,7 +165,7 @@ export function BudgetPage() {
                 <MonthlyBudgetForm
                   value={0}
                   onSave={async (amount) => {
-                    const saved = await setMonthlyTotal(amount)
+                    const saved = await setMonthlyTotal(amount, currency)
                     toast[saved ? 'success' : 'error'](
                       saved
                         ? 'Monthly budget saved'
@@ -161,16 +184,16 @@ export function BudgetPage() {
     )
   }
 
-  const remaining = budget.monthlyTotal - totalSpent
+  const remaining = monthlyTotalInDisplayCurrency - totalSpent
   const overallPercentage =
-    budget.monthlyTotal > 0 ? (totalSpent / budget.monthlyTotal) * 100 : 0
+    monthlyTotalInDisplayCurrency > 0 ? (totalSpent / monthlyTotalInDisplayCurrency) * 100 : 0
 
   return (
     <div className="max-w-5xl px-4 py-8 sm:px-8">
       <PageHeading />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <SummaryStat label="Monthly budget" value={format(budget.monthlyTotal)} />
+        <SummaryStat label="Monthly budget" value={format(monthlyTotalInDisplayCurrency)} />
         <SummaryStat label="Spent this month" value={format(totalSpent)} />
         <SummaryStat
           label="Remaining"
@@ -194,10 +217,10 @@ export function BudgetPage() {
           </div>
           <div className="w-full sm:max-w-sm">
             <MonthlyBudgetForm
-              key={budget.monthlyTotal}
-              value={budget.monthlyTotal}
+              key={`${monthlyTotalInDisplayCurrency}:${currency}`}
+              value={monthlyTotalInDisplayCurrency}
               onSave={async (amount) => {
-                const saved = await setMonthlyTotal(amount)
+                const saved = await setMonthlyTotal(amount, currency)
                 toast[saved ? 'success' : 'error'](
                   saved ? 'Monthly budget updated' : 'Could not update your budget.',
                 )
@@ -229,13 +252,13 @@ export function BudgetPage() {
         <div className="space-y-3">
           {EXPENSE_CATEGORIES.map((category) => (
             <CategoryBudgetRow
-              key={`${category}:${budget.categoryBudgets[category]}`}
+              key={`${category}:${categoryBudgetsInDisplayCurrency[category]}:${currency}`}
               category={category}
-              budgetAmount={budget.categoryBudgets[category]}
+              budgetAmount={categoryBudgetsInDisplayCurrency[category]}
               spent={categorySpending[category] ?? 0}
               thresholds={budget.warningThresholds}
               onSave={async (amount) => {
-                const saved = await setCategoryBudget(category, amount)
+                const saved = await setCategoryBudget(category, amount, currency)
                 toast[saved ? 'success' : 'error'](
                   saved
                     ? `${category} budget updated`

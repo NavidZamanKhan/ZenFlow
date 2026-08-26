@@ -120,56 +120,6 @@ export function ExpensePreferenceSettingsSection({
   const activeRate = rates[selectedCurrency] || 1
 
   const submitPreferences = async (values: ExpensePreferenceFormValues) => {
-    const oldCurrency = preferences.currency
-    const newCurrency = values.currency
-
-    if (oldCurrency && newCurrency && oldCurrency !== newCurrency) {
-      const oldRate = rates[oldCurrency] || 1
-      const newRate = rates[newCurrency] || 1
-      const factor = newRate / oldRate
-
-      try {
-        // 1. Convert existing expenses in database with smart precision snapping
-        const allExpenses = await apiGetExpenses()
-        if (allExpenses && allExpenses.length > 0) {
-          await Promise.all(
-            allExpenses.map((exp) =>
-              apiUpdateExpense(exp.id, {
-                amount: smartConvertCurrency(exp.amount, factor, newCurrency),
-              }),
-            ),
-          )
-        }
-
-        // 2. Convert existing budget in database with smart precision snapping
-        const currentBudget = await apiGetBudget()
-        if (currentBudget && currentBudget.monthlyTotal > 0) {
-          const newCategoryBudgets: Partial<Record<ExpenseCategory, number>> = {}
-          for (const [cat, amt] of Object.entries(currentBudget.categoryBudgets)) {
-            newCategoryBudgets[cat as ExpenseCategory] =
-              smartConvertCurrency(amt as number, factor, newCurrency)
-          }
-          await apiUpdateBudget({
-            monthlyTotal: smartConvertCurrency(
-              currentBudget.monthlyTotal,
-              factor,
-              newCurrency,
-            ),
-            categoryBudgets: newCategoryBudgets as Record<ExpenseCategory, number>,
-          })
-        }
-
-        if (onSave(values)) {
-          toast.success(
-            `Currency converted from ${oldCurrency} to ${newCurrency} at market rate (1 ${oldCurrency} = ${factor.toFixed(4)} ${newCurrency}).`,
-          )
-        }
-        return
-      } catch {
-        // Continue to save preferences even if network update had issues
-      }
-    }
-
     if (onSave(values)) {
       toast.success('Expense preferences saved.')
     } else {

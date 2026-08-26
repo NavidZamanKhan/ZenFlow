@@ -11,8 +11,11 @@ import { EXPENSE_CATEGORIES, type ExpenseCategory } from '@/types/expense'
 import {
   DEFAULT_BUDGET_THRESHOLDS,
   type Budget,
+  type BudgetValues,
   type ThresholdAlert,
 } from '@/types/budget'
+
+import type { CurrencyCode } from '@/lib/currency'
 
 function emptyCategoryBudgets(): Record<ExpenseCategory, number> {
   return Object.fromEntries(
@@ -24,6 +27,7 @@ function createDefaultBudget(): Budget {
   const now = new Date().toISOString()
   return {
     monthlyTotal: 0,
+    currency: 'BDT',
     categoryBudgets: emptyCategoryBudgets(),
     warningThresholds: [...DEFAULT_BUDGET_THRESHOLDS],
     alertedThresholds: {},
@@ -84,11 +88,13 @@ export function useBudget() {
   }, [])
 
   const setMonthlyTotal = useCallback(
-    async (monthlyTotal: number): Promise<boolean> => {
+    async (monthlyTotal: number, currency?: CurrencyCode): Promise<boolean> => {
       try {
-        const updated = await apiUpdateBudget({
+        const patch: Partial<BudgetValues> = {
           monthlyTotal: nonNegativeNumber(monthlyTotal),
-        })
+        }
+        if (currency) patch.currency = currency
+        const updated = await apiUpdateBudget(patch)
         budgetRef.current = updated
         setBudget(updated)
         return true
@@ -100,16 +106,18 @@ export function useBudget() {
   )
 
   const setCategoryBudget = useCallback(
-    async (category: ExpenseCategory, amount: number): Promise<boolean> => {
+    async (category: ExpenseCategory, amount: number, currency?: CurrencyCode): Promise<boolean> => {
       try {
         const current = budgetRef.current
         const mergedCategories = {
           ...current.categoryBudgets,
           [category]: nonNegativeNumber(amount),
         }
-        const updated = await apiUpdateBudget({
+        const patch: Partial<BudgetValues> = {
           categoryBudgets: mergedCategories,
-        })
+        }
+        if (currency) patch.currency = currency
+        const updated = await apiUpdateBudget(patch)
         budgetRef.current = updated
         setBudget(updated)
         return true

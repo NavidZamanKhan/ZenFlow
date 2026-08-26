@@ -25,6 +25,10 @@ class BudgetSerializer(serializers.ModelSerializer):
         source='alerted_thresholds',
         read_only=True,
     )
+    currency = serializers.CharField(
+        default='BDT',
+        required=False,
+    )
     createdAt = serializers.DateTimeField(
         source='created_at',
         read_only=True,
@@ -38,6 +42,7 @@ class BudgetSerializer(serializers.ModelSerializer):
         model = Budget
         fields = [
             'monthlyTotal',
+            'currency',
             'categoryBudgets',
             'warningThresholds',
             'alertedThresholds',

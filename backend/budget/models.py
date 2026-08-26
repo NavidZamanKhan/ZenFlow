@@ -44,6 +44,10 @@ class Budget(models.Model):
         decimal_places=2,
         default=0.00,
     )
+    currency = models.CharField(
+        max_length=10,
+        default='BDT',
+    )
     category_budgets = models.JSONField(
         default=default_category_budgets,
     )
