@@ -48,9 +48,14 @@ export function DashboardMockup({ className }: { className?: string }) {
         {/* Sidebar — matches authenticated shell (no Settings; Settings lives in user menu) */}
         <aside className="flex flex-col border-r border-slate-100 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]">
           <div className="hidden items-center gap-2 border-b border-slate-100 px-3 py-3 sm:flex dark:border-[var(--zf-border)]">
-            <div className="flex h-7 flex-1 items-center gap-1.5 rounded-lg bg-slate-50 px-2 text-[10px] text-slate-400 dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text-muted)]">
-              <Search className="size-3 shrink-0" aria-hidden="true" />
-              <span className="truncate">Search</span>
+            <div className="flex h-7 flex-1 items-center justify-between gap-1.5 rounded-lg bg-slate-50 px-2 text-[10px] text-slate-400 dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text-muted)]">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Search className="size-3 shrink-0" aria-hidden="true" />
+                <span className="truncate">Press / to search</span>
+              </div>
+              <kbd className="rounded border border-slate-200/80 bg-white/90 px-1 py-0.5 font-mono text-[9px] font-semibold text-slate-400 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:text-[var(--zf-text-muted)]">
+                /
+              </kbd>
             </div>
             <span
               className="size-6 shrink-0 rounded-full bg-[var(--zf-soft-fill)] text-[10px] font-bold leading-6 text-center text-[var(--zf-accent-fg)] dark:bg-[var(--zf-soft-fill)]"

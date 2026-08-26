@@ -50,6 +50,7 @@ export function ZenflowSearch({
   const inputId = id ?? generatedId
   const listboxId = `${inputId}-listbox`
   const rootRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const { tasks, loading: tasksLoading } = useTasks()
   const { expenses, loading: expensesLoading } = useExpenses()
@@ -63,6 +64,31 @@ export function ZenflowSearch({
   // `searching` is derived so a future async backend can replace the debounce
   // effect with a fetch without changing the loading UI contract.
   const searching = query !== debouncedQuery
+
+  useEffect(() => {
+    const handleGlobalSlash = (event: globalThis.KeyboardEvent) => {
+      if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        const target = event.target as HTMLElement | null
+        const isEditable =
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          target?.isContentEditable ||
+          target?.getAttribute('contenteditable') === 'true'
+
+        if (isEditable) return
+
+        event.preventDefault()
+        if (inputRef.current) {
+          inputRef.current.focus()
+          inputRef.current.select()
+          setOpen(true)
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleGlobalSlash)
+    return () => window.removeEventListener('keydown', handleGlobalSlash)
+  }, [])
 
   useEffect(() => {
     const delay = query.trim() ? DEBOUNCE_MS : 0
@@ -171,6 +197,7 @@ export function ZenflowSearch({
         aria-hidden="true"
       />
       <input
+        ref={inputRef}
         id={inputId}
         type="search"
         role="combobox"
@@ -185,7 +212,7 @@ export function ZenflowSearch({
         value={query}
         autoFocus={autoFocus}
         autoComplete="off"
-        placeholder="Search ZenFlow..."
+        placeholder="Press / to search..."
         onChange={(event) => {
           setQuery(event.target.value)
           setActiveIndex(0)
@@ -194,10 +221,15 @@ export function ZenflowSearch({
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
         className={cn(
-          'w-full rounded-xl border border-slate-100 bg-slate-50 py-1.5 pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--zf-accent)] dark:border-[var(--zf-border)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text)] dark:placeholder:text-[var(--zf-text-muted)]',
+          'w-full rounded-xl border border-slate-100 bg-slate-50 py-1.5 pl-9 pr-8 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--zf-accent)] dark:border-[var(--zf-border)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text)] dark:placeholder:text-[var(--zf-text-muted)]',
           inputClassName,
         )}
       />
+      {!query && (
+        <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md border border-slate-200/80 bg-white/90 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-400 shadow-xs dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:text-[var(--zf-text-muted)]">
+          /
+        </kbd>
+      )}
 
       {showPanel ? (
         <div
