@@ -267,16 +267,10 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
             <DashboardPreview />
           </div>
 
-          <div className="mt-7 flex items-center gap-8">
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-[var(--zf-text)]">12k+</p>
-              <p className="text-sm text-slate-500 dark:text-[var(--zf-text-muted)]">calm professionals</p>
-            </div>
-            <span className="h-10 w-px bg-slate-300/70 dark:bg-[var(--zf-border)]" aria-hidden="true" />
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-[var(--zf-text)]">4.9</p>
-              <p className="text-sm text-slate-500 dark:text-[var(--zf-text-muted)]">average rating</p>
-            </div>
+          <div className="mt-7 flex flex-col gap-2 text-sm text-slate-500 sm:flex-row sm:items-center sm:gap-6 dark:text-[var(--zf-text-muted)]">
+            <p className="font-medium text-slate-900 dark:text-[var(--zf-text)]">Free to start</p>
+            <span className="hidden h-8 w-px bg-slate-300/70 sm:block dark:bg-[var(--zf-border)]" aria-hidden="true" />
+            <p>No credit card required</p>
           </div>
         </div>
       </div>

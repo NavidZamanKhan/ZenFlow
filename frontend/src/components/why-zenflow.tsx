@@ -42,8 +42,8 @@ export function WhyZenFlow() {
               <Focus className="size-5" aria-hidden="true" />
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              <span className="font-medium text-foreground">Focus mode</span> hides everything but the
-              task in front of you: one thing at a time.
+              <span className="font-medium text-foreground">Today&apos;s focus</span> on Overview
+              pulls open tasks, reminders, and spending into one quiet morning view.
             </p>
           </div>
         </Reveal>

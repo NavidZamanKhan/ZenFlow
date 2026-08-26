@@ -52,16 +52,10 @@ export function Hero() {
           </Reveal>
 
           <Reveal delay={320}>
-            <div className="mt-10 flex items-center gap-6 text-sm text-muted-foreground">
-              <div>
-                <span className="block text-2xl font-semibold text-foreground">12k+</span>
-                calm professionals
-              </div>
-              <div className="h-8 w-px bg-border" aria-hidden="true" />
-              <div>
-                <span className="block text-2xl font-semibold text-foreground">4.9</span>
-                average rating
-              </div>
+            <div className="mt-10 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:gap-6">
+              <p className="font-medium text-foreground">Free to start</p>
+              <div className="hidden h-8 w-px bg-border sm:block" aria-hidden="true" />
+              <p>No credit card required</p>
             </div>
           </Reveal>
         </div>
