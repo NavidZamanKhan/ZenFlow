@@ -170,11 +170,24 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
               <circle
                 cx={endX}
                 cy={endY}
-                r="8"
+                r="7"
                 fill="var(--zf-accent)"
-                fillOpacity={0.2}
-                className="animate-ping"
+                fillOpacity={0.15}
               />
+              {!reducedMotion && (
+                <motion.circle
+                  cx={endX}
+                  cy={endY}
+                  fill="var(--zf-accent)"
+                  initial={{ r: 4, opacity: 0.35 }}
+                  animate={{ r: 11, opacity: 0 }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 2,
+                    ease: 'easeOut',
+                  }}
+                />
+              )}
             </>
           ) : null}
         </svg>
