@@ -6,6 +6,7 @@ import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ZenFlowLogo } from '@/components/zenflow-logo'
 import { SlideDrawer } from '@/components/ui/slide-drawer'
+import { LandingHashLink } from '@/components/landing-hash-link'
 import { cn } from '@/lib/utils'
 
 const links = [
@@ -33,6 +34,8 @@ export function SiteHeader() {
     return () => window.removeEventListener('resize', closeOnResize)
   }, [])
 
+  const closeMenu = () => setMenuOpen(false)
+
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:pt-4">
       <div
@@ -43,20 +46,24 @@ export function SiteHeader() {
             : 'border border-transparent',
         )}
       >
-        <a href="#top" className="flex items-center gap-2.5" aria-label="ZenFlow home">
+        <LandingHashLink
+          href="#top"
+          className="flex items-center gap-2.5"
+          aria-label="ZenFlow home"
+        >
           <ZenFlowLogo className="size-7" />
           <span className="text-lg font-semibold tracking-tight">ZenFlow</span>
-        </a>
+        </LandingHashLink>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
           {links.map((link) => (
-            <a
+            <LandingHashLink
               key={link.label}
               href={link.href}
               className="rounded-full px-3.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]"
             >
               {link.label}
-            </a>
+            </LandingHashLink>
           ))}
         </nav>
 
@@ -89,7 +96,7 @@ export function SiteHeader() {
 
       <SlideDrawer
         open={menuOpen}
-        onClose={() => setMenuOpen(false)}
+        onClose={closeMenu}
         side="right"
         rootClassName="md:hidden"
         label="Primary"
@@ -99,26 +106,26 @@ export function SiteHeader() {
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Menu</p>
           <nav className="mt-4 flex flex-col gap-1" aria-label="Mobile primary">
             {links.map((link) => (
-              <a
+              <LandingHashLink
                 key={link.label}
                 href={link.href}
-                onClick={() => setMenuOpen(false)}
+                onNavigate={closeMenu}
                 className="rounded-xl px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]"
               >
                 {link.label}
-              </a>
+              </LandingHashLink>
             ))}
           </nav>
           <div className="mt-auto flex flex-col gap-2 border-t border-border/60 pt-5 sm:hidden">
             <Button
               variant="outline"
-              render={<Link href="/login" onClick={() => setMenuOpen(false)} />}
+              render={<Link href="/login" onClick={closeMenu} />}
               className="w-full rounded-full"
             >
               Login
             </Button>
             <Button
-              render={<Link href="/register" onClick={() => setMenuOpen(false)} />}
+              render={<Link href="/register" onClick={closeMenu} />}
               className="w-full rounded-full"
             >
               Sign Up

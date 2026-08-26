@@ -155,6 +155,20 @@
   html {
     scroll-behavior: smooth;
   }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+  /* Clear the fixed landing header when scrolling to section anchors. */
+  #top,
+  #features,
+  #about,
+  #contact,
+  #dashboard,
+  #get-started {
+    scroll-margin-top: 5.75rem;
+  }
   body {
     @apply bg-background text-foreground;
   }

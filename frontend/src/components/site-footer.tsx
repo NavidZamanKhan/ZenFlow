@@ -1,4 +1,7 @@
+'use client'
+
 import { ZenFlowLogo } from '@/components/zenflow-logo'
+import { LandingHashLink } from '@/components/landing-hash-link'
 
 const GITHUB_REPO = 'https://github.com/NavidZamanKhan/ZenFlow'
 
@@ -42,10 +45,14 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-10 md:grid-cols-[1.5fr_2fr]">
           <div>
-            <a href="#top" className="flex items-center gap-2.5" aria-label="ZenFlow home">
+            <LandingHashLink
+              href="#top"
+              className="flex items-center gap-2.5"
+              aria-label="ZenFlow home"
+            >
               <ZenFlowLogo className="size-7" />
               <span className="text-lg font-semibold tracking-tight">ZenFlow</span>
-            </a>
+            </LandingHashLink>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               A calm, organized workspace for focused professionals.
             </p>
@@ -67,12 +74,21 @@ export function SiteFooter() {
                 <ul className="mt-4 space-y-3">
                   {column.links.map((link) => (
                     <li key={link.label}>
-                      <a
-                        href={link.href}
-                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                      >
-                        {link.label}
-                      </a>
+                      {link.href.startsWith('#') ? (
+                        <LandingHashLink
+                          href={link.href}
+                          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          {link.label}
+                        </LandingHashLink>
+                      ) : (
+                        <a
+                          href={link.href}
+                          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          {link.label}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </ul>
