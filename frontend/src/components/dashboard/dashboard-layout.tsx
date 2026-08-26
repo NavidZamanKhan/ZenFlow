@@ -29,7 +29,7 @@ function ThemedToaster() {
 export function DashboardLayout({ children }: { children?: React.ReactNode }) {
   useAccentCssVars()
   const pathname = usePathname()
-  // Token is the pathname the drawer was opened for — auto-closes on route change.
+  // Token is the pathname the drawer was opened for - auto-closes on route change.
   const [openForPath, setOpenForPath] = useState<string | null>(null)
   const mobileNavOpen = openForPath === pathname
 
@@ -53,7 +53,7 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
             Skip to main content
           </a>
 
-          {/* Desktop sidebar — unchanged at lg+ */}
+          {/* Desktop sidebar - unchanged at lg+ */}
           <div className="hidden h-full flex-shrink-0 lg:flex">
             <Sidebar />
           </div>
@@ -68,7 +68,7 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
             <Sidebar onNavigate={closeMobileNav} className="border-r-0" />
           </SlideDrawer>
 
-          {/* Content column — full width when drawer is closed */}
+          {/* Content column - full width when drawer is closed */}
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <MobileHeader
               menuOpen={mobileNavOpen}

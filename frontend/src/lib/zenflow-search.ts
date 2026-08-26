@@ -39,7 +39,7 @@ export type SearchDestination = {
   group: 'pages'
 }
 
-/** Static navigable destinations — pages + settings sections that actually exist. */
+/** Static navigable destinations - pages + settings sections that actually exist. */
 export const SEARCH_DESTINATIONS: SearchDestination[] = [
   {
     id: 'page-overview',
@@ -240,7 +240,7 @@ export function searchZenFlow(
         group: 'events',
         title: event.title,
         subtitle: event.allDay ? 'All-day event' : 'Calendar event',
-        // Calendar deep-highlight needs FullCalendar API work — navigate only.
+        // Calendar deep-highlight needs FullCalendar API work - navigate only.
         href: '/dashboard/calendar',
         icon: GROUP_ICON.events,
       }),

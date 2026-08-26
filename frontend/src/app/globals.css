@@ -55,7 +55,7 @@
 
 :root {
   color-scheme: light;
-  /* ZenFlow accent (v1 chrome) — Blue defaults; runtime may override via applyAccentColor */
+  /* ZenFlow accent (v1 chrome) - Blue defaults; runtime may override via applyAccentColor */
   --zf-accent: #1d70e8;
   --zf-accent-hover: #1660cc;
   --zf-accent-soft: #e2eefc;
@@ -108,13 +108,13 @@
   --zf-text: #e8eef6;
   --zf-text-muted: #94a3b8;
   --zf-soft-fill: #1e293b;
-  /* Interactive hover/focus fill — ~12% white into surface (~1.44:1 vs surface;
+  /* Interactive hover/focus fill - ~12% white into surface (~1.44:1 vs surface;
      soft-fill is only ~1.08:1 and reads as “no hover”). Tracks --zf-surface so
      accent-tinted dark palettes stay coherent. */
   --zf-hover-fill: color-mix(in srgb, #ffffff 12%, var(--zf-surface));
-  /* Soft accent default for dark — runtime may override via applyAccentColor */
+  /* Soft accent default for dark - runtime may override via applyAccentColor */
   --zf-accent-soft: color-mix(in srgb, #1d70e8 12%, #1a2332);
-  /* Accent text on soft fills — brighter in dark so small labels hit AA 4.5:1.
+  /* Accent text on soft fills - brighter in dark so small labels hit AA 4.5:1.
      Light mode keeps this equal to --zf-accent (set in applyAccentColor). */
   --zf-accent-fg: color-mix(in srgb, #ffffff 25%, var(--zf-accent, #1d70e8));
   /* Map shadcn semantic tokens to the same palette */
@@ -253,7 +253,7 @@
   }
 }
 
-/* Phase 2 motion layer — all gated behind prefers-reduced-motion. */
+/* Phase 2 motion layer - all gated behind prefers-reduced-motion. */
 @media (prefers-reduced-motion: no-preference) {
   /* Tactile press feedback on every button (subtle, instant press-down). */
   button:active:not(:disabled):not([data-no-press]) {

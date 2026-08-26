@@ -27,7 +27,7 @@ type UserMenuProps = {
 }
 
 /**
- * Avatar trigger + account dropdown. Logout reuses useAuth().logout() —
+ * Avatar trigger + account dropdown. Logout reuses useAuth().logout() -
  * the same function formerly used by the sidebar footer.
  */
 export function UserMenu({ className }: UserMenuProps) {

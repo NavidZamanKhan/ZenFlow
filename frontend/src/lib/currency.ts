@@ -180,7 +180,7 @@ export async function fetchExchangeRates(forceRefresh = false): Promise<Exchange
       }
     }
   } catch {
-    // Network failure / timeout — fallback gracefully
+    // Network failure / timeout - fallback gracefully
   }
 
   return {

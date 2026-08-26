@@ -45,20 +45,20 @@ const expensePreferenceSchema = z.object({
 type ExpensePreferenceFormValues = z.infer<typeof expensePreferenceSchema>
 
 const CURRENCY_OPTIONS = [
-  { value: 'BDT', label: 'BDT — Bangladeshi Taka (৳)' },
-  { value: 'USD', label: 'USD — US Dollar ($)' },
-  { value: 'EUR', label: 'EUR — Euro (€)' },
-  { value: 'GBP', label: 'GBP — British Pound (£)' },
-  { value: 'INR', label: 'INR — Indian Rupee (₹)' },
-  { value: 'JPY', label: 'JPY — Japanese Yen (¥)' },
-  { value: 'CAD', label: 'CAD — Canadian Dollar (CA$)' },
-  { value: 'AUD', label: 'AUD — Australian Dollar (AU$)' },
+  { value: 'BDT', label: 'BDT: Bangladeshi Taka (৳)' },
+  { value: 'USD', label: 'USD: US Dollar ($)' },
+  { value: 'EUR', label: 'EUR: Euro (€)' },
+  { value: 'GBP', label: 'GBP: British Pound (£)' },
+  { value: 'INR', label: 'INR: Indian Rupee (₹)' },
+  { value: 'JPY', label: 'JPY: Japanese Yen (¥)' },
+  { value: 'CAD', label: 'CAD: Canadian Dollar (CA$)' },
+  { value: 'AUD', label: 'AUD: Australian Dollar (AU$)' },
 ] as const
 
 const DATE_FORMAT_OPTIONS = [
-  { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY — 07/19/2026' },
-  { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY — 19/07/2026' },
-  { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD — 2026-07-19' },
+  { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY (07/19/2026)' },
+  { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY (19/07/2026)' },
+  { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD (2026-07-19)' },
 ] as const
 
 const NUMBER_FORMAT_OPTIONS = [

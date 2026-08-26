@@ -16,7 +16,7 @@ export function CallToAction() {
             Ready to organize your day?
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-lg leading-relaxed text-muted-foreground text-pretty">
-            Join thousands of professionals who trade the chaos for calm. Start free — no credit card
+            Join thousands of professionals who trade the chaos for calm. Start free; no credit card
             required.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

@@ -83,7 +83,7 @@ class AuthService:
         otp_expires_at = self.otp_service.get_expiry_time()
         resend_available_at = self.otp_service.get_resend_available_time()
 
-        # Upsert PendingRegistration — last registration attempt wins
+        # Upsert PendingRegistration - last registration attempt wins
         pending, created = PendingRegistration.objects.update_or_create(
             email=email,
             defaults={
@@ -168,7 +168,7 @@ class AuthService:
                 f"Invalid verification code. {remaining} attempts remaining."
             )
 
-        # OTP is valid — create the real User
+        # OTP is valid - create the real User
         user = User.objects.create_user(
             email=pending.email,
             full_name=pending.full_name,

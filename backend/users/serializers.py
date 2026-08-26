@@ -90,7 +90,7 @@ class LoginSerializer(serializers.Serializer):
 
 
 class LogoutSerializer(serializers.Serializer):
-    """Validates logout input — expects the refresh token."""
+    """Validates logout input - expects the refresh token."""
 
     refresh = serializers.CharField()
 

@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
-// Same easing as SlideDrawer / Modal — one motion language across the app.
+// Same easing as SlideDrawer / Modal - one motion language across the app.
 const EASE = [0.32, 0.72, 0, 1] as const
 
 /**

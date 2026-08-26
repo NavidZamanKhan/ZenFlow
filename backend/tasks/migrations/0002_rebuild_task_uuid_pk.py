@@ -2,7 +2,7 @@
 
 Local schema drift: 0001_initial was rewritten to UUIDField after the table
 had already been created with a bigint PK. django_migrations marked 0001 as
-applied, so migrate was a no-op while PostgreSQL still had bigint id — causing
+applied, so migrate was a no-op while PostgreSQL still had bigint id - causing
 ProgrammingError on insert. Safe to drop/recreate: local/dev data only.
 """
 

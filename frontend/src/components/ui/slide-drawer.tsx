@@ -20,7 +20,7 @@ type SlideDrawerProps = {
 const EASE = [0.32, 0.72, 0, 1] as const
 
 /**
- * Reusable slide-in drawer with backdrop. First framer-motion pattern in the app —
+ * Reusable slide-in drawer with backdrop. First framer-motion pattern in the app -
  * prefer this over one-off motion markup for overlays and panels.
  */
 export function SlideDrawer({
@@ -33,7 +33,7 @@ export function SlideDrawer({
   label = 'Navigation',
 }: SlideDrawerProps) {
   const panelRef = useRef<HTMLElement>(null)
-  // Scroll lock is handled here; useFocusTrap also locks — disable its lock to avoid double-toggle.
+  // Scroll lock is handled here; useFocusTrap also locks - disable its lock to avoid double-toggle.
   useFocusTrap(open, panelRef, { lockScroll: false })
 
   useEffect(() => {

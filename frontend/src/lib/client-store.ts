@@ -3,7 +3,7 @@
  *
  * The Django REST endpoints for tasks/events exist (see backend/tasks and
  * backend/events) but the app has no real frontend<->backend authentication
- * yet — auth is currently a localStorage simulation (see lib/auth.tsx).
+ * yet - auth is currently a localStorage simulation (see lib/auth.tsx).
  * Until token/session auth lands, records are persisted to localStorage,
  * scoped per signed-in user, through the same async CRUD signatures a real
  * API client would expose. Swapping this file's internals for fetch calls

@@ -11,7 +11,7 @@ export function DashboardPreview() {
             Your whole day, beautifully in one place
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground text-pretty">
-            Sidebar navigation, today&apos;s tasks, calendar, expenses, reminders, and productivity —
+            Sidebar navigation, today&apos;s tasks, calendar, expenses, reminders, and productivity,
             organized into a single, polished workspace.
           </p>
         </Reveal>

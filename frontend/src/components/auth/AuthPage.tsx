@@ -147,7 +147,7 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
       <a href="#auth-main" className="zf-skip-link">
         Skip to authentication form
       </a>
-      {/* LEFT — auth panel */}
+      {/* LEFT - auth panel */}
       <main
         id="auth-main"
         className="flex w-full flex-col bg-slate-50 dark:bg-[var(--zf-canvas)] px-6 py-8 sm:px-12 lg:w-[45%] lg:px-14 lg:py-10"
@@ -251,23 +251,23 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
         </footer>
       </main>
 
-      {/* RIGHT — decorative panel */}
-      <div className="hidden w-[55%] flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-16 dark:from-[var(--zf-canvas)] dark:to-[var(--zf-surface)] lg:flex">
-        <div className="mx-auto w-full max-w-[560px]">
+      {/* RIGHT - decorative panel */}
+      <div className="hidden w-[55%] flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-50 px-12 py-14 xl:px-16 dark:from-[var(--zf-canvas)] dark:to-[var(--zf-surface)] lg:flex">
+        <div className="mx-auto w-full max-w-[640px]">
           <PillBadge>One calm workspace for everything</PillBadge>
-          <h2 className="mt-5 text-4xl leading-tight font-bold text-balance text-slate-900 dark:text-[var(--zf-text)]">
+          <h2 className="mt-5 text-3xl leading-tight font-bold text-balance text-slate-900 xl:text-4xl dark:text-[var(--zf-text)]">
             Your whole day, beautifully in one place.
           </h2>
-          <p className="mt-4 max-w-[460px] text-base text-slate-500 dark:text-[var(--zf-text-muted)]">
-            Tasks, calendar, reminders, and expenses — organized into a single, quiet workspace
+          <p className="mt-3 max-w-[460px] text-sm text-slate-500 xl:text-base dark:text-[var(--zf-text-muted)]">
+            Tasks, calendar, reminders, and expenses, organized into a single, quiet workspace
             built for focus.
           </p>
 
-          <div className="mt-8">
+          <div className="mt-7">
             <DashboardPreview />
           </div>
 
-          <div className="mt-8 flex items-center gap-8">
+          <div className="mt-7 flex items-center gap-8">
             <div>
               <p className="text-2xl font-bold text-slate-900 dark:text-[var(--zf-text)]">12k+</p>
               <p className="text-sm text-slate-500 dark:text-[var(--zf-text-muted)]">calm professionals</p>

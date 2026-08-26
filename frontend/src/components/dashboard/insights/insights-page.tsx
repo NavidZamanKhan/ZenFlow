@@ -97,7 +97,7 @@ export function InsightsPage() {
     () => buildInsightsAnalytics(expenses, undefined, convert),
     [expenses, convert],
   )
-  // Recharts animates entrances by default — disable under prefers-reduced-motion.
+  // Recharts animates entrances by default - disable under prefers-reduced-motion.
   const animateCharts = !usePrefersReducedMotion()
 
   const compactCurrency = (value: number): string => {
@@ -448,19 +448,19 @@ export function InsightsPage() {
               <TrendCard
                 icon={Activity}
                 label="Most active spending day"
-                value={analytics.mostActiveDay ? formatDisplayDate(analytics.mostActiveDay.date) : '—'}
+                value={analytics.mostActiveDay ? formatDisplayDate(analytics.mostActiveDay.date) : '-'}
                 detail={`${analytics.mostActiveDay?.transactions ?? 0} transactions`}
               />
               <TrendCard
                 icon={CalendarDays}
                 label="Most expensive day"
-                value={analytics.mostExpensiveDay ? formatDisplayDate(analytics.mostExpensiveDay.date) : '—'}
+                value={analytics.mostExpensiveDay ? formatDisplayDate(analytics.mostExpensiveDay.date) : '-'}
                 detail={format(analytics.mostExpensiveDay?.amount ?? 0)}
               />
               <TrendCard
                 icon={CircleDollarSign}
                 label="Largest single expense"
-                value={analytics.largestExpense?.title ?? '—'}
+                value={analytics.largestExpense?.title ?? '-'}
                 detail={format(analytics.largestExpense?.amount ?? 0)}
               />
               <TrendCard

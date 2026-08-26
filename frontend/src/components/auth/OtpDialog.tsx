@@ -126,13 +126,13 @@ export function OtpDialog({ open, pendingRegistrationId, email, onClose }: OtpDi
 
     try {
       await verifyEmail(pendingRegistrationId, otp)
-      // Success — verifyEmail stores tokens, sets user, and redirects.
+      // Success - verifyEmail stores tokens, sets user, and redirects.
       // The dialog will unmount as part of navigation.
     } catch (err) {
       if (err instanceof ApiError) {
         const msg = Array.isArray(err.errors) ? err.errors[0] : Object.values(err.errors).flat()[0]
 
-        // Check for max-attempts or expired registration — close dialog
+        // Check for max-attempts or expired registration - close dialog
         if (msg?.includes('register again') || msg?.includes('Invalid or expired registration')) {
           setError(msg)
           // Close dialog after a short delay so user can read the message
@@ -226,7 +226,7 @@ export function OtpDialog({ open, pendingRegistrationId, email, onClose }: OtpDi
         {/* Expiry countdown */}
         <p className="text-center text-xs text-slate-400">
           {expired ? (
-            <span className="text-red-500">Code expired — request a new one below.</span>
+            <span className="text-red-500">Code expired. Request a new one below.</span>
           ) : (
             <>Code expires in <span className="font-medium tabular-nums text-slate-500">{formatTime(expiryLeft)}</span></>
           )}

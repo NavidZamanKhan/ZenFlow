@@ -55,7 +55,7 @@
   display: none;
 }
 
-/* Standalone calendar events — primary blue */
+/* Standalone calendar events - primary blue */
 .zenflow-calendar .fc .zenflow-event {
   background: #1d70e8;
   color: #ffffff;
@@ -69,7 +69,7 @@
   background: #1660cc;
 }
 
-/* Task due dates — soft teal, visually distinct from events */
+/* Task due dates - soft teal, visually distinct from events */
 .zenflow-calendar .fc .zenflow-task-event {
   background: #e2f6f4;
   color: #0d9488;

@@ -44,7 +44,7 @@ type ErrorStateProps = {
   className?: string
 }
 
-/** Minimal recoverable error card — ready for future API failures. */
+/** Minimal recoverable error card - ready for future API failures. */
 export function ErrorState({
   title = 'Something went wrong',
   description = 'We could not load this data. Please try again.',

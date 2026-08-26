@@ -8,7 +8,7 @@ export type AccentPalette = {
   lightBg: string
   /** Subtle pastel border for light mode cards/callouts */
   lightBorder: string
-  /** Dark mode surface palette — accent-tinted dark backgrounds */
+  /** Dark mode surface palette - accent-tinted dark backgrounds */
   dark: {
     canvas: string
     surface: string
@@ -18,7 +18,7 @@ export type AccentPalette = {
   }
 }
 
-/** Explicit hex triples — not hue rotations of each other. */
+/** Explicit hex triples - not hue rotations of each other. */
 export const ACCENT_PALETTES: Record<AccentColor, AccentPalette> = {
   blue: {
     base: '#1D70E8',

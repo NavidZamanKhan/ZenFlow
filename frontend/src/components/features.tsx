@@ -18,7 +18,7 @@ const features = [
     icon: Bell,
     title: 'Smart Reminders',
     description:
-      'Timely, unobtrusive nudges that surface the right thing at the right moment — never noisy.',
+      'Timely, unobtrusive nudges that surface the right thing at the right moment, never noisy.',
   },
   {
     icon: Wallet,

@@ -14,18 +14,18 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-/** Decorative stand-in for the signed-in Overview — mirrors shell + 2×2 cards. */
+/** Decorative stand-in for the signed-in Overview - mirrors shell + 2×2 cards. */
 const tasks = [
-  { title: 'Finalize Q3 roadmap', done: true, tag: 'Product', priority: 'bg-[var(--zf-accent)]' },
-  { title: 'Review design handoff', done: true, tag: 'Design', priority: 'bg-rose-400' },
-  { title: 'Client sync — Northwind', done: false, tag: 'Meeting', priority: 'bg-[var(--zf-accent)]' },
-  { title: 'Draft budget proposal', done: false, tag: 'Finance', priority: 'bg-amber-400' },
+  { title: 'Q3 roadmap', done: true, tag: 'Product', priority: 'bg-[var(--zf-accent)]' },
+  { title: 'Design review', done: true, tag: 'Design', priority: 'bg-rose-400' },
+  { title: 'Client sync', done: false, tag: 'Meeting', priority: 'bg-[var(--zf-accent)]' },
+  { title: 'Budget draft', done: false, tag: 'Finance', priority: 'bg-amber-400' },
 ]
 
 const reminders = [
-  { title: 'Standup with team', time: '9:30 AM' },
-  { title: 'Dentist appointment', time: '2:00 PM' },
-  { title: 'Send invoice #402', time: '5:15 PM' },
+  { title: 'Team standup', time: '9:30 AM' },
+  { title: 'Dentist', time: '2:00 PM' },
+  { title: 'Send invoice', time: '5:15 PM' },
 ]
 
 const navItems = [
@@ -36,20 +36,24 @@ const navItems = [
   { icon: BarChart3, label: 'Insights', active: false },
 ] as const
 
+/**
+ * Uses container queries so narrow slots (auth panel, hero column) keep an
+ * icon sidebar and readable card text, while wide slots expand the full chrome.
+ */
 export function DashboardMockup({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-3xl border border-slate-100/80 bg-white shadow-[0_30px_80px_-30px_rgba(56,89,140,0.35)] dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:shadow-black/40',
+        '@container overflow-hidden rounded-3xl border border-slate-100/80 bg-white shadow-[0_30px_80px_-30px_rgba(56,89,140,0.35)] dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:shadow-black/40',
         className,
       )}
     >
-      <div className="grid grid-cols-[56px_1fr] sm:grid-cols-[168px_1fr]">
-        {/* Sidebar — matches authenticated shell (no Settings; Settings lives in user menu) */}
+      <div className="grid grid-cols-[52px_1fr] @[720px]:grid-cols-[148px_1fr]">
+        {/* Sidebar - matches authenticated shell (no Settings; Settings lives in user menu) */}
         <aside className="flex flex-col border-r border-slate-100 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]">
-          <div className="hidden items-center gap-2 border-b border-slate-100 px-3 py-3 sm:flex dark:border-[var(--zf-border)]">
+          <div className="hidden items-center gap-2 border-b border-slate-100 px-2.5 py-3 @[720px]:flex dark:border-[var(--zf-border)]">
             <div className="flex h-7 flex-1 items-center justify-between gap-1.5 rounded-lg bg-slate-50 px-2 text-[10px] text-slate-400 dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text-muted)]">
-              <div className="flex items-center gap-1.5 min-w-0">
+              <div className="flex min-w-0 items-center gap-1.5">
                 <Search className="size-3 shrink-0" aria-hidden="true" />
                 <span className="truncate">Press / to search</span>
               </div>
@@ -58,71 +62,74 @@ export function DashboardMockup({ className }: { className?: string }) {
               </kbd>
             </div>
             <span
-              className="size-6 shrink-0 rounded-full bg-[var(--zf-soft-fill)] text-[10px] font-bold leading-6 text-center text-[var(--zf-accent-fg)] dark:bg-[var(--zf-soft-fill)]"
+              className="size-6 shrink-0 rounded-full bg-[var(--zf-soft-fill)] text-center text-[10px] font-bold leading-6 text-[var(--zf-accent-fg)] dark:bg-[var(--zf-soft-fill)]"
               aria-hidden="true"
             >
               M
             </span>
           </div>
 
-          <div className="flex items-center justify-center gap-2 px-2 py-3 sm:justify-start sm:px-3">
+          <div className="flex items-center justify-center gap-2 px-2 py-3 @[720px]:justify-start @[720px]:px-3">
             <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[var(--zf-accent)] text-white">
               <Grid3x3 className="size-3.5" aria-hidden="true" />
             </div>
-            <span className="hidden text-sm font-bold tracking-tight text-slate-800 sm:inline dark:text-[var(--zf-text)]">
+            <span className="hidden text-sm font-bold tracking-tight text-slate-800 @[720px]:inline dark:text-[var(--zf-text)]">
               ZenFlow
             </span>
           </div>
 
-          <nav className="flex flex-1 flex-col items-center gap-1 px-1.5 pb-3 sm:items-stretch sm:px-2" aria-hidden="true">
+          <nav
+            className="flex flex-1 flex-col items-center gap-1 px-1.5 pb-3 @[720px]:items-stretch @[720px]:px-2"
+            aria-hidden="true"
+          >
             {navItems.map(({ icon: Icon, label, active }) => (
               <div
                 key={label}
                 className={cn(
-                  'flex items-center justify-center gap-2.5 rounded-xl px-2.5 py-2 text-sm sm:justify-start',
+                  'flex items-center justify-center gap-2.5 rounded-xl px-2 py-2 text-sm @[720px]:justify-start @[720px]:px-2.5',
                   active
                     ? 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent-fg)]'
                     : 'text-slate-500 dark:text-[var(--zf-text-muted)]',
                 )}
               >
                 <Icon className="size-4 shrink-0" />
-                <span className="hidden font-medium sm:inline">{label}</span>
+                <span className="hidden font-medium @[720px]:inline">{label}</span>
               </div>
             ))}
           </nav>
         </aside>
 
-        {/* Main — greeting + 2×2 Overview cards */}
-        <div className="min-w-0 bg-slate-50/80 p-3 sm:p-4 dark:bg-[var(--zf-canvas)]">
-          <div className="mb-3 flex items-end justify-between gap-2 sm:mb-4">
+        {/* Main - greeting + Overview cards */}
+        <div className="min-w-0 bg-slate-50/80 p-3.5 @[480px]:p-5 dark:bg-[var(--zf-canvas)]">
+          <div className="mb-3.5 flex items-end justify-between gap-2 @[480px]:mb-4">
             <div className="min-w-0">
-              <p className="text-[11px] font-medium text-slate-500 sm:text-xs dark:text-[var(--zf-text-muted)]">
+              <p className="text-[11px] font-medium text-slate-500 @[480px]:text-xs dark:text-[var(--zf-text-muted)]">
                 Good morning, Maya
               </p>
-              <h3 className="text-sm font-bold tracking-tight text-slate-800 sm:text-base dark:text-[var(--zf-text)]">
+              <h3 className="text-sm font-bold tracking-tight text-slate-800 @[480px]:text-base dark:text-[var(--zf-text)]">
                 Today&apos;s focus
               </h3>
             </div>
-            <span className="shrink-0 rounded-full bg-[var(--zf-accent-soft)] px-2.5 py-1 text-[10px] font-semibold tabular-nums text-[var(--zf-accent-fg)] sm:text-xs">
+            <span className="shrink-0 rounded-full bg-[var(--zf-accent-soft)] px-2.5 py-1 text-[10px] font-semibold tabular-nums text-[var(--zf-accent-fg)] @[480px]:text-xs">
               4 tasks
             </span>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 @[420px]:grid-cols-2 @[420px]:gap-3.5">
             {/* Tasks */}
-            <div className="rounded-2xl border border-slate-100/80 bg-white p-3 shadow-sm sm:p-4 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]">
-              <div className="mb-2.5 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 sm:text-sm dark:text-[var(--zf-text)]">
+            <div className="rounded-2xl border border-slate-100/80 bg-white p-3.5 shadow-sm @[480px]:p-4 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 @[480px]:text-sm dark:text-[var(--zf-text)]">
                   <ListTodo className="size-3.5 text-[var(--zf-accent)]" aria-hidden="true" />
                   Tasks
                 </div>
                 <span className="text-[10px] font-medium text-slate-500 dark:text-[var(--zf-text-muted)]">
-                  2/4 completed
+                  2/4 done
                 </span>
               </div>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {tasks.map((task) => (
-                  <li key={task.title} className="flex items-center gap-2 text-xs sm:text-sm">
+                  <li key={task.title} className="flex items-center gap-2 text-xs @[480px]:text-sm">
                     {task.done ? (
                       <CheckCircle2
                         className="size-3.5 shrink-0 text-[var(--zf-accent)]"
@@ -135,10 +142,7 @@ export function DashboardMockup({ className }: { className?: string }) {
                       />
                     )}
                     <span
-                      className={cn(
-                        'h-1.5 w-1.5 shrink-0 rounded-full',
-                        task.priority,
-                      )}
+                      className={cn('h-1.5 w-1.5 shrink-0 rounded-full', task.priority)}
                       aria-hidden="true"
                     />
                     <span
@@ -151,7 +155,7 @@ export function DashboardMockup({ className }: { className?: string }) {
                     >
                       {task.title}
                     </span>
-                    <span className="hidden shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 sm:inline dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text-muted)]">
+                    <span className="hidden shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 @[720px]:inline dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text-muted)]">
                       {task.tag}
                     </span>
                   </li>
@@ -159,21 +163,21 @@ export function DashboardMockup({ className }: { className?: string }) {
               </ul>
             </div>
 
-            {/* Productivity — line chart like the live card */}
-            <div className="rounded-2xl border border-slate-100/80 bg-white p-3 shadow-sm sm:p-4 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]">
-              <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-800 sm:text-sm dark:text-[var(--zf-text)]">
+            {/* Productivity - line chart like the live card */}
+            <div className="rounded-2xl border border-slate-100/80 bg-white p-3.5 shadow-sm @[480px]:p-4 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]">
+              <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-800 @[480px]:text-sm dark:text-[var(--zf-text)]">
                 <LineChart className="size-3.5 text-[var(--zf-accent)]" aria-hidden="true" />
                 Productivity
               </div>
               <p className="mb-2 text-[10px] font-medium text-slate-500 dark:text-[var(--zf-text-muted)]">
-                Week of Mar 10 · +18% vs last week
+                Mar 10 · +18%
               </p>
               <p className="mb-2 text-2xl font-extrabold tracking-tight tabular-nums text-slate-800 dark:text-[var(--zf-text)]">
                 72%
               </p>
               <svg
                 viewBox="0 0 200 64"
-                className="h-14 w-full overflow-visible sm:h-16"
+                className="h-14 w-full overflow-visible @[480px]:h-16"
                 preserveAspectRatio="none"
                 role="img"
                 aria-label="Weekly productivity trend"
@@ -210,16 +214,16 @@ export function DashboardMockup({ className }: { className?: string }) {
             </div>
 
             {/* Reminders */}
-            <div className="rounded-2xl border border-slate-100/80 bg-white p-3 shadow-sm sm:p-4 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]">
-              <div className="mb-2.5 flex items-center gap-1.5 text-xs font-bold text-slate-800 sm:text-sm dark:text-[var(--zf-text)]">
+            <div className="rounded-2xl border border-slate-100/80 bg-white p-3.5 shadow-sm @[480px]:p-4 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]">
+              <div className="mb-3 flex items-center gap-1.5 text-xs font-bold text-slate-800 @[480px]:text-sm dark:text-[var(--zf-text)]">
                 <Bell className="size-3.5 text-[var(--zf-accent)]" aria-hidden="true" />
                 Reminders
               </div>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {reminders.map((r) => (
                   <li
                     key={r.title}
-                    className="flex items-center justify-between gap-2 text-xs sm:text-sm"
+                    className="flex items-center justify-between gap-3 text-xs @[480px]:text-sm"
                   >
                     <span className="flex min-w-0 items-center gap-2">
                       <span
@@ -230,7 +234,7 @@ export function DashboardMockup({ className }: { className?: string }) {
                         {r.title}
                       </span>
                     </span>
-                    <span className="shrink-0 text-[10px] text-slate-500 dark:text-[var(--zf-text-muted)]">
+                    <span className="shrink-0 text-[10px] tabular-nums text-slate-500 dark:text-[var(--zf-text-muted)]">
                       {r.time}
                     </span>
                   </li>
@@ -238,24 +242,22 @@ export function DashboardMockup({ className }: { className?: string }) {
               </ul>
             </div>
 
-            {/* Expenses — spent + budget/remaining like live Overview */}
-            <div className="rounded-2xl border border-slate-100/80 bg-white p-3 shadow-sm sm:p-4 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]">
-              <div className="mb-2.5 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 sm:text-sm dark:text-[var(--zf-text)]">
+            {/* Expenses - spent + budget/remaining like live Overview */}
+            <div className="rounded-2xl border border-slate-100/80 bg-white p-3.5 shadow-sm @[480px]:p-4 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 @[480px]:text-sm dark:text-[var(--zf-text)]">
                   <CreditCard className="size-3.5 text-[var(--zf-accent)]" aria-hidden="true" />
                   Expenses
                 </div>
-                <span className="text-[10px] font-semibold text-[var(--zf-accent-fg)]">
-                  Edit budget
-                </span>
+                <span className="text-[10px] font-semibold text-[var(--zf-accent-fg)]">Edit</span>
               </div>
-              <p className="text-xl font-extrabold tracking-tight tabular-nums text-slate-800 sm:text-2xl dark:text-[var(--zf-text)]">
+              <p className="text-xl font-extrabold tracking-tight tabular-nums text-slate-800 @[480px]:text-2xl dark:text-[var(--zf-text)]">
                 $2,480
               </p>
               <p className="mt-0.5 text-[10px] font-semibold text-slate-500 dark:text-[var(--zf-text-muted)]">
                 Spent this month
               </p>
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-2 gap-2.5">
                 <div className="rounded-xl bg-slate-50 px-2.5 py-2 dark:bg-[var(--zf-soft-fill)]">
                   <p className="text-[10px] font-medium text-slate-500 dark:text-[var(--zf-text-muted)]">
                     Budget
@@ -266,7 +268,7 @@ export function DashboardMockup({ className }: { className?: string }) {
                 </div>
                 <div className="rounded-xl bg-slate-50 px-2.5 py-2 dark:bg-[var(--zf-soft-fill)]">
                   <p className="text-[10px] font-medium text-slate-500 dark:text-[var(--zf-text-muted)]">
-                    Remaining
+                    Left
                   </p>
                   <p className="mt-0.5 text-xs font-bold tabular-nums text-slate-800 dark:text-[var(--zf-text)]">
                     $1,520

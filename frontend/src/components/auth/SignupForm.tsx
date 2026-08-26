@@ -62,7 +62,7 @@ export function SignupForm() {
     } catch (e: unknown) {
       if (e instanceof ApiError) {
         if (Array.isArray(e.errors)) {
-          // Flat list of errors — show on the form generically
+          // Flat list of errors - show on the form generically
           setError('confirmPassword', { type: 'manual', message: e.errors[0] })
         } else {
           // Field-level errors from DRF serializer

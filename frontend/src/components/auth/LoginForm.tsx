@@ -32,7 +32,7 @@ export function LoginForm() {
       await login(values.email, values.password)
     } catch (e: unknown) {
       if (e instanceof ApiError) {
-        // Backend returns generic "Invalid email or password." — show on password field
+        // Backend returns generic "Invalid email or password." - show on password field
         const msg = Array.isArray(e.errors) ? e.errors[0] : Object.values(e.errors).flat()[0]
         setError('password', { type: 'manual', message: msg ?? 'Login failed' })
       } else {

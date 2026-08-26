@@ -7,7 +7,7 @@ import { Reveal } from '@/components/reveal'
 export function Hero() {
   return (
     <section id="top" className="relative px-4 pt-36 pb-20 sm:pt-40 lg:pt-44 lg:pb-28">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_1.15fr] lg:gap-10">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.9fr_1.3fr] lg:gap-12">
         {/* copy */}
         <div className="max-w-xl">
           <Reveal>
@@ -67,13 +67,13 @@ export function Hero() {
         </div>
 
         {/* dashboard */}
-        <Reveal delay={200} className="relative">
+        <Reveal delay={200} className="relative min-w-0">
           <div
             className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-primary/10 blur-3xl"
             aria-hidden="true"
           />
           <div className="animate-float">
-            <DashboardMockup />
+            <DashboardMockup className="w-full" />
           </div>
         </Reveal>
       </div>

@@ -39,7 +39,7 @@ export interface Expense {
   date: string
   paymentMethod: PaymentMethod
   notes: string
-  /** Optional local preview URL or remote URL string — no file backend yet */
+  /** Optional local preview URL or remote URL string - no file backend yet */
   receiptImage: string | null
   isRecurring: boolean
   recurringInterval: RecurringInterval | null

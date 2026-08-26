@@ -1,4 +1,4 @@
-/** Frontend notification shape — swap the data source later without changing renderers. */
+/** Frontend notification shape - swap the data source later without changing renderers. */
 export type NotificationType = 'budget' | 'task' | 'reminder'
 
 export type Notification = {

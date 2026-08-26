@@ -11,7 +11,7 @@ const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' })
 
 export const metadata: Metadata = {
-  title: 'ZenFlow — Bring clarity to your workday',
+  title: 'ZenFlow: Bring clarity to your workday',
   description:
     'ZenFlow helps professionals organize tasks, manage reminders, track expenses, and stay focused with one clean, calm dashboard.',
   generator: 'v0.app',

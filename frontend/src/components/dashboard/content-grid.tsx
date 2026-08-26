@@ -22,7 +22,7 @@ const MemoExpensesCard = memo(ExpensesCard)
 
 /**
  * Overview composition. Hooks are lifted here so the four cards share one
- * reactive snapshot — toggling a task updates Tasks, Productivity, Reminders,
+ * reactive snapshot - toggling a task updates Tasks, Productivity, Reminders,
  * and the greeting badge together without a remount.
  */
 export function ContentGrid() {

@@ -18,7 +18,7 @@ type ProductivityCardProps = {
 }
 
 function AnimatedScore({ value }: { value: number | null }) {
-  if (value === null) return <span>—</span>
+  if (value === null) return <span>-</span>
   return (
     <motion.span
       key={value}
@@ -33,7 +33,7 @@ function AnimatedScore({ value }: { value: number | null }) {
 
 export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
   // pathLength isn't a transform, so MotionConfig's reducedMotion="user"
-  // doesn't cover it — gate explicitly.
+  // doesn't cover it - gate explicitly.
   const reducedMotion = usePrefersReducedMotion()
   const thisWeek = weekProductivity(tasks)
   const lastWeekRef = new Date()

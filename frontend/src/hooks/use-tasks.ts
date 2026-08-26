@@ -23,7 +23,7 @@ function taskErrorMessage(error: unknown, fallback: string): string {
       return 'Cannot reach the server. Is the backend running?'
     }
     if (error.status === 401) {
-      return 'Session expired — please log in again.'
+      return 'Session expired. Please log in again.'
     }
     if (error.status >= 500) {
       return 'Server error while saving the task. Check the backend logs.'

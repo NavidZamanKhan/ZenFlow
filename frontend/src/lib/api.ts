@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // Typed API client for Django backend auth endpoints.
-// Uses native fetch — no new dependencies.
+// Uses native fetch - no new dependencies.
 // ---------------------------------------------------------------------------
 
 import type {
@@ -53,7 +53,7 @@ export function clearTokens(): void {
 /** Structured error thrown by API call functions. */
 export class ApiError extends Error {
   status: number
-  /** Backend error messages — either a flat list or field-keyed object. */
+  /** Backend error messages - either a flat list or field-keyed object. */
   errors: string[] | Record<string, string[]>
 
   constructor(
@@ -130,7 +130,7 @@ async function request<T>(
 
 /**
  * Wrapper around request() that attaches the stored access token.
- * If the request returns 401, tokens are cleared — the auth context
+ * If the request returns 401, tokens are cleared - the auth context
  * will detect this and redirect to /login.
  *
  * TODO: Wire silent token refresh here once the backend exposes

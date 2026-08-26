@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true)
   const router = useRouter()
 
-  // Hydrate session on mount — check for stored tokens, validate with /me
+  // Hydrate session on mount - check for stored tokens, validate with /me
   useEffect(() => {
     let cancelled = false
 
@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         storeUser(freshUser)
       } catch {
         if (cancelled) return
-        // Token is invalid/expired — clear everything
+        // Token is invalid/expired - clear everything
         clearTokens()
         clearUser()
         setIsAuthenticated(false)
@@ -153,7 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/dashboard')
   }, [router])
 
-  // -- Signup (step 1 — returns pending ID, does NOT authenticate) ----------
+  // -- Signup (step 1 - returns pending ID, does NOT authenticate) ----------
 
   const signup = useCallback(async (
     fullName: string,
@@ -169,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     if (!res.pending_registration_id) {
-      // Backend returned generic message without an ID — email already
+      // Backend returned generic message without an ID - email already
       // registered but we don't reveal that to the user (anti-enumeration).
       // We still return a fake flow so the UI shows the OTP dialog.
       // The user won't receive an OTP email, and verify-email will fail
@@ -180,7 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { pendingRegistrationId: res.pending_registration_id }
   }, [])
 
-  // -- Verify email (step 2 — authenticates on success) ---------------------
+  // -- Verify email (step 2 - authenticates on success) ---------------------
 
   const verifyEmail = useCallback(async (
     pendingRegistrationId: string,

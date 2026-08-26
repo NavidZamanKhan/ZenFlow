@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Auth domain types — shared between lib/api.ts and lib/auth.tsx
+// Auth domain types - shared between lib/api.ts and lib/auth.tsx
 // ---------------------------------------------------------------------------
 
 /** The user shape returned by the backend (snake_case from DRF). */
