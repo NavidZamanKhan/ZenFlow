@@ -7,6 +7,7 @@ import { useTheme } from 'next-themes'
 import { Toaster } from 'sonner'
 import { useAccentCssVars } from '@/hooks/use-accent-css-vars'
 import { SlideDrawer } from '@/components/ui/slide-drawer'
+import { SpotlightModal } from './spotlight-modal'
 import { MobileHeader } from './mobile-header'
 import { NotificationsProvider } from './notifications-provider'
 import { Sidebar } from './sidebar'
@@ -80,6 +81,7 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
               {children ?? <MainContent />}
             </main>
           </div>
+          <SpotlightModal />
           <ThemedToaster />
         </div>
       </NotificationsProvider>
