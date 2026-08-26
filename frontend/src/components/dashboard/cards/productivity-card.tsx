@@ -17,6 +17,20 @@ type ProductivityCardProps = {
   loading: boolean
 }
 
+function AnimatedScore({ value }: { value: number | null }) {
+  if (value === null) return <span>—</span>
+  return (
+    <motion.span
+      key={value}
+      initial={{ opacity: 0.4, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+    >
+      {value}%
+    </motion.span>
+  )
+}
+
 export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
   // pathLength isn't a transform, so MotionConfig's reducedMotion="user"
   // doesn't cover it — gate explicitly.
@@ -89,7 +103,7 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
 
       <div className="mb-1 flex flex-wrap items-end gap-3">
         <p className="text-3xl font-extrabold tracking-tight text-slate-800 tabular-nums dark:text-[var(--zf-text)]">
-          {thisWeek.score === null ? '—' : `${thisWeek.score}%`}
+          <AnimatedScore value={thisWeek.score} />
         </p>
         <p className="pb-1 text-xs font-medium text-slate-500 dark:text-[var(--zf-text-muted)]">
           {subtitle}
@@ -113,7 +127,7 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
         >
           <defs>
             <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--zf-accent)" stopOpacity={0.15} />
+              <stop offset="0%" stopColor="var(--zf-accent)" stopOpacity={0.18} />
               <stop offset="100%" stopColor="var(--zf-accent)" stopOpacity={0} />
             </linearGradient>
           </defs>
@@ -152,8 +166,11 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
                 d={areaD}
                 fill="url(#chart-grad)"
                 initial={reducedMotion ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: 0.3, ease: 'easeOut' }}
+                animate={{ opacity: 1, d: areaD }}
+                transition={{
+                  d: { duration: 0.6, ease: [0.32, 0.72, 0, 1] },
+                  opacity: { duration: 0.4, ease: 'easeOut' },
+                }}
               />
               <motion.path
                 d={pathD}
@@ -163,13 +180,21 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 initial={reducedMotion ? false : { pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+                animate={{ pathLength: 1, d: pathD }}
+                transition={{
+                  d: { duration: 0.6, ease: [0.32, 0.72, 0, 1] },
+                  pathLength: { duration: 0.6, ease: [0.32, 0.72, 0, 1] },
+                }}
               />
-              <circle cx={endX} cy={endY} r="4" fill="var(--zf-accent)" />
-              <circle
-                cx={endX}
-                cy={endY}
+              <motion.circle
+                animate={{ cx: endX, cy: endY }}
+                transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+                r="4"
+                fill="var(--zf-accent)"
+              />
+              <motion.circle
+                animate={{ cx: endX, cy: endY }}
+                transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
                 r="7"
                 fill="var(--zf-accent)"
                 fillOpacity={0.15}
@@ -180,11 +205,17 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
                   cy={endY}
                   fill="var(--zf-accent)"
                   initial={{ r: 4, opacity: 0.35 }}
-                  animate={{ r: 11, opacity: 0 }}
+                  animate={{
+                    cx: endX,
+                    cy: endY,
+                    r: [4, 11],
+                    opacity: [0.35, 0],
+                  }}
                   transition={{
-                    repeat: Infinity,
-                    duration: 2,
-                    ease: 'easeOut',
+                    cx: { duration: 0.6, ease: [0.32, 0.72, 0, 1] },
+                    cy: { duration: 0.6, ease: [0.32, 0.72, 0, 1] },
+                    r: { repeat: Infinity, duration: 2, ease: 'easeOut' },
+                    opacity: { repeat: Infinity, duration: 2, ease: 'easeOut' },
                   }}
                 />
               )}

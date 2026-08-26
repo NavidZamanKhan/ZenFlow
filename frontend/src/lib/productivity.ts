@@ -79,7 +79,7 @@ export function weekOverWeekChange(
   return thisScore - lastScore
 }
 
-/** Map daily counts to SVG polyline points inside the existing chart viewBox. */
+/** Map daily counts to smooth SVG bezier curve inside the chart viewBox. */
 export function dailyCountsToPath(
   counts: number[],
   width = 280,
@@ -99,9 +99,15 @@ export function dailyCountsToPath(
     return { pathD: '', areaD: '', endX: left, endY: top + height }
   }
 
-  const pathD = points
-    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
-    .join(' ')
+  // Generate smooth cubic bezier curve through all 7 daily data points
+  let pathD = `M ${points[0].x} ${points[0].y}`
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i]
+    const p1 = points[i + 1]
+    const cpX = (p0.x + p1.x) / 2
+    pathD += ` C ${cpX} ${p0.y}, ${cpX} ${p1.y}, ${p1.x} ${p1.y}`
+  }
+
   const last = points[points.length - 1]
   const first = points[0]
   const areaD = `${pathD} L ${last.x} ${top + height} L ${first.x} ${top + height} Z`
