@@ -417,3 +417,14 @@
   font-size: 0.725rem !important;
 }
 
+/* Hide Netlify drawer & preview badge */
+iframe#netlify-drawer,
+div[data-netlify-drawer],
+div#netlify-drawer,
+[class*="netlify-drawer"],
+iframe[title*="Netlify"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
