@@ -123,6 +123,8 @@ function ExpenseForm({
       .map((t) => t.trim())
       .filter(Boolean)
 
+    const receiptImage = values.receiptImage.trim()
+
     const ok = await onSubmit({
       title: values.title.trim(),
       amount: Number(values.amount),
@@ -130,7 +132,7 @@ function ExpenseForm({
       date: values.date,
       paymentMethod: values.paymentMethod,
       notes: values.notes.trim(),
-      receiptImage: values.receiptImage.trim(),
+      receiptImage: receiptImage ? receiptImage : null,
       isRecurring: values.isRecurring,
       recurringInterval: values.isRecurring && values.recurringInterval ? values.recurringInterval : null,
       tags: rawTags,
