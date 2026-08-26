@@ -41,13 +41,13 @@ export function ExpenseRow({
         <Icon size={16} />
       </div>
 
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{expense.title}</p>
-        <p className="flex items-center gap-1.5 text-xs mt-0.5 font-medium text-slate-500 dark:text-slate-400">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">{expense.title}</p>
+        <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
           <span>{formatDisplayDate(expense.date)}</span>
           <span aria-hidden="true">·</span>
           <span>{expense.paymentMethod}</span>
-          {expense.isRecurring && (
+          {expense.isRecurring ? (
             <>
               <span aria-hidden="true">·</span>
               <span className="inline-flex items-center gap-0.5 text-[var(--zf-accent)]">
@@ -55,7 +55,10 @@ export function ExpenseRow({
                 {expense.recurringInterval}
               </span>
             </>
-          )}
+          ) : null}
+          <span className="inline-flex rounded-full bg-[#F1F3F5] px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-300 sm:hidden">
+            {expense.category}
+          </span>
         </p>
       </div>
 

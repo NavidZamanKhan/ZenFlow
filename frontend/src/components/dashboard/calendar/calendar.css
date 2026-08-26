@@ -125,3 +125,31 @@
 .dark .zenflow-calendar .fc .zenflow-task-event .fc-event-main {
   color: #5eead4;
 }
+
+/* List view - readable agenda on phones without horizontal scroll */
+.zenflow-calendar .fc .fc-list {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.zenflow-calendar .fc .fc-list-day-cushion {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.zenflow-calendar .fc .fc-list-event-title,
+.zenflow-calendar .fc .fc-list-event-time {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.zenflow-calendar .fc .fc-list-event:hover td {
+  background: color-mix(in srgb, var(--zf-accent-soft) 40%, transparent);
+}
+
+.dark .zenflow-calendar .fc .fc-list-day-cushion {
+  background: #0f1419;
+  color: #94a3b8;
+}

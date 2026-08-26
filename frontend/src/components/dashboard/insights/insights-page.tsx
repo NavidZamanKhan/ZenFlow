@@ -54,7 +54,7 @@ const PAYMENT_COLORS = [
   'var(--chart-4)',
   'var(--chart-5)',
 ]
-const AXIS_TICK = { fill: '#94A3B8', fontSize: 11, fontWeight: 500 }
+const AXIS_TICK = { fill: '#94A3B8', fontSize: 10, fontWeight: 500 }
 const TOOLTIP_STYLE = {
   backgroundColor: 'var(--zf-surface, #FFFFFF)',
   borderColor: 'var(--zf-border, #E8EDF3)',
@@ -192,8 +192,8 @@ export function InsightsPage() {
                 empty={analytics.categoryBreakdown.length === 0}
                 emptyMessage="Category activity will appear after you add an expense."
               >
-                <div className="h-full flex flex-col sm:flex-row items-center gap-2">
-                  <div className="w-full sm:w-[58%] h-full min-h-[210px]">
+                <div className="h-full flex flex-col items-center gap-2 sm:flex-row">
+                  <div className="w-full sm:w-[58%] h-full min-h-[170px] sm:h-[210px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Tooltip
@@ -306,8 +306,8 @@ export function InsightsPage() {
                 emptyMessage="Payment method activity will appear here."
                 className="lg:col-span-2"
               >
-                <div className="h-full flex flex-col sm:flex-row items-center gap-4">
-                  <div className="w-full sm:w-1/2 h-full min-h-[210px]">
+                <div className="h-full flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
+                  <div className="w-full sm:w-1/2 h-full min-h-[170px] sm:h-[210px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Tooltip
@@ -522,7 +522,7 @@ function ChartCard({
   children: ReactNode
 }) {
   return (
-    <div className={`${CARD_CLASS} p-5 ${className}`}>
+    <div className={`${CARD_CLASS} p-4 sm:p-5 ${className}`}>
       <div className="flex items-start gap-2 mb-4">
         <Icon size={18} className="text-[var(--zf-accent)] mt-0.5 flex-shrink-0" />
         <div>
@@ -530,7 +530,7 @@ function ChartCard({
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{description}</p>
         </div>
       </div>
-      <div className="h-[270px]" role="img" aria-label={title}>
+      <div className="h-[200px] sm:h-[270px]" role="img" aria-label={title}>
         {empty ? <ChartEmpty message={emptyMessage} /> : children}
       </div>
     </div>
@@ -648,9 +648,9 @@ function InsightsLoading() {
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {[0, 1].map((index) => (
-          <div key={index} className={`${CARD_CLASS} h-[350px] p-5`}>
+          <div key={index} className={`${CARD_CLASS} h-[240px] sm:h-[350px] p-5`}>
             <Skeleton className="mb-5 h-4 w-36 rounded-full" />
-            <Skeleton className="h-[260px] rounded-2xl" />
+            <Skeleton className="h-[200px] sm:h-[260px] rounded-2xl" />
           </div>
         ))}
       </div>

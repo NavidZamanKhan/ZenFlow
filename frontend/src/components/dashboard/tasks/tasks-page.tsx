@@ -1,13 +1,14 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { ListTodo, Plus, Search } from 'lucide-react'
+import { ListFilter, ListTodo, Plus, Search, X } from 'lucide-react'
 import { useTasks } from '@/hooks/use-tasks'
 import { useHighlightParam } from '@/hooks/use-highlight-param'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
 import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SlideDrawer } from '@/components/ui/slide-drawer'
 import { TaskFormModal } from './task-form-modal'
 import { TaskRow } from './task-row'
 import type { Task, TaskSortKey, TaskStatusFilter } from '@/types/task'
@@ -38,11 +39,64 @@ export function TasksPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Task | null>(null)
   const [deleting, setDeleting] = useState<Task | null>(null)
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const categories = useMemo(() => {
     const set = new Set(tasks.map((t) => t.category).filter(Boolean))
     return [...set].sort()
   }, [tasks])
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    if (status !== 'all') count += 1
+    if (category !== 'all') count += 1
+    if (sortKey !== 'createdAt') count += 1
+    return count
+  }, [status, category, sortKey])
+
+  const clearFilters = () => {
+    setStatus('all')
+    setCategory('all')
+    setSortKey('createdAt')
+  }
+
+  const filterControls = (
+    <>
+      <select
+        value={status}
+        onChange={(e) => setStatus(e.target.value as TaskStatusFilter)}
+        aria-label="Filter by status"
+        className={`${selectClass} w-full sm:w-auto`}
+      >
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="completed">Completed</option>
+      </select>
+      <select
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        aria-label="Filter by category"
+        className={`${selectClass} w-full sm:w-auto`}
+      >
+        <option value="all">All categories</option>
+        {categories.map((item) => (
+          <option key={item} value={item}>
+            {item}
+          </option>
+        ))}
+      </select>
+      <select
+        value={sortKey}
+        onChange={(e) => setSortKey(e.target.value as TaskSortKey)}
+        aria-label="Sort tasks"
+        className={`${selectClass} w-full sm:w-auto`}
+      >
+        <option value="createdAt">Newest</option>
+        <option value="dueDate">Due date</option>
+        <option value="priority">Priority</option>
+      </select>
+    </>
+  )
 
   const visibleTasks = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -140,40 +194,66 @@ export function TasksPage() {
             className="w-full rounded-xl border border-slate-100 dark:border-[var(--zf-border)] bg-slate-50 dark:bg-[var(--zf-surface)] py-2 pl-9 pr-3 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)]"
           />
         </div>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value as TaskStatusFilter)}
-          aria-label="Filter by status"
-          className={selectClass}
+
+        <div className="hidden flex-wrap items-center gap-2 sm:flex">{filterControls}</div>
+
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          className="zf-tap relative inline-flex items-center gap-1.5 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:text-slate-200 sm:hidden"
+          aria-expanded={filtersOpen}
         >
-          <option value="all">All</option>
-          <option value="active">Active</option>
-          <option value="completed">Completed</option>
-        </select>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          aria-label="Filter by category"
-          className={selectClass}
-        >
-          <option value="all">All categories</option>
-          {categories.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-        <select
-          value={sortKey}
-          onChange={(e) => setSortKey(e.target.value as TaskSortKey)}
-          aria-label="Sort tasks"
-          className={selectClass}
-        >
-          <option value="createdAt">Newest</option>
-          <option value="dueDate">Due date</option>
-          <option value="priority">Priority</option>
-        </select>
+          <ListFilter size={14} aria-hidden="true" />
+          Filters
+          {activeFilterCount > 0 ? (
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--zf-accent)] px-1.5 text-[10px] font-bold text-white">
+              {activeFilterCount}
+            </span>
+          ) : null}
+        </button>
       </div>
+
+      <SlideDrawer
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        side="right"
+        rootClassName="sm:hidden"
+        label="Task filters"
+        className="w-[min(100%,20rem)] px-5 py-6"
+      >
+        <div className="flex h-full flex-col">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <h2 className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">Filters</h2>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(false)}
+              aria-label="Close filters"
+              className="zf-tap relative rounded-xl p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="flex flex-col gap-3">{filterControls}</div>
+          <div className="mt-auto flex flex-col gap-2 border-t border-slate-100 pt-5 dark:border-[var(--zf-border)]">
+            {activeFilterCount > 0 ? (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 dark:border-[var(--zf-border)] dark:text-slate-300"
+              >
+                Clear filters
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(false)}
+              className="w-full rounded-xl bg-[var(--zf-accent)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--zf-accent-hover)]"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </SlideDrawer>
 
       <div className="rounded-3xl border border-slate-100/80 dark:border-[var(--zf-border)] bg-white dark:bg-[var(--zf-surface)] p-4 shadow-sm sm:p-6">
         <div className="mb-4 flex items-center gap-2">

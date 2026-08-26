@@ -5,11 +5,13 @@ import Link from 'next/link'
 import {
   CalendarDays,
   Globe,
+  ListFilter,
   PiggyBank,
   Plus,
   Receipt,
   Search,
   Wallet,
+  X,
 } from 'lucide-react'
 import { useBudget } from '@/hooks/use-budget'
 import { useExpenses } from '@/hooks/use-expenses'
@@ -18,6 +20,7 @@ import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
 import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SlideDrawer } from '@/components/ui/slide-drawer'
 import { monthlySpending, todaysSpending, totalExpenses } from '@/lib/expense-stats'
 import { useCurrency } from '@/lib/currency-context'
 import { todayISODate } from '@/lib/dates'
@@ -77,8 +80,117 @@ export function ExpensesPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Expense | null>(null)
   const [deleting, setDeleting] = useState<Expense | null>(null)
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const bounds = useMemo(() => monthBounds(month), [month])
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    if (category !== 'all') count += 1
+    if (paymentMethod !== 'all') count += 1
+    if (month) count += 1
+    if (dateFrom) count += 1
+    if (dateTo) count += 1
+    if (minAmount) count += 1
+    if (maxAmount) count += 1
+    if (sortKey !== 'newest') count += 1
+    return count
+  }, [category, paymentMethod, month, dateFrom, dateTo, minAmount, maxAmount, sortKey])
+
+  const clearFilters = () => {
+    setCategory('all')
+    setPaymentMethod('all')
+    setMonth('')
+    setDateFrom('')
+    setDateTo('')
+    setMinAmount('')
+    setMaxAmount('')
+    setSortKey('newest')
+  }
+
+  const filterControls = (
+    <>
+      <select
+        value={category}
+        onChange={(e) => setCategory(e.target.value as 'all' | ExpenseCategory)}
+        aria-label="Filter by category"
+        className={`${selectClass} w-full sm:w-auto`}
+      >
+        <option value="all">All categories</option>
+        {EXPENSE_CATEGORIES.map((item) => (
+          <option key={item} value={item}>
+            {item}
+          </option>
+        ))}
+      </select>
+      <select
+        value={paymentMethod}
+        onChange={(e) => setPaymentMethod(e.target.value as 'all' | PaymentMethod)}
+        aria-label="Filter by payment method"
+        className={`${selectClass} w-full sm:w-auto`}
+      >
+        <option value="all">All payments</option>
+        {PAYMENT_METHODS.map((method) => (
+          <option key={method} value={method}>
+            {method}
+          </option>
+        ))}
+      </select>
+      <input
+        type="month"
+        value={month}
+        onChange={(e) => setMonth(e.target.value)}
+        aria-label="Filter by month"
+        className={`${selectClass} w-full sm:w-auto`}
+        max={todayISODate().slice(0, 7)}
+      />
+      <select
+        value={sortKey}
+        onChange={(e) => setSortKey(e.target.value as ExpenseSortKey)}
+        aria-label="Sort expenses"
+        className={`${selectClass} w-full sm:w-auto`}
+      >
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+        <option value="highest">Highest amount</option>
+        <option value="lowest">Lowest amount</option>
+      </select>
+      <input
+        type="date"
+        value={dateFrom}
+        onChange={(e) => setDateFrom(e.target.value)}
+        aria-label="From date"
+        className={`${selectClass} w-full sm:w-auto`}
+      />
+      <input
+        type="date"
+        value={dateTo}
+        onChange={(e) => setDateTo(e.target.value)}
+        aria-label="To date"
+        className={`${selectClass} w-full sm:w-auto`}
+      />
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        value={minAmount}
+        onChange={(e) => setMinAmount(e.target.value)}
+        placeholder={`Min ${meta.symbol}`}
+        aria-label="Minimum amount"
+        className={`${selectClass} w-full sm:w-24`}
+      />
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        value={maxAmount}
+        onChange={(e) => setMaxAmount(e.target.value)}
+        placeholder={`Max ${meta.symbol}`}
+        aria-label="Maximum amount"
+        className={`${selectClass} w-full sm:w-24`}
+      />
+    </>
+  )
 
   const filteredExpenses = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -229,8 +341,8 @@ export function ExpensesPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <div className="relative min-w-0 flex-1 max-w-xs basis-full sm:basis-auto sm:min-w-[180px]">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="relative min-w-0 max-w-xs flex-1 basis-full sm:basis-auto sm:min-w-[180px]">
           <label htmlFor="expenses-search" className="sr-only">
             Search expenses
           </label>
@@ -245,92 +357,69 @@ export function ExpensesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search expenses..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-[var(--zf-surface)] border border-slate-100 dark:border-[var(--zf-border)] text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-transparent transition-all"
+            className="w-full rounded-xl border border-slate-100 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:text-slate-100 dark:placeholder:text-slate-500"
           />
         </div>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value as 'all' | ExpenseCategory)}
-          aria-label="Filter by category"
-          className={selectClass}
+
+        <div className="hidden flex-wrap items-center gap-2 sm:flex">{filterControls}</div>
+
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          className="zf-tap relative inline-flex items-center gap-1.5 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:text-slate-200 sm:hidden"
+          aria-expanded={filtersOpen}
         >
-          <option value="all">All categories</option>
-          {EXPENSE_CATEGORIES.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-        <select
-          value={paymentMethod}
-          onChange={(e) => setPaymentMethod(e.target.value as 'all' | PaymentMethod)}
-          aria-label="Filter by payment method"
-          className={selectClass}
-        >
-          <option value="all">All payments</option>
-          {PAYMENT_METHODS.map((method) => (
-            <option key={method} value={method}>
-              {method}
-            </option>
-          ))}
-        </select>
-        <input
-          type="month"
-          value={month}
-          onChange={(e) => setMonth(e.target.value)}
-          aria-label="Filter by month"
-          className={selectClass}
-          max={currentMonthValue}
-        />
-        <select
-          value={sortKey}
-          onChange={(e) => setSortKey(e.target.value as ExpenseSortKey)}
-          aria-label="Sort expenses"
-          className={selectClass}
-        >
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="highest">Highest amount</option>
-          <option value="lowest">Lowest amount</option>
-        </select>
+          <ListFilter size={14} aria-hidden="true" />
+          Filters
+          {activeFilterCount > 0 ? (
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--zf-accent)] px-1.5 text-[10px] font-bold text-white">
+              {activeFilterCount}
+            </span>
+          ) : null}
+        </button>
       </div>
 
-      <div className="flex items-center gap-2 mb-6 flex-wrap">
-        <input
-          type="date"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          aria-label="From date"
-          className={selectClass}
-        />
-        <input
-          type="date"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
-          aria-label="To date"
-          className={selectClass}
-        />
-        <input
-          type="number"
-          min="0"
-          step="0.01"
-          value={minAmount}
-          onChange={(e) => setMinAmount(e.target.value)}
-          placeholder={`Min ${meta.symbol}`}
-          aria-label="Minimum amount"
-          className={`${selectClass} w-24`}
-        />
-        <input
-          type="number"
-          min="0"
-          step="0.01"
-          value={maxAmount}
-          onChange={(e) => setMaxAmount(e.target.value)}
-          placeholder={`Max ${meta.symbol}`}
-          aria-label="Maximum amount"
-          className={`${selectClass} w-24`}
-        />
-      </div>
+      <SlideDrawer
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        side="right"
+        rootClassName="sm:hidden"
+        label="Expense filters"
+        className="w-[min(100%,20rem)] px-5 py-6"
+      >
+        <div className="flex h-full flex-col">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <h2 className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]">Filters</h2>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(false)}
+              aria-label="Close filters"
+              className="zf-tap relative rounded-xl p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="flex flex-col gap-3 overflow-y-auto pb-4">{filterControls}</div>
+          <div className="mt-auto flex flex-col gap-2 border-t border-slate-100 pt-5 dark:border-[var(--zf-border)]">
+            {activeFilterCount > 0 ? (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 dark:border-[var(--zf-border)] dark:text-slate-300"
+              >
+                Clear filters
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(false)}
+              className="w-full rounded-xl bg-[var(--zf-accent)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--zf-accent-hover)]"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </SlideDrawer>
 
       {/* List card */}
       <div className="bg-white dark:bg-[var(--zf-surface)] rounded-3xl p-6 border border-slate-100/80 dark:border-[var(--zf-border)] shadow-sm">

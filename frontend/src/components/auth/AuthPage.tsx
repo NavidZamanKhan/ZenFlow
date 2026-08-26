@@ -150,7 +150,7 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
       {/* LEFT - auth panel */}
       <main
         id="auth-main"
-        className="flex w-full flex-col bg-slate-50 dark:bg-[var(--zf-canvas)] px-6 py-8 sm:px-12 lg:w-[45%] lg:px-14 lg:py-10"
+        className="flex min-w-0 w-full flex-col bg-slate-50 dark:bg-[var(--zf-canvas)] px-6 py-8 sm:px-12 lg:w-[45%] lg:px-14 lg:py-10"
       >
         {/* logo */}
         <Link href="/" className="flex w-fit items-center gap-2.5" aria-label="ZenFlow home">

@@ -18,7 +18,7 @@ export function Hero() {
           </Reveal>
 
           <Reveal delay={80}>
-            <h1 className="mt-6 text-5xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-6xl">
+            <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-balance sm:text-5xl lg:text-6xl">
               Bring clarity to your workday.
             </h1>
           </Reveal>
@@ -61,9 +61,9 @@ export function Hero() {
         </div>
 
         {/* dashboard */}
-        <Reveal delay={200} className="relative min-w-0">
+        <Reveal delay={200} className="relative min-w-0 overflow-hidden">
           <div
-            className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-primary/10 blur-3xl"
+            className="absolute -inset-3 -z-10 rounded-[2rem] bg-primary/10 blur-2xl sm:-inset-6 sm:rounded-[2.5rem] sm:blur-3xl"
             aria-hidden="true"
           />
           <div className="animate-float">

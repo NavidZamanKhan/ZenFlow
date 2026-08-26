@@ -6,6 +6,7 @@ import { MotionConfig } from 'framer-motion'
 import { useTheme } from 'next-themes'
 import { Toaster } from 'sonner'
 import { useAccentCssVars } from '@/hooks/use-accent-css-vars'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { SlideDrawer } from '@/components/ui/slide-drawer'
 import { SpotlightModal } from './spotlight-modal'
 import { MobileHeader } from './mobile-header'
@@ -16,13 +17,22 @@ import { MainContent } from './main-content'
 /** Sonner toaster synced to next-themes so dark mode gets dark toast surfaces. */
 function ThemedToaster() {
   const { resolvedTheme } = useTheme()
+  const isLg = useMediaQuery('(min-width: 1024px)')
   const theme =
     resolvedTheme === 'dark' || resolvedTheme === 'light'
       ? resolvedTheme
       : 'system'
 
   return (
-    <Toaster position="bottom-right" theme={theme} richColors closeButton />
+    <Toaster
+      position={isLg ? 'bottom-right' : 'bottom-center'}
+      theme={theme}
+      richColors
+      closeButton
+      // Extra bottom offset clears the home indicator on phones.
+      offset={isLg ? 16 : 28}
+      mobileOffset={28}
+    />
   )
 }
 
