@@ -178,7 +178,7 @@ export function AppearanceSettingsSection({
                         <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-[var(--zf-text)]">
                           <Icon
                             size={15}
-                            className="text-[var(--zf-accent)]"
+                            className="text-[var(--zf-accent-fg)]"
                             aria-hidden="true"
                           />
                           {option.label}

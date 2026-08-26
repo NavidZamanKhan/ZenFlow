@@ -155,7 +155,7 @@ export function ProfileSettingsSection({
           <div className="relative w-fit">
             <Avatar className="size-20">
               {avatarPreview && <AvatarImage src={avatarPreview} alt="" />}
-              <AvatarFallback className="bg-[var(--zf-accent-soft)] text-lg font-bold text-[var(--zf-accent)]">
+              <AvatarFallback className="bg-[var(--zf-accent-soft)] text-lg font-bold text-[var(--zf-accent-fg)]">
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -296,7 +296,7 @@ export function ProfileSettingsSection({
               type="button"
               variant="ghost"
               onClick={cancelEditing}
-              className="h-10 rounded-xl px-4 text-slate-500 dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-soft-fill)] dark:hover:text-[var(--zf-text)]"
+              className="h-10 rounded-xl px-4 text-slate-500 dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-hover-fill)] dark:hover:text-[var(--zf-text)]"
             >
               Cancel
             </Button>

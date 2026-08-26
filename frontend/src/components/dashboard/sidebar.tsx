@@ -113,8 +113,8 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
             const itemClass = cn(
               'w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150',
               isActive
-                ? 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent)]'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800 dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-soft-fill)] dark:hover:text-[var(--zf-text)]',
+                ? 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent-fg)]'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800 dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-hover-fill)] dark:hover:text-[var(--zf-text)]',
             )
 
             return (
@@ -129,7 +129,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                     size={18}
                     className={
                       isActive
-                        ? 'text-[var(--zf-accent)]'
+                        ? 'text-[var(--zf-accent-fg)]'
                         : 'text-slate-500 dark:text-[var(--zf-text-muted)]'
                     }
                     aria-hidden="true"
@@ -150,8 +150,8 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                           className={cn(
                             'block rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
                             childActive
-                              ? 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent)]'
-                              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-soft-fill)] dark:hover:text-[var(--zf-text)]',
+                              ? 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent-fg)]'
+                              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-hover-fill)] dark:hover:text-[var(--zf-text)]',
                           )}
                         >
                           {child.label}

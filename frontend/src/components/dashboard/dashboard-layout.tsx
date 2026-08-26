@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { MotionConfig } from 'framer-motion'
+import { useTheme } from 'next-themes'
 import { Toaster } from 'sonner'
 import { useAccentCssVars } from '@/hooks/use-accent-css-vars'
 import { SlideDrawer } from '@/components/ui/slide-drawer'
@@ -10,6 +11,19 @@ import { MobileHeader } from './mobile-header'
 import { NotificationsProvider } from './notifications-provider'
 import { Sidebar } from './sidebar'
 import { MainContent } from './main-content'
+
+/** Sonner toaster synced to next-themes so dark mode gets dark toast surfaces. */
+function ThemedToaster() {
+  const { resolvedTheme } = useTheme()
+  const theme =
+    resolvedTheme === 'dark' || resolvedTheme === 'light'
+      ? resolvedTheme
+      : 'system'
+
+  return (
+    <Toaster position="bottom-right" theme={theme} richColors closeButton />
+  )
+}
 
 export function DashboardLayout({ children }: { children?: React.ReactNode }) {
   useAccentCssVars()
@@ -66,7 +80,7 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
               {children ?? <MainContent />}
             </main>
           </div>
-          <Toaster position="bottom-right" richColors closeButton />
+          <ThemedToaster />
         </div>
       </NotificationsProvider>
     </MotionConfig>

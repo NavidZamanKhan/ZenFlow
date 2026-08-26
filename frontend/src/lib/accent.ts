@@ -97,9 +97,14 @@ export function applyAccentColor(
     : palette.soft
 
   // Core accent
+  const accentFg = isDark
+    ? `color-mix(in srgb, #ffffff 25%, ${palette.base})`
+    : palette.base
+
   root.style.setProperty('--zf-accent', palette.base)
   root.style.setProperty('--zf-accent-hover', palette.hover)
   root.style.setProperty('--zf-accent-soft', soft)
+  root.style.setProperty('--zf-accent-fg', accentFg)
 
   // Light mode pastel fills
   root.style.setProperty('--zf-accent-light-bg', palette.lightBg)

@@ -59,6 +59,7 @@
   --zf-accent: #1d70e8;
   --zf-accent-hover: #1660cc;
   --zf-accent-soft: #e2eefc;
+  --zf-accent-fg: var(--zf-accent);
   --zf-accent-light-bg: #f5f9fe;
   --zf-accent-light-border: #d7e7fa;
   /* warm white with a whisper of blue */
@@ -107,8 +108,15 @@
   --zf-text: #e8eef6;
   --zf-text-muted: #94a3b8;
   --zf-soft-fill: #1e293b;
+  /* Interactive hover/focus fill — ~12% white into surface (~1.44:1 vs surface;
+     soft-fill is only ~1.08:1 and reads as “no hover”). Tracks --zf-surface so
+     accent-tinted dark palettes stay coherent. */
+  --zf-hover-fill: color-mix(in srgb, #ffffff 12%, var(--zf-surface));
   /* Soft accent default for dark — runtime may override via applyAccentColor */
   --zf-accent-soft: color-mix(in srgb, #1d70e8 12%, #1a2332);
+  /* Accent text on soft fills — brighter in dark so small labels hit AA 4.5:1.
+     Light mode keeps this equal to --zf-accent (set in applyAccentColor). */
+  --zf-accent-fg: color-mix(in srgb, #ffffff 25%, var(--zf-accent, #1d70e8));
   /* Map shadcn semantic tokens to the same palette */
   --background: #0f1419;
   --foreground: #e8eef6;
@@ -122,7 +130,8 @@
   --secondary-foreground: #e8eef6;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
-  --accent: #1e293b;
+  /* Select/menu focus uses --accent; point it at the stronger hover fill */
+  --accent: var(--zf-hover-fill);
   --accent-foreground: #e8eef6;
   /* Keep existing destructive rose */
   --destructive: oklch(0.577 0.245 27.325);

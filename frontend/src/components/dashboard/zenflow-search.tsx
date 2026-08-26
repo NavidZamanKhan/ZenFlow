@@ -252,8 +252,8 @@ export function ZenflowSearch({
                             className={cn(
                               'flex w-full items-start gap-3 rounded-xl px-2 py-2 text-left transition-colors',
                               active
-                                ? 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent)]'
-                                : 'text-slate-700 hover:bg-slate-50 dark:text-[var(--zf-text)] dark:hover:bg-[var(--zf-soft-fill)]',
+                                ? 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent-fg)]'
+                                : 'text-slate-700 hover:bg-slate-50 dark:text-[var(--zf-text)] dark:hover:bg-[var(--zf-hover-fill)]',
                             )}
                           >
                             <span
@@ -275,7 +275,7 @@ export function ZenflowSearch({
                                   className={cn(
                                     'mt-0.5 block truncate text-[11px]',
                                     active
-                                      ? 'text-[var(--zf-accent)]/80'
+                                      ? 'text-[var(--zf-accent-fg)]/80'
                                       : 'text-slate-500 dark:text-[var(--zf-text-muted)]',
                                   )}
                                 >

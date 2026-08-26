@@ -217,7 +217,7 @@ export function CalendarPage() {
               <button
                 type="button"
                 onClick={() => getApi()?.today()}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-[var(--zf-accent)] bg-[var(--zf-accent-soft)] hover:bg-[color-mix(in_srgb,var(--zf-accent)_18%,white)] transition-colors"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-[var(--zf-accent-fg)] bg-[var(--zf-accent-soft)] hover:bg-[color-mix(in_srgb,var(--zf-accent)_18%,white)] transition-colors"
               >
                 Today
               </button>
