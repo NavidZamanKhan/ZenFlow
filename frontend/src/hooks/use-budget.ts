@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '@/lib/auth'
 import {
   apiGetBudget,
@@ -16,6 +16,7 @@ import {
 } from '@/types/budget'
 
 import type { CurrencyCode } from '@/lib/currency'
+import { useCurrency } from '@/lib/currency-context'
 
 function emptyCategoryBudgets(): Record<ExpenseCategory, number> {
   return Object.fromEntries(
@@ -47,6 +48,7 @@ function nonNegativeNumber(value: unknown, fallback = 0): number {
  */
 export function useBudget() {
   const { user } = useAuth()
+  const { currency: activeCurrency, convert } = useCurrency()
   const [budget, setBudget] = useState<Budget>(createDefaultBudget)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -150,12 +152,37 @@ export function useBudget() {
     [],
   )
 
+  const budgetCurrency = budget.currency || 'BDT'
+
+  const displayMonthlyTotal = useMemo(() => {
+    if (!budget.monthlyTotal) return 0
+    if (budgetCurrency === activeCurrency) return budget.monthlyTotal
+    return convert(budget.monthlyTotal, budgetCurrency)
+  }, [budget.monthlyTotal, budgetCurrency, activeCurrency, convert])
+
+  const displayCategoryBudgets = useMemo(() => {
+    const res: Record<ExpenseCategory, number> = {} as Record<ExpenseCategory, number>
+    for (const cat of EXPENSE_CATEGORIES) {
+      const raw = budget.categoryBudgets[cat] ?? 0
+      if (!raw) {
+        res[cat] = 0
+      } else if (budgetCurrency === activeCurrency) {
+        res[cat] = raw
+      } else {
+        res[cat] = convert(raw, budgetCurrency)
+      }
+    }
+    return res
+  }, [budget.categoryBudgets, budgetCurrency, activeCurrency, convert])
+
   const hasBudget =
-    budget.monthlyTotal > 0 ||
-    Object.values(budget.categoryBudgets).some((amount) => amount > 0)
+    displayMonthlyTotal > 0 ||
+    Object.values(displayCategoryBudgets).some((amount: number) => amount > 0)
 
   return {
     budget,
+    displayMonthlyTotal,
+    displayCategoryBudgets,
     hasBudget,
     loading,
     error,

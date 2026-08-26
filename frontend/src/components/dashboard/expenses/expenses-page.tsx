@@ -58,6 +58,7 @@ export function ExpensesPage() {
   } = useExpenses()
   const {
     budget,
+    displayMonthlyTotal,
     hasBudget,
     loading: budgetLoading,
   } = useBudget()
@@ -133,8 +134,8 @@ export function ExpensesPage() {
     }
   }, [expenses])
 
-  const showMonthlyBudget = hasBudget && budget.monthlyTotal > 0
-  const remainingBudget = budget.monthlyTotal - summary.month
+  const showMonthlyBudget = hasBudget && displayMonthlyTotal > 0
+  const remainingBudget = displayMonthlyTotal - summary.month
 
   const openCreate = () => {
     setEditing(null)
@@ -209,7 +210,7 @@ export function ExpensesPage() {
           loading={budgetLoading}
           showBudget={showMonthlyBudget}
           remaining={remainingBudget}
-          monthlyTotal={budget.monthlyTotal}
+          monthlyTotal={displayMonthlyTotal}
           spent={summary.month}
           format={format}
         />
