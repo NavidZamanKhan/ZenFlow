@@ -93,7 +93,10 @@ export function InsightsPage() {
     }
     return palettes[settings.appearance.accentColor] || palettes.blue
   }, [settings.appearance.accentColor])
-  const analytics = useMemo(() => buildInsightsAnalytics(expenses), [expenses])
+  const analytics = useMemo(
+    () => buildInsightsAnalytics(expenses, undefined, convert),
+    [expenses, convert],
+  )
   // Recharts animates entrances by default — disable under prefers-reduced-motion.
   const animateCharts = !usePrefersReducedMotion()
 

@@ -1,12 +1,14 @@
 import {
   averageDailyExpense,
   averageMonthlyExpense,
+  getExpenseAmount,
   highestSpendingCategory,
   monthlySpending,
   monthlyTrend,
   spendingByCategory,
   spendingByPaymentMethod,
   sumAmounts,
+  type ExpenseConverter,
 } from '@/lib/expense-stats'
 import { todayISODate } from '@/lib/dates'
 import {
@@ -98,22 +100,23 @@ function percentageChange(current: number, previous: number): number | null {
   return ((current - previous) / previous) * 100
 }
 
-function aggregateDays(expenses: Expense[]): Map<string, SpendingDay> {
+function aggregateDays(expenses: Expense[], convertFn?: ExpenseConverter): Map<string, SpendingDay> {
   const days = new Map<string, SpendingDay>()
   for (const expense of expenses) {
     const existing = days.get(expense.date)
+    const amt = getExpenseAmount(expense, convertFn)
     days.set(expense.date, {
       date: expense.date,
-      amount: (existing?.amount ?? 0) + expense.amount,
+      amount: (existing?.amount ?? 0) + amt,
       transactions: (existing?.transactions ?? 0) + 1,
     })
   }
   return days
 }
 
-export function categoryBreakdown(expenses: Expense[]): CategoryBreakdown[] {
-  const total = sumAmounts(expenses)
-  const totals = spendingByCategory(expenses)
+export function categoryBreakdown(expenses: Expense[], convertFn?: ExpenseConverter): CategoryBreakdown[] {
+  const total = sumAmounts(expenses, convertFn)
+  const totals = spendingByCategory(expenses, convertFn)
 
   return EXPENSE_CATEGORIES.map((category) => {
     const categoryExpenses = expenses.filter((expense) => expense.category === category)
@@ -129,9 +132,9 @@ export function categoryBreakdown(expenses: Expense[]): CategoryBreakdown[] {
     .sort((a, b) => b.amount - a.amount)
 }
 
-export function paymentBreakdown(expenses: Expense[]): PaymentBreakdown[] {
-  const total = sumAmounts(expenses)
-  const totals = spendingByPaymentMethod(expenses)
+export function paymentBreakdown(expenses: Expense[], convertFn?: ExpenseConverter): PaymentBreakdown[] {
+  const total = sumAmounts(expenses, convertFn)
+  const totals = spendingByPaymentMethod(expenses, convertFn)
 
   return PAYMENT_METHODS.map((paymentMethod) => {
     const methodExpenses = expenses.filter(
@@ -152,8 +155,9 @@ export function paymentBreakdown(expenses: Expense[]): PaymentBreakdown[] {
 export function weeklySpending(
   expenses: Expense[],
   referenceDate = todayISODate(),
+  convertFn?: ExpenseConverter,
 ): SpendingPoint[] {
-  const days = aggregateDays(expenses)
+  const days = aggregateDays(expenses, convertFn)
   return Array.from({ length: 7 }, (_, index) => {
     const key = shiftISODate(referenceDate, index - 6)
     const day = days.get(key)
@@ -168,10 +172,11 @@ export function weeklySpending(
 export function dailySpending(
   expenses: Expense[],
   referenceDate = todayISODate(),
+  convertFn?: ExpenseConverter,
 ): SpendingPoint[] {
   const currentMonth = monthKey(referenceDate)
   const lastDay = Number(referenceDate.slice(8, 10))
-  const days = aggregateDays(expenses)
+  const days = aggregateDays(expenses, convertFn)
 
   return Array.from({ length: lastDay }, (_, index) => {
     const key = `${currentMonth}-${String(index + 1).padStart(2, '0')}`
@@ -187,14 +192,17 @@ export function dailySpending(
 export function categoryMovements(
   expenses: Expense[],
   referenceDate = todayISODate(),
+  convertFn?: ExpenseConverter,
 ): { increase: CategoryMovement | null; decrease: CategoryMovement | null } {
   const currentMonth = monthKey(referenceDate)
   const lastMonth = previousMonthKey(currentMonth)
   const currentTotals = spendingByCategory(
     expenses.filter((expense) => monthKey(expense.date) === currentMonth),
+    convertFn,
   )
   const previousTotals = spendingByCategory(
     expenses.filter((expense) => monthKey(expense.date) === lastMonth),
+    convertFn,
   )
 
   const movements = EXPENSE_CATEGORIES.map((category) => {
@@ -220,15 +228,16 @@ export function categoryMovements(
 export function buildInsightsAnalytics(
   expenses: Expense[],
   referenceDate = todayISODate(),
+  convertFn?: ExpenseConverter,
 ): InsightsAnalytics {
   const currentMonth = monthKey(referenceDate)
   const lastMonth = previousMonthKey(currentMonth)
   const currentMonthExpenses = expenses.filter(
     (expense) => monthKey(expense.date) === currentMonth,
   )
-  const days = [...aggregateDays(expenses).values()]
-  const breakdown = categoryBreakdown(expenses)
-  const movements = categoryMovements(expenses, referenceDate)
+  const days = [...aggregateDays(expenses, convertFn).values()]
+  const breakdown = categoryBreakdown(expenses, convertFn)
+  const movements = categoryMovements(expenses, referenceDate, convertFn)
   const trendTransactions = new Map<string, number>()
 
   for (const expense of expenses) {
@@ -236,31 +245,31 @@ export function buildInsightsAnalytics(
     trendTransactions.set(key, (trendTransactions.get(key) ?? 0) + 1)
   }
 
-  const trend = monthlyTrend(expenses).map((point) => ({
+  const trend = monthlyTrend(expenses, convertFn).map((point) => ({
     key: point.month,
     amount: point.amount,
     transactions: trendTransactions.get(point.month) ?? 0,
   }))
 
-  const thisMonth = monthlySpending(expenses, currentMonth)
-  const lastMonthTotal = monthlySpending(expenses, lastMonth)
+  const thisMonth = monthlySpending(expenses, currentMonth, convertFn)
+  const lastMonthTotal = monthlySpending(expenses, lastMonth, convertFn)
 
   return {
-    total: sumAmounts(expenses),
+    total: sumAmounts(expenses, convertFn),
     thisMonth,
     lastMonth: lastMonthTotal,
-    averageDaily: averageDailyExpense(expenses),
-    averageMonthly: averageMonthlyExpense(expenses),
-    highestCategory: highestSpendingCategory(expenses),
+    averageDaily: averageDailyExpense(expenses, convertFn),
+    averageMonthly: averageMonthlyExpense(expenses, convertFn),
+    highestCategory: highestSpendingCategory(expenses, convertFn),
     lowestCategory: breakdown.at(-1) ?? null,
     totalTransactions: expenses.length,
     currentMonthTransactions: currentMonthExpenses.length,
     monthChangePercentage: percentageChange(thisMonth, lastMonthTotal),
     monthlyTrend: trend,
     categoryBreakdown: breakdown,
-    weeklySpending: weeklySpending(expenses, referenceDate),
-    dailySpending: dailySpending(expenses, referenceDate),
-    paymentDistribution: paymentBreakdown(expenses),
+    weeklySpending: weeklySpending(expenses, referenceDate, convertFn),
+    dailySpending: dailySpending(expenses, referenceDate, convertFn),
+    paymentDistribution: paymentBreakdown(expenses, convertFn),
     biggestCategoryIncrease: movements.increase,
     biggestCategoryDecrease: movements.decrease,
     mostActiveDay:
@@ -273,8 +282,11 @@ export function buildInsightsAnalytics(
       )[0] ?? null,
     largestExpense:
       [...expenses].sort(
-        (a, b) => b.amount - a.amount || b.date.localeCompare(a.date),
+        (a, b) =>
+          getExpenseAmount(b, convertFn) - getExpenseAmount(a, convertFn) ||
+          b.date.localeCompare(a.date),
       )[0] ?? null,
-    averageTransactionValue: expenses.length > 0 ? sumAmounts(expenses) / expenses.length : 0,
+    averageTransactionValue:
+      expenses.length > 0 ? sumAmounts(expenses, convertFn) / expenses.length : 0,
   }
 }

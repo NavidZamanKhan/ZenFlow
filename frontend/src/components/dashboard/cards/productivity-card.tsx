@@ -187,13 +187,17 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
                 }}
               />
               <motion.circle
-                animate={{ cx: endX, cy: endY }}
+                cx={endX ?? 300}
+                cy={endY ?? 110}
+                animate={{ cx: endX ?? 300, cy: endY ?? 110 }}
                 transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
                 r="4"
                 fill="var(--zf-accent)"
               />
               <motion.circle
-                animate={{ cx: endX, cy: endY }}
+                cx={endX ?? 300}
+                cy={endY ?? 110}
+                animate={{ cx: endX ?? 300, cy: endY ?? 110 }}
                 transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
                 r="7"
                 fill="var(--zf-accent)"
@@ -201,13 +205,13 @@ export function ProductivityCard({ tasks, loading }: ProductivityCardProps) {
               />
               {!reducedMotion && (
                 <motion.circle
-                  cx={endX}
-                  cy={endY}
+                  cx={endX ?? 300}
+                  cy={endY ?? 110}
                   fill="var(--zf-accent)"
                   initial={{ r: 4, opacity: 0.35 }}
                   animate={{
-                    cx: endX,
-                    cy: endY,
+                    cx: endX ?? 300,
+                    cy: endY ?? 110,
                     r: [4, 11],
                     opacity: [0.35, 0],
                   }}

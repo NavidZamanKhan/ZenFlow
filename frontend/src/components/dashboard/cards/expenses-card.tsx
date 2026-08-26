@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { CreditCard } from 'lucide-react'
 import { todayISODate } from '@/lib/dates'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
-import { spendingByCategory } from '@/lib/expense-stats'
+import { spendingByCategory, sumAmounts } from '@/lib/expense-stats'
 import { useCurrency } from '@/lib/currency-context'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Budget } from '@/types/budget'
@@ -47,12 +47,15 @@ export function ExpensesCard({
     return convert(budget.monthlyTotal, budgetCurrency)
   }, [budget.monthlyTotal, budgetCurrency, currency, convert])
 
-  const spent = monthExpenses.reduce((sum, expense) => sum + expense.amount, 0)
+  const spent = useMemo(
+    () => sumAmounts(monthExpenses, convert),
+    [monthExpenses, convert],
+  )
   const remaining = monthlyTotalInDisplayCurrency - spent
   const showBudget = hasBudget && monthlyTotalInDisplayCurrency > 0
 
   const segments = useMemo(() => {
-    const totals = spendingByCategory(monthExpenses)
+    const totals = spendingByCategory(monthExpenses, convert)
     const entries = Object.entries(totals)
       .filter(([, amount]) => amount > 0)
       .sort((a, b) => b[1] - a[1])

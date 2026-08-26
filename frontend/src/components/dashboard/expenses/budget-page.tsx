@@ -7,7 +7,7 @@ import { useBudget } from '@/hooks/use-budget'
 import { useExpenses } from '@/hooks/use-expenses'
 import { todayISODate } from '@/lib/dates'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
-import { spendingByCategory } from '@/lib/expense-stats'
+import { spendingByCategory, sumAmounts } from '@/lib/expense-stats'
 import { useCurrency } from '@/lib/currency-context'
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from '@/types/expense'
 import { Progress } from '@/components/ui/progress'
@@ -47,7 +47,7 @@ function formatAmountInput(amount: number): string {
 }
 
 export function BudgetPage() {
-  const { format, currency, meta } = useCurrency()
+  const { format, currency, convert, meta } = useCurrency()
   const {
     budget,
     displayMonthlyTotal,
@@ -73,12 +73,12 @@ export function BudgetPage() {
     [expenses, month],
   )
   const categorySpending = useMemo(
-    () => spendingByCategory(currentMonthExpenses),
-    [currentMonthExpenses],
+    () => spendingByCategory(currentMonthExpenses, convert),
+    [currentMonthExpenses, convert],
   )
-  const totalSpent = currentMonthExpenses.reduce(
-    (total, expense) => total + expense.amount,
-    0,
+  const totalSpent = useMemo(
+    () => sumAmounts(currentMonthExpenses, convert),
+    [currentMonthExpenses, convert],
   )
 
   useEffect(() => {

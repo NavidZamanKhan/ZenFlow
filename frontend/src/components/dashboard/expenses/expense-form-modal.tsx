@@ -92,7 +92,7 @@ function ExpenseForm({
   onClose,
   onSubmit,
 }: Pick<ExpenseFormModalProps, 'expense' | 'onClose' | 'onSubmit'>) {
-  const { meta } = useCurrency()
+  const { currency: activeCurrency, meta } = useCurrency()
   const {
     register,
     handleSubmit,
@@ -128,6 +128,7 @@ function ExpenseForm({
     const ok = await onSubmit({
       title: values.title.trim(),
       amount: Number(values.amount),
+      currency: expense?.currency ?? activeCurrency,
       category: values.category,
       date: values.date,
       paymentMethod: values.paymentMethod,

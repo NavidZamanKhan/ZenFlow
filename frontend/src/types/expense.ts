@@ -27,10 +27,13 @@ export const RECURRING_INTERVALS = ['weekly', 'monthly', 'yearly'] as const
 
 export type RecurringInterval = (typeof RECURRING_INTERVALS)[number]
 
+import type { CurrencyCode } from '@/lib/currency'
+
 export interface Expense {
   id: string
   title: string
   amount: number
+  currency: CurrencyCode
   category: ExpenseCategory
   /** ISO date string (yyyy-mm-dd) */
   date: string

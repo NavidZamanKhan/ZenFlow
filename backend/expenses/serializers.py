@@ -46,6 +46,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'amount',
+            'currency',
             'category',
             'date',
             'paymentMethod',

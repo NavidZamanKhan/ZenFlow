@@ -66,7 +66,7 @@ export function ExpenseRow({
       </div>
 
       <p className="text-sm font-bold text-slate-800 dark:text-slate-100 tabular-nums flex-shrink-0">
-        {format(expense.amount)}
+        {format(expense.amount, expense.currency || 'BDT')}
       </p>
 
       <div className="zf-row-actions flex items-center gap-0.5 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">

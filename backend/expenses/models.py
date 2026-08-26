@@ -42,6 +42,7 @@ class Expense(models.Model):
     )
     title = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=10, default='BDT')
     category = models.CharField(max_length=50, choices=Category.choices)
     date = models.DateField()
     payment_method = models.CharField(

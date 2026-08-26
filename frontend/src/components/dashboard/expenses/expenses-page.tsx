@@ -46,7 +46,7 @@ function monthBounds(monthValue: string): { start: string; end: string } | null 
 }
 
 export function ExpensesPage() {
-  const { format, currency, rateAgainstUSD, meta } = useCurrency()
+  const { format, currency, rateAgainstUSD, meta, convert } = useCurrency()
   const {
     expenses,
     loading,
@@ -93,8 +93,9 @@ export function ExpensesPage() {
       }
       if (dateFrom && expense.date < dateFrom) return false
       if (dateTo && expense.date > dateTo) return false
-      if (min !== null && Number.isFinite(min) && expense.amount < min) return false
-      if (max !== null && Number.isFinite(max) && expense.amount > max) return false
+      const displayAmount = convert(expense.amount, expense.currency || 'BDT')
+      if (min !== null && Number.isFinite(min) && displayAmount < min) return false
+      if (max !== null && Number.isFinite(max) && displayAmount > max) return false
       if (
         query &&
         !expense.title.toLowerCase().includes(query) &&
@@ -115,24 +116,37 @@ export function ExpensesPage() {
     dateTo,
     minAmount,
     maxAmount,
+    convert,
   ])
 
   const visibleExpenses = useMemo(() => {
     return [...filteredExpenses].sort((a, b) => {
       if (sortKey === 'oldest') return a.date.localeCompare(b.date)
-      if (sortKey === 'highest') return b.amount - a.amount
-      if (sortKey === 'lowest') return a.amount - b.amount
+      if (sortKey === 'highest') {
+        return (
+          convert(b.amount, b.currency || 'BDT') -
+          convert(a.amount, a.currency || 'BDT')
+        )
+      }
+      if (sortKey === 'lowest') {
+        return (
+          convert(a.amount, a.currency || 'BDT') -
+          convert(b.amount, b.currency || 'BDT')
+        )
+      }
       return b.date.localeCompare(a.date)
     })
-  }, [filteredExpenses, sortKey])
+  }, [filteredExpenses, sortKey, convert])
+
+  const currentMonthValue = todayISODate().slice(0, 7)
 
   const summary = useMemo(() => {
     return {
-      total: totalExpenses(expenses),
-      today: todaysSpending(expenses),
-      month: monthlySpending(expenses),
+      total: totalExpenses(expenses, convert),
+      today: todaysSpending(expenses, convert),
+      month: monthlySpending(expenses, currentMonthValue, convert),
     }
-  }, [expenses])
+  }, [expenses, convert, currentMonthValue])
 
   const showMonthlyBudget = hasBudget && displayMonthlyTotal > 0
   const remainingBudget = displayMonthlyTotal - summary.month
@@ -163,8 +177,6 @@ export function ExpensesPage() {
       </div>
     )
   }
-
-  const currentMonthValue = todayISODate().slice(0, 7)
 
   return (
     <div className="px-4 sm:px-8 py-8 max-w-5xl">
