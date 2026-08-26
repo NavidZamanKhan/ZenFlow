@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Link from 'next/link'
 import {
   CalendarDays,
   Globe,
@@ -10,6 +11,7 @@ import {
   Search,
   Wallet,
 } from 'lucide-react'
+import { useBudget } from '@/hooks/use-budget'
 import { useExpenses } from '@/hooks/use-expenses'
 import { useHighlightParam } from '@/hooks/use-highlight-param'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
@@ -19,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { monthlySpending, todaysSpending, totalExpenses } from '@/lib/expense-stats'
 import { useCurrency } from '@/lib/currency-context'
 import { todayISODate } from '@/lib/dates'
+import { cn } from '@/lib/utils'
 import {
   EXPENSE_CATEGORIES,
   PAYMENT_METHODS,
@@ -53,6 +56,11 @@ export function ExpensesPage() {
     updateExpense,
     deleteExpense,
   } = useExpenses()
+  const {
+    budget,
+    hasBudget,
+    loading: budgetLoading,
+  } = useBudget()
   const highlightId = useHighlightParam()
 
   const [search, setSearch] = useState('')
@@ -125,6 +133,9 @@ export function ExpensesPage() {
     }
   }, [expenses])
 
+  const showMonthlyBudget = hasBudget && budget.monthlyTotal > 0
+  const remainingBudget = budget.monthlyTotal - summary.month
+
   const openCreate = () => {
     setEditing(null)
     setFormOpen(true)
@@ -194,16 +205,14 @@ export function ExpensesPage() {
           label="This month"
           value={format(summary.month)}
         />
-        <div className="bg-white dark:bg-[var(--zf-surface)] rounded-3xl p-5 border border-slate-100/80 dark:border-[var(--zf-border)] shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <PiggyBank size={18} className="text-[var(--zf-accent)]" />
-            <h2 className="text-sm font-bold text-slate-800 dark:text-[var(--zf-text)]">Remaining budget</h2>
-          </div>
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Set a budget</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Budgets are coming soon. This card is ready for when you define monthly limits.
-          </p>
-        </div>
+        <RemainingBudgetCard
+          loading={budgetLoading}
+          showBudget={showMonthlyBudget}
+          remaining={remainingBudget}
+          monthlyTotal={budget.monthlyTotal}
+          spent={summary.month}
+          format={format}
+        />
       </div>
 
       {/* Toolbar */}
@@ -415,6 +424,76 @@ function SummaryCard({
       <p className="text-2xl font-extrabold text-slate-800 dark:text-[var(--zf-text)] tracking-tight tabular-nums">
         {value}
       </p>
+    </div>
+  )
+}
+
+function RemainingBudgetCard({
+  loading,
+  showBudget,
+  remaining,
+  monthlyTotal,
+  spent,
+  format,
+}: {
+  loading: boolean
+  showBudget: boolean
+  remaining: number
+  monthlyTotal: number
+  spent: number
+  format: (amount: number) => string
+}) {
+  return (
+    <div className="bg-white dark:bg-[var(--zf-surface)] rounded-3xl p-5 border border-slate-100/80 dark:border-[var(--zf-border)] shadow-sm">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <PiggyBank size={18} className="text-[var(--zf-accent)]" aria-hidden="true" />
+          <h2 className="text-sm font-bold text-slate-800 dark:text-[var(--zf-text)]">
+            Remaining budget
+          </h2>
+        </div>
+        {!loading ? (
+          <Link
+            href="/dashboard/expenses/budget"
+            className="text-[11px] font-semibold text-[var(--zf-accent)] hover:underline"
+          >
+            {showBudget ? 'Edit' : 'Set budget'}
+          </Link>
+        ) : null}
+      </div>
+
+      {loading ? (
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-28 rounded-lg" />
+          <Skeleton className="h-3 w-36 rounded-md" />
+        </div>
+      ) : showBudget ? (
+        <>
+          <p
+            className={cn(
+              'text-2xl font-extrabold tracking-tight tabular-nums',
+              remaining < 0
+                ? 'text-rose-600 dark:text-rose-400'
+                : 'text-slate-800 dark:text-[var(--zf-text)]',
+            )}
+          >
+            {format(remaining)}
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {format(spent)} of {format(monthlyTotal)} spent this month
+            {remaining < 0 ? ' · Over budget' : ''}
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="mb-1 text-sm font-semibold text-slate-700 dark:text-slate-200">
+            Set a monthly budget
+          </p>
+          <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+            Define a monthly limit on the Budget page to track what you have left to spend.
+          </p>
+        </>
+      )}
     </div>
   )
 }
