@@ -66,14 +66,14 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
         <button
           type="button"
           onClick={() => setFormOpen(true)}
-          className="inline-flex items-center gap-1 rounded-xl bg-[var(--zf-accent-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--zf-accent)] transition-colors hover:bg-[color-mix(in_srgb,var(--zf-accent)_18%,white)] dark:hover:bg-[color-mix(in_srgb,var(--zf-accent)_28%,var(--zf-surface))]"
+          className="inline-flex items-center gap-1 rounded-xl bg-[var(--zf-accent-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--zf-accent-fg)] transition-colors hover:bg-[color-mix(in_srgb,var(--zf-accent)_18%,white)] dark:hover:bg-[color-mix(in_srgb,var(--zf-accent)_28%,var(--zf-surface))]"
         >
           <Plus size={13} aria-hidden="true" />
           Add task
         </button>
         <Link
           href="/dashboard/tasks"
-          className="rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-soft-fill)] dark:hover:text-[var(--zf-text)]"
+          className="rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-hover-fill)] dark:hover:text-[var(--zf-text)]"
         >
           View all
         </Link>
@@ -106,7 +106,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                 type="button"
                 disabled={pendingId === task.id}
                 onClick={() => handleToggle(task)}
-                className="group flex w-full items-start justify-between gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-slate-50/50 disabled:pointer-events-none disabled:opacity-60 dark:hover:bg-[var(--zf-soft-fill)]/60"
+                className="group flex w-full items-start justify-between gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-slate-50/50 disabled:pointer-events-none disabled:opacity-60 dark:hover:bg-[var(--zf-hover-fill)]"
               >
                 <div className="flex min-w-0 items-start gap-3">
                   <div className="mt-0.5 flex-shrink-0">

@@ -6,7 +6,7 @@ import type { Task, TaskPriority } from '@/types/task'
 
 const priorityPill: Record<TaskPriority, string> = {
   low: 'bg-[#F1F3F5] text-slate-500 dark:bg-slate-800 dark:text-slate-300',
-  medium: 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent)]',
+  medium: 'bg-[var(--zf-accent-soft)] text-[var(--zf-accent-fg)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent-fg)]',
   high: 'bg-rose-50 text-rose-500 dark:bg-rose-950/60 dark:text-rose-300',
 }
 

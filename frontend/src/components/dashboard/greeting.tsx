@@ -26,7 +26,7 @@ export function Greeting({ remainingTasks = 0, loading = false }: GreetingProps)
       </div>
 
       <div className="rounded-full bg-[var(--zf-accent-soft)] px-3.5 py-1">
-        <span className="text-xs font-semibold tabular-nums text-[var(--zf-accent)]">
+        <span className="text-xs font-semibold tabular-nums text-[var(--zf-accent-fg)]">
           {badgeLabel}
         </span>
       </div>

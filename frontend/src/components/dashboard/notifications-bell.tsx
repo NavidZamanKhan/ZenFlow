@@ -49,8 +49,8 @@ function NotificationRow({
         className={cn(
           'flex w-full items-start gap-3 rounded-xl px-2 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]',
           notification.read
-            ? 'hover:bg-slate-50/80 opacity-75 dark:hover:bg-[var(--zf-soft-fill)]/80'
-            : 'bg-[var(--zf-accent-light-bg)] hover:bg-[var(--zf-accent-soft)]/70 dark:bg-[var(--zf-soft-fill)] dark:hover:bg-[var(--zf-elevated)]',
+            ? 'hover:bg-slate-50/80 opacity-75 dark:hover:bg-[var(--zf-hover-fill)]'
+            : 'bg-[var(--zf-accent-light-bg)] hover:bg-[var(--zf-accent-soft)]/70 dark:bg-[var(--zf-soft-fill)] dark:hover:bg-[var(--zf-hover-fill)]',
         )}
       >
         <span
@@ -116,7 +116,7 @@ export function NotificationsBell() {
             ? `Notifications, ${unreadCount} unread`
             : 'Notifications'
         }
-        className="zf-tap relative flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-soft-fill)] dark:hover:text-[var(--zf-text)]"
+        className="zf-tap relative flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-hover-fill)] dark:hover:text-[var(--zf-text)]"
       >
         <Bell size={18} aria-hidden="true" />
         {unreadCount > 0 ? (

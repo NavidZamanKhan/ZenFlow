@@ -26,7 +26,7 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
           onClick={onMenuClick}
           aria-label="Open navigation menu"
           aria-expanded={menuOpen}
-          className="zf-tap relative -ml-1 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-soft-fill)] dark:hover:text-[var(--zf-text)] sm:-ml-2"
+          className="zf-tap relative -ml-1 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-hover-fill)] dark:hover:text-[var(--zf-text)] sm:-ml-2"
         >
           <Menu size={20} aria-hidden="true" />
         </button>
@@ -51,7 +51,7 @@ export function MobileHeader({ onMenuClick, menuOpen = false }: MobileHeaderProp
           onClick={() => setSearchOpen((open) => !open)}
           aria-label={searchOpen ? 'Close search' : 'Open search'}
           aria-expanded={searchOpen}
-          className="zf-tap relative -mr-1 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-soft-fill)] dark:hover:text-[var(--zf-text)] sm:-mr-2"
+          className="zf-tap relative -mr-1 rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:bg-[var(--zf-hover-fill)] dark:hover:text-[var(--zf-text)] sm:-mr-2"
         >
           {searchOpen ? (
             <X size={20} aria-hidden="true" />

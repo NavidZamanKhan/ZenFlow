@@ -46,7 +46,7 @@ export function UserMenu({ className }: UserMenuProps) {
       <DropdownMenuTrigger
         aria-label="User menu"
         className={cn(
-          'zf-tap flex h-9 w-9 items-center justify-center rounded-full bg-[var(--zf-accent-soft)] text-sm font-bold text-[var(--zf-accent)] transition-colors hover:bg-[var(--zf-accent-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent)] dark:hover:bg-[var(--zf-elevated)]',
+          'zf-tap flex h-9 w-9 items-center justify-center rounded-full bg-[var(--zf-accent-soft)] text-sm font-bold text-[var(--zf-accent-fg)] transition-colors hover:bg-[var(--zf-accent-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent-fg)] dark:hover:bg-[var(--zf-hover-fill)]',
           className,
         )}
       >
@@ -77,7 +77,7 @@ export function UserMenu({ className }: UserMenuProps) {
 
         <DropdownMenuGroup>
           <DropdownMenuItem
-            className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-slate-700 focus:bg-slate-50 focus:text-slate-800 dark:text-[var(--zf-text)] dark:focus:bg-[var(--zf-soft-fill)] dark:focus:text-[var(--zf-text)]"
+            className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-slate-700 focus:bg-slate-50 focus:text-slate-800 dark:text-[var(--zf-text)] dark:focus:bg-[var(--zf-hover-fill)] dark:focus:text-[var(--zf-text)]"
             onClick={() => go('/dashboard/profile')}
           >
             <UserRound
@@ -89,7 +89,7 @@ export function UserMenu({ className }: UserMenuProps) {
           </DropdownMenuItem>
 
           <DropdownMenuItem
-            className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-slate-700 focus:bg-slate-50 focus:text-slate-800 dark:text-[var(--zf-text)] dark:focus:bg-[var(--zf-soft-fill)] dark:focus:text-[var(--zf-text)]"
+            className="cursor-pointer gap-2.5 rounded-xl px-2.5 py-2 text-slate-700 focus:bg-slate-50 focus:text-slate-800 dark:text-[var(--zf-text)] dark:focus:bg-[var(--zf-hover-fill)] dark:focus:text-[var(--zf-text)]"
             onClick={() => go('/dashboard/settings')}
           >
             <Settings

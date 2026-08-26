@@ -106,7 +106,7 @@ export function TasksPage() {
         </div>
         <div className="flex items-center gap-3">
           <div className="rounded-full bg-[var(--zf-accent-soft)] px-3.5 py-1">
-            <span className="text-xs font-semibold text-[var(--zf-accent)]">
+            <span className="text-xs font-semibold text-[var(--zf-accent-fg)]">
               {remaining} {remaining === 1 ? 'task' : 'tasks'} left
             </span>
           </div>
