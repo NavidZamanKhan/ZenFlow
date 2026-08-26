@@ -24,7 +24,9 @@ import type { Task, TaskInput } from '@/types/task'
 import type { Expense, ExpenseInput } from '@/types/expense'
 import type { Budget, BudgetValues, ThresholdAlert } from '@/types/budget'
 
-const API_BASE = 'http://localhost:8000'
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+).replace(/\/$/, '')
 
 // -- Token persistence (localStorage) ---------------------------------------
 
