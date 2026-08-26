@@ -442,7 +442,13 @@ class AuthService:
             },
         )
 
-        self.email_service.send_password_reset_email(user.email, user.full_name, otp)
+        try:
+            self.email_service.send_password_reset_email(user.email, user.full_name, otp)
+        except Exception as e:
+            logger.error("Failed to send password reset email to %s: %s", user.email, e)
+            AccountOTP.objects.filter(user=user, purpose=AccountOTP.PURPOSE_PASSWORD_RESET).delete()
+            raise ValidationError("Could not send email. Please verify email/SMTP settings and try again.")
+
         logger.info("Password reset OTP sent to %s", user.email)
         return {"message": "Verification code sent to your email."}
 
@@ -511,7 +517,13 @@ class AuthService:
             },
         )
 
-        self.email_service.send_account_deletion_email(user.email, user.full_name, otp)
+        try:
+            self.email_service.send_account_deletion_email(user.email, user.full_name, otp)
+        except Exception as e:
+            logger.error("Failed to send account deletion email to %s: %s", user.email, e)
+            AccountOTP.objects.filter(user=user, purpose=AccountOTP.PURPOSE_DELETE_ACCOUNT).delete()
+            raise ValidationError("Could not send email. Please verify email/SMTP settings and try again.")
+
         logger.info("Account deletion OTP sent to %s", user.email)
         return {"message": "Account deletion verification code sent to your email."}
 
