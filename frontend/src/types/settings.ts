@@ -27,7 +27,6 @@ export interface ProfileSettings {
   phone: string
   country: string
   timeZone: string
-  language: string
 }
 
 export interface AppearanceSettings {
@@ -65,7 +64,6 @@ export function createDefaultSettings(
       phone: '',
       country: '',
       timeZone,
-      language: 'English',
     },
     appearance: {
       theme: 'light',

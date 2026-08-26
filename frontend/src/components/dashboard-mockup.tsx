@@ -30,10 +30,10 @@ const reminders = [
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Overview', active: true },
-  { icon: ListTodo, label: 'Tasks' },
-  { icon: CalendarDays, label: 'Calendar' },
-  { icon: Wallet, label: 'Expenses' },
-  { icon: BarChart3, label: 'Insights' },
+  { icon: ListTodo, label: 'Tasks', active: false },
+  { icon: CalendarDays, label: 'Calendar', active: false },
+  { icon: Wallet, label: 'Expenses', active: false },
+  { icon: BarChart3, label: 'Insights', active: false },
 ] as const
 
 export function DashboardMockup({ className }: { className?: string }) {

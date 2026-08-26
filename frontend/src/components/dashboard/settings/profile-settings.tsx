@@ -43,7 +43,6 @@ const profileSchema = z.object({
     ),
   country: z.string(),
   timeZone: z.string().min(1, 'Choose a time zone.'),
-  language: z.string().min(1, 'Choose a language.'),
 })
 
 type ProfileFormValues = z.infer<typeof profileSchema>
@@ -68,15 +67,6 @@ const TIME_ZONE_OPTIONS = [
   { value: 'Europe/Berlin', label: 'Berlin' },
   { value: 'America/New_York', label: 'New York' },
   { value: 'America/Los_Angeles', label: 'Los Angeles' },
-] as const
-
-const LANGUAGE_OPTIONS = [
-  { value: 'English', label: 'English' },
-  { value: 'Bengali', label: 'Bengali' },
-  { value: 'German', label: 'German' },
-  { value: 'Hindi', label: 'Hindi' },
-  { value: 'Japanese', label: 'Japanese' },
-  { value: 'Spanish', label: 'Spanish' },
 ] as const
 
 export function ProfileSettingsSection({
@@ -262,21 +252,6 @@ export function ProfileSettingsSection({
                   options={TIME_ZONE_OPTIONS}
                   disabled={!editing}
                   ariaLabel="Time zone"
-                />
-              )}
-            />
-          </SettingsField>
-          <SettingsField label="Preferred language">
-            <Controller
-              control={control}
-              name="language"
-              render={({ field }) => (
-                <SettingsSelect
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  options={LANGUAGE_OPTIONS}
-                  disabled={!editing}
-                  ariaLabel="Preferred language"
                 />
               )}
             />
