@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
+import { smartConvertCurrency } from '@/lib/currency'
 import { useCurrency } from '@/lib/currency-context'
 import {
   apiGetBudget,
@@ -128,29 +129,32 @@ export function ExpensePreferenceSettingsSection({
       const factor = newRate / oldRate
 
       try {
-        // 1. Convert existing expenses in database
+        // 1. Convert existing expenses in database with smart precision snapping
         const allExpenses = await apiGetExpenses()
         if (allExpenses && allExpenses.length > 0) {
           await Promise.all(
             allExpenses.map((exp) =>
               apiUpdateExpense(exp.id, {
-                amount: Math.round(exp.amount * factor * 100) / 100,
+                amount: smartConvertCurrency(exp.amount, factor, newCurrency),
               }),
             ),
           )
         }
 
-        // 2. Convert existing budget in database
+        // 2. Convert existing budget in database with smart precision snapping
         const currentBudget = await apiGetBudget()
         if (currentBudget && currentBudget.monthlyTotal > 0) {
           const newCategoryBudgets: Partial<Record<ExpenseCategory, number>> = {}
           for (const [cat, amt] of Object.entries(currentBudget.categoryBudgets)) {
             newCategoryBudgets[cat as ExpenseCategory] =
-              Math.round((amt as number) * factor * 100) / 100
+              smartConvertCurrency(amt as number, factor, newCurrency)
           }
           await apiUpdateBudget({
-            monthlyTotal:
-              Math.round(currentBudget.monthlyTotal * factor * 100) / 100,
+            monthlyTotal: smartConvertCurrency(
+              currentBudget.monthlyTotal,
+              factor,
+              newCurrency,
+            ),
             categoryBudgets: newCategoryBudgets as Record<ExpenseCategory, number>,
           })
         }

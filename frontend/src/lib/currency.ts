@@ -241,3 +241,35 @@ export function formatMoney(
 
   return `${prefix}${meta.symbol}${formattedNumber}`
 }
+
+/**
+ * Smart currency conversion that eliminates two-way floating point rounding drift
+ * (e.g. 25,000 -> $205.76 -> 24,999.74 snaps cleanly back to 25,000).
+ */
+export function smartConvertCurrency(
+  amount: number,
+  factor: number,
+  targetCurrency?: CurrencyCode,
+): number {
+  if (!amount || typeof amount !== 'number' || !Number.isFinite(amount)) return 0
+  const rawConverted = amount * factor
+  const rounded2Dec = Math.round(rawConverted * 100) / 100
+
+  // 1. Direct whole integer snapping (if within 0.35 of a round integer)
+  const nearestInt = Math.round(rounded2Dec)
+  if (Math.abs(rounded2Dec - nearestInt) < 0.35) {
+    return nearestInt
+  }
+
+  // 2. Step snapping for currencies with larger denominations (BDT, JPY, INR)
+  if (factor > 5 || targetCurrency === 'BDT' || targetCurrency === 'JPY' || targetCurrency === 'INR') {
+    for (const step of [10000, 5000, 1000, 500, 100, 50, 10, 5]) {
+      const nearestStep = Math.round(rounded2Dec / step) * step
+      if (Math.abs(rounded2Dec - nearestStep) < Math.min(step * 0.005, 1.8)) {
+        return nearestStep
+      }
+    }
+  }
+
+  return rounded2Dec
+}
