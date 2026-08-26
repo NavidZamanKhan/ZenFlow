@@ -3,6 +3,7 @@ import { Hero } from '@/components/hero'
 import { Features } from '@/components/features'
 import { WhyZenFlow } from '@/components/why-zenflow'
 import { DashboardPreview } from '@/components/dashboard-preview'
+import { Contact } from '@/components/contact'
 import { CallToAction } from '@/components/cta'
 import { SiteFooter } from '@/components/site-footer'
 
@@ -18,6 +19,7 @@ export default function Page() {
         <Features />
         <WhyZenFlow />
         <DashboardPreview />
+        <Contact />
         <CallToAction />
       </main>
       <SiteFooter />

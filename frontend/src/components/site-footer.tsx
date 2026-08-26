@@ -11,15 +11,30 @@ function GithubIcon({ className }: { className?: string }) {
 const columns = [
   {
     heading: 'Product',
-    links: ['Features', 'Dashboard', 'Pricing', 'Changelog'],
+    links: [
+      { label: 'Features', href: '#features' },
+      { label: 'Dashboard', href: '#' },
+      { label: 'Pricing', href: '#' },
+      { label: 'Changelog', href: '#' },
+    ],
   },
   {
     heading: 'Company',
-    links: ['About', 'Careers', 'Blog', 'Contact'],
+    links: [
+      { label: 'About', href: '#about' },
+      { label: 'Careers', href: '#' },
+      { label: 'Blog', href: '#' },
+      { label: 'Contact', href: '#contact' },
+    ],
   },
   {
     heading: 'Resources',
-    links: ['Help center', 'Guides', 'Privacy', 'Terms'],
+    links: [
+      { label: 'Help center', href: '#' },
+      { label: 'Guides', href: '#' },
+      { label: 'Privacy', href: '#' },
+      { label: 'Terms', href: '#' },
+    ],
   },
 ]
 
@@ -51,12 +66,12 @@ export function SiteFooter() {
                 <h3 className="text-sm font-semibold">{column.heading}</h3>
                 <ul className="mt-4 space-y-3">
                   {column.links.map((link) => (
-                    <li key={link}>
+                    <li key={link.label}>
                       <a
-                        href="#"
+                        href={link.href}
                         className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                       >
-                        {link}
+                        {link.label}
                       </a>
                     </li>
                   ))}

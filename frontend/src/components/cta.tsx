@@ -5,7 +5,7 @@ import { Reveal } from '@/components/reveal'
 
 export function CallToAction() {
   return (
-    <section id="contact" className="px-4 py-20 lg:py-28">
+    <section id="get-started" className="px-4 py-20 lg:py-28">
       <Reveal className="mx-auto max-w-4xl">
         <div className="glass-strong relative overflow-hidden rounded-[2.5rem] border border-border/60 px-6 py-16 text-center shadow-[0_30px_80px_-40px_rgba(56,89,140,0.45)] sm:px-16">
           <div
