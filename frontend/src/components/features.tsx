@@ -6,25 +6,25 @@ const features = [
     icon: ListTodo,
     title: 'Task Management',
     description:
-      'Capture, group, and prioritize your work with a gentle drag-and-drop board that keeps everything in view.',
+      'Create tasks with priorities and categories, then filter and sort so what matters stays on top.',
   },
   {
     icon: CalendarDays,
     title: 'Calendar Planning',
     description:
-      'See your week at a glance. Schedule deep-focus blocks and let ZenFlow protect your time.',
+      'Plan events in day, week, or month views, and drag to reschedule when plans change.',
   },
   {
     icon: Bell,
     title: 'Smart Reminders',
     description:
-      'Timely, unobtrusive nudges that surface the right thing at the right moment, never noisy.',
+      'Upcoming tasks and events surface on your Overview so you catch what is due next.',
   },
   {
     icon: Wallet,
-    title: 'Expense Analytics',
+    title: 'Expense Tracking',
     description:
-      'Track spending and understand where your money goes with clean, readable insights.',
+      'Log spending, set a budget, and review Insights so you can see where money goes.',
   },
 ]
 

@@ -3,7 +3,7 @@ import { Reveal } from '@/components/reveal'
 
 export function DashboardPreview() {
   return (
-    <section className="px-4 py-20 lg:py-28">
+    <section id="dashboard" className="px-4 py-20 lg:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-medium text-primary">The dashboard</span>

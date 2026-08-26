@@ -2,24 +2,35 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ZenFlowLogo } from '@/components/zenflow-logo'
+import { SlideDrawer } from '@/components/ui/slide-drawer'
 import { cn } from '@/lib/utils'
 
 const links = [
-  { label: 'About', href: '#about' },
   { label: 'Features', href: '#features' },
+  { label: 'About', href: '#about' },
   { label: 'Contact', href: '#contact' },
 ]
 
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    const closeOnResize = () => {
+      if (window.matchMedia('(min-width: 768px)').matches) setMenuOpen(false)
+    }
+    window.addEventListener('resize', closeOnResize)
+    return () => window.removeEventListener('resize', closeOnResize)
   }, [])
 
   return (
@@ -63,8 +74,58 @@ export function SiteHeader() {
           >
             Sign Up
           </Button>
+          <button
+            type="button"
+            className="inline-flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] md:hidden"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="landing-mobile-nav"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
+          </button>
         </div>
       </div>
+
+      <SlideDrawer
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        side="right"
+        rootClassName="md:hidden"
+        label="Primary"
+        className="w-[min(100%,20rem)] border-l border-border/70 bg-background/95 px-5 py-6 backdrop-blur-xl"
+      >
+        <div id="landing-mobile-nav" className="flex h-full flex-col">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Menu</p>
+          <nav className="mt-4 flex flex-col gap-1" aria-label="Mobile primary">
+            {links.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className="rounded-xl px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]"
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+          <div className="mt-auto flex flex-col gap-2 border-t border-border/60 pt-5 sm:hidden">
+            <Button
+              variant="outline"
+              render={<Link href="/login" onClick={() => setMenuOpen(false)} />}
+              className="w-full rounded-full"
+            >
+              Login
+            </Button>
+            <Button
+              render={<Link href="/register" onClick={() => setMenuOpen(false)} />}
+              className="w-full rounded-full"
+            >
+              Sign Up
+            </Button>
+          </div>
+        </div>
+      </SlideDrawer>
     </header>
   )
 }
