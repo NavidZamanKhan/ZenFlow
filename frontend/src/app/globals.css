@@ -244,6 +244,34 @@
   min-height: 100dvh;
 }
 
+/* Dashboard shell: mobile = natural document scroll (min-h, flex-col).
+   Desktop (lg+) = viewport-trapped shell (fixed h, flex-row, overflow hidden). */
+.zf-dashboard-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  flex-direction: column;
+}
+@media (min-width: 1024px) {
+  .zf-dashboard-shell {
+    min-height: auto;
+    height: 100vh;
+    height: 100dvh;
+    flex-direction: row;
+    overflow: hidden;
+  }
+}
+/* On mobile (< lg), release the flex overflow trap so the document scrolls
+   naturally with touch. The golden desktop flex chain (min-h-0 + overflow-hidden)
+   is preserved untouched at lg+. */
+@media (max-width: 1023px) {
+  .zf-dashboard-shell > *:not([class*="hidden"]),
+  .zf-dashboard-shell #main-content,
+  .zf-dashboard-shell #main-content > * {
+    overflow: visible;
+    min-height: auto;
+  }
+}
+
 /* Hover-revealed row actions (edit/delete) stay visible on devices without
    hover (tablets/phones), where group-hover can never fire. */
 @media (hover: none) {
