@@ -7,6 +7,8 @@ export interface Task {
   description: string
   /** ISO date string (yyyy-mm-dd) or null when no due date is set */
   dueDate: string | null
+  /** Local time (HH:mm) or null when no due time is set */
+  dueTime: string | null
   priority: TaskPriority
   category: string
   completed: boolean

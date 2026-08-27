@@ -1,7 +1,7 @@
 'use client'
 
 import { CalendarDays, CheckCircle2, Pencil, Trash2 } from 'lucide-react'
-import { formatDate, isOverdue } from '@/lib/dates'
+import { formatTaskDue, isOverdue } from '@/lib/dates'
 import type { Task, TaskPriority } from '@/types/task'
 
 const priorityPill: Record<TaskPriority, string> = {
@@ -32,7 +32,8 @@ export function TaskRow({
   onDelete,
   highlighted = false,
 }: TaskRowProps) {
-  const overdue = !task.completed && task.dueDate !== null && isOverdue(task.dueDate)
+  const overdue =
+    !task.completed && task.dueDate !== null && isOverdue(task.dueDate, task.dueTime)
 
   return (
     <div
@@ -76,7 +77,7 @@ export function TaskRow({
               }`}
             >
               <CalendarDays size={12} aria-hidden="true" />
-              {formatDate(task.dueDate)}
+              {formatTaskDue(task.dueDate, task.dueTime)}
               {overdue ? '  · Overdue' : ''}
             </span>
           ) : null}

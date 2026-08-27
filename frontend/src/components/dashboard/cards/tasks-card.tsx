@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CalendarDays, CheckCircle2, ListTodo, Plus } from 'lucide-react'
-import { formatDate, isOverdue } from '@/lib/dates'
+import { compareDueDateTime, formatTaskDue, isOverdue } from '@/lib/dates'
 import { TaskFormModal } from '@/components/dashboard/tasks/task-form-modal'
 import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -37,7 +37,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
   const visibleTasks = [...tasks]
     .sort((a, b) => {
       if (a.completed !== b.completed) return a.completed ? 1 : -1
-      if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate)
+      if (a.dueDate && b.dueDate) return compareDueDateTime(a, b)
       if (a.dueDate) return -1
       if (b.dueDate) return 1
       return b.createdAt.localeCompare(a.createdAt)
@@ -99,7 +99,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
           <AnimatedList>
           {visibleTasks.map((task) => {
             const overdue =
-              !task.completed && task.dueDate !== null && isOverdue(task.dueDate)
+              !task.completed && task.dueDate !== null && isOverdue(task.dueDate, task.dueTime)
             return (
               <AnimatedItem key={task.id}>
               <button
@@ -163,7 +163,7 @@ export function TasksCard({ tasks, loading, onToggle, onCreate }: TasksCardProps
                           }`}
                         >
                           <CalendarDays size={11} aria-hidden="true" />
-                          {formatDate(task.dueDate)}
+                          {formatTaskDue(task.dueDate, task.dueTime)}
                         </span>
                       ) : null}
                     </div>

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { ListFilter, ListTodo, Plus, Search, X } from 'lucide-react'
 import { useTasks } from '@/hooks/use-tasks'
 import { useHighlightParam } from '@/hooks/use-highlight-param'
+import { compareDueDateTime } from '@/lib/dates'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
 import { AnimatedItem, AnimatedList } from '@/components/ui/animated-list'
@@ -116,10 +117,7 @@ export function TasksPage() {
 
     return [...filtered].sort((a, b) => {
       if (sortKey === 'dueDate') {
-        if (a.dueDate === null && b.dueDate === null) return 0
-        if (a.dueDate === null) return 1
-        if (b.dueDate === null) return -1
-        return a.dueDate.localeCompare(b.dueDate)
+        return compareDueDateTime(a, b)
       }
       if (sortKey === 'priority') {
         return priorityRank[a.priority] - priorityRank[b.priority]

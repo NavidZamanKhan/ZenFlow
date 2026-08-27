@@ -6,6 +6,21 @@ export function formatDate(iso: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+/** Format a local HH:mm (or HH:mm:ss) string as e.g. "2:30 PM". */
+export function formatTimeFromHHMM(hhmm: string): string {
+  const [hours, minutes] = hhmm.split(':').map(Number)
+  const date = new Date()
+  date.setHours(hours, minutes, 0, 0)
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+}
+
+/** Format task due date and optional time, e.g. "Aug 30, 2026 · 10:30 AM". */
+export function formatTaskDue(dueDate: string, dueTime: string | null): string {
+  const datePart = formatDate(dueDate)
+  if (!dueTime) return datePart
+  return `${datePart} · ${formatTimeFromHHMM(dueTime)}`
+}
+
 /** Format an ISO datetime as e.g. "2:30 PM". */
 export function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
@@ -32,8 +47,31 @@ export function toISODateTimeLocal(date: Date): string {
 }
 
 /** True when the ISO date (yyyy-mm-dd) is strictly before today. */
-export function isOverdue(isoDate: string): boolean {
-  return isoDate < todayISODate()
+export function isOverdue(isoDate: string, dueTime?: string | null): boolean {
+  const today = todayISODate()
+  if (isoDate < today) return true
+  if (isoDate > today) return false
+  if (!dueTime) return false
+  const [hours, minutes] = dueTime.split(':').map(Number)
+  const now = new Date()
+  const due = new Date(now)
+  due.setHours(hours, minutes, 0, 0)
+  return now >= due
+}
+
+/** Sort key comparison: date first, then time (null time before timed on same day). */
+export function compareDueDateTime(
+  a: { dueDate: string | null; dueTime: string | null },
+  b: { dueDate: string | null; dueTime: string | null },
+): number {
+  if (a.dueDate === null && b.dueDate === null) return 0
+  if (a.dueDate === null) return 1
+  if (b.dueDate === null) return -1
+  const dateCmp = a.dueDate.localeCompare(b.dueDate)
+  if (dateCmp !== 0) return dateCmp
+  const aTime = a.dueTime ?? ''
+  const bTime = b.dueTime ?? ''
+  return aTime.localeCompare(bTime)
 }
 
 /** Compact relative label for recent timestamps (e.g. "Just now", "18m ago", "2d ago"). */

@@ -23,6 +23,7 @@ class Task(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     due_date = models.DateField(null=True, blank=True)
+    due_time = models.TimeField(null=True, blank=True)
     priority = models.CharField(
         max_length=10,
         choices=Priority.choices,

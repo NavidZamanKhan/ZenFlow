@@ -115,6 +115,7 @@ export function useTasks() {
         title: input.title,
         description: input.description ?? '',
         dueDate: input.dueDate ?? null,
+        dueTime: input.dueTime ?? null,
         priority: input.priority ?? 'medium',
         category: input.category ?? '',
         completed: input.completed ?? false,
