@@ -91,7 +91,7 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
           </SlideDrawer>
 
           {/* Content column - full width when drawer is closed */}
-          <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:overflow-hidden">
+          <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:min-w-0 lg:overflow-hidden">
             <MobileHeader
               menuOpen={mobileNavOpen}
               onMenuClick={() => setOpenForPath(pathname)}
@@ -100,7 +100,7 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
               id="main-content"
               className={cn(
                 'flex-1 pb-[env(safe-area-inset-bottom)]',
-                'lg:min-h-0 lg:flex lg:flex-col lg:overflow-hidden',
+                'lg:min-h-0 lg:min-w-0 lg:flex lg:flex-1 lg:flex-col lg:overflow-hidden',
               )}
             >
               {children ?? <MainContent />}
