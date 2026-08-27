@@ -170,53 +170,210 @@ class ResendEmailService(BaseEmailService):
             logger.exception("Failed to send email via Resend to %s", to_email)
             raise
 
-    def send_verification_email(self, to_email: str, full_name: str, otp: str) -> None:
-        subject = "ZenFlow: Verify Your Email"
-        plain = f"Hi {full_name},\n\nYour verification code is: {otp}\nExpires in 5 minutes."
-        html = f"""
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
-            <h2 style="color: #6366f1; margin-top: 0;">ZenFlow</h2>
-            <p>Hi <strong>{full_name}</strong>,</p>
-            <p>Your verification code is:</p>
-            <div style="text-align: center; margin: 24px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(99, 102, 241, 0.15); border: 1px solid #6366f1; border-radius: 12px; color: #818cf8; display: inline-block;">{otp}</span>
-            </div>
-            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes. If you did not request this, you can safely ignore this email.</p>
+def _render_otp_email(
+    title: str,
+    full_name: str,
+    otp: str,
+    purpose: str,  # "verify" | "reset" | "delete"
+    description: str,
+    warning: str | None = None,
+) -> tuple[str, str]:
+    """
+    Renders a responsive, high-end HTML email with branded ZenFlow aesthetics.
+    - Blue/Indigo accent for Verification & Password Reset
+    - Danger Crimson Red accent for Account Deletion
+    - Copy-friendly OTP container with double-click select-all
+    """
+    is_danger = purpose == "delete"
+
+    accent_color = "#EF4444" if is_danger else "#3B82F6"
+    accent_glow = "#F87171" if is_danger else "#818CF8"
+    accent_bg = "rgba(239, 68, 68, 0.12)" if is_danger else "rgba(99, 102, 241, 0.12)"
+    accent_border = "rgba(239, 68, 68, 0.35)" if is_danger else "rgba(99, 102, 241, 0.3)"
+    gradient_header = (
+        "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"
+        if is_danger
+        else "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)"
+    )
+    badge_text = "Security Alert · Danger Zone" if is_danger else "ZenFlow Security"
+
+    warning_block = ""
+    if warning:
+        warning_block = f"""
+        <div style="margin: 16px 0; padding: 12px 16px; background: rgba(239, 68, 68, 0.12); border-left: 4px solid #ef4444; border-radius: 8px; text-align: left;">
+            <p style="margin: 0; font-size: 13px; font-weight: 600; color: #fca5a5;">⚠️ {warning}</p>
         </div>
         """
+
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+</head>
+<body style="margin: 0; padding: 32px 12px; background-color: #030712; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center" style="max-width: 520px; margin: 0 auto;">
+    <tr>
+      <td>
+        <!-- Outer Card -->
+        <div style="background-color: #0b1329; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 36px 28px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7); text-align: center;">
+          
+          <!-- Brand Header Badge -->
+          <div style="margin-bottom: 20px;">
+            <div style="display: inline-block; padding: 6px 16px; background: {accent_bg}; border: 1px solid {accent_border}; border-radius: 9999px; margin-bottom: 12px;">
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: {accent_glow};">
+                {badge_text}
+              </span>
+            </div>
+            <h1 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; background: {gradient_header}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: {accent_color};">
+              {title}
+            </h1>
+          </div>
+
+          <!-- Greeting & Description -->
+          <p style="margin: 0 0 10px 0; font-size: 15px; color: #e2e8f0; line-height: 1.5;">
+            Hi <strong>{full_name}</strong>,
+          </p>
+          <p style="margin: 0 0 20px 0; font-size: 14px; color: #94a3b8; line-height: 1.6;">
+            {description}
+          </p>
+
+          {warning_block}
+
+          <!-- Copy-Friendly OTP Display -->
+          <div style="margin: 24px 0 16px 0; padding: 20px 16px; background-color: #030712; border: 1px solid {accent_border}; border-radius: 16px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);">
+            <span style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; margin-bottom: 8px;">
+              Your 6-Digit Verification Code
+            </span>
+            <div style="user-select: all; -webkit-user-select: all; -moz-user-select: all; cursor: text; font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #ffffff; padding: 4px 0;">
+              {otp}
+            </div>
+            <div style="margin-top: 8px; font-size: 11px; color: {accent_glow}; font-weight: 500;">
+              📋 Double-click or hold code to copy
+            </div>
+          </div>
+
+          <!-- Expiry Notice -->
+          <p style="margin: 0 0 20px 0; font-size: 13px; color: #64748b;">
+            ⏱️ This code will expire in <strong style="color: #94a3b8;">5 minutes</strong>.
+          </p>
+
+          <!-- Dashboard Link -->
+          <div style="margin-top: 16px;">
+            <a href="https://zenflowbd.netlify.app/dashboard" target="_blank" style="display: inline-block; padding: 10px 24px; background: {accent_bg}; border: 1px solid {accent_border}; border-radius: 12px; font-size: 13px; font-weight: 600; color: #ffffff; text-decoration: none;">
+              Open ZenFlow Dashboard &rarr;
+            </a>
+          </div>
+
+          <!-- Security Footnote -->
+          <hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 28px 0 16px 0;">
+          <p style="margin: 0; font-size: 12px; color: #64748b; line-height: 1.5;">
+            If you did not request this verification code, you can safely ignore this email.
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 24px;">
+          <p style="margin: 0 0 4px 0; font-size: 12px; font-weight: 600; color: #475569;">
+            ZenFlow Workspace &middot; Productivity & Finance
+          </p>
+          <p style="margin: 0; font-size: 11px; color: #334155;">
+            &copy; 2026 ZenFlow. All rights reserved.
+          </p>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+    plain = f"ZenFlow: {title}\n\nHi {full_name},\n\n{description}\n\nYour 6-Digit Code: {otp}\n(Expires in 5 minutes)\n\n"
+    if warning:
+        plain += f"WARNING: {warning}\n\n"
+    plain += "If you did not request this, please secure your account immediately.\n\nZenFlow Team"
+
+    return html, plain
+
+
+class ResendEmailService(BaseEmailService):
+    """
+    HTTP REST API email service using Resend (https://resend.com).
+    Bypasses cloud host SMTP port restrictions (ports 25, 465, 587)
+    by communicating directly over HTTPS (port 443).
+    """
+
+    def __init__(self, api_key: str | None = None, from_email: str | None = None) -> None:
+        import requests
+        self._requests = requests
+        self.api_key = api_key or getattr(settings, "RESEND_API_KEY", "")
+        self.from_email = from_email or getattr(
+            settings, "RESEND_FROM_EMAIL", "ZenFlow <noreply@zenflow.navidzamankhan.com>"
+        )
+
+    def _send(self, to_email: str, subject: str, html_body: str, plain_text: str) -> None:
+        if not self.api_key:
+            logger.error("RESEND_API_KEY is not configured.")
+            raise ValueError("Email service is not configured (missing RESEND_API_KEY).")
+
+        payload = {
+            "from": self.from_email,
+            "to": [to_email],
+            "subject": subject,
+            "html": html_body,
+            "text": plain_text,
+        }
+
+        try:
+            response = self._requests.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=getattr(settings, "EMAIL_TIMEOUT", 10),
+            )
+            if response.status_code >= 400:
+                logger.error("Resend API error [%s]: %s", response.status_code, response.text)
+                raise RuntimeError(f"Resend error ({response.status_code}): {response.text}")
+            logger.info("Email sent via Resend API to %s", to_email)
+        except Exception:
+            logger.exception("Failed to send email via Resend to %s", to_email)
+            raise
+
+    def send_verification_email(self, to_email: str, full_name: str, otp: str) -> None:
+        subject = "ZenFlow: Verify Your Email"
+        html, plain = _render_otp_email(
+            title="Verify Your Email",
+            full_name=full_name,
+            otp=otp,
+            purpose="verify",
+            description="Welcome to ZenFlow! Enter the 6-digit verification code below to activate your account:",
+        )
         self._send(to_email, subject, html, plain)
 
     def send_password_reset_email(self, to_email: str, full_name: str, otp: str) -> None:
         subject = "ZenFlow: Password Reset Code"
-        plain = f"Hi {full_name},\n\nYour password reset code is: {otp}\nExpires in 5 minutes."
-        html = f"""
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
-            <h2 style="color: #6366f1; margin-top: 0;">ZenFlow</h2>
-            <p>Hi <strong>{full_name}</strong>,</p>
-            <p>Your password reset code is:</p>
-            <div style="text-align: center; margin: 24px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(99, 102, 241, 0.15); border: 1px solid #6366f1; border-radius: 12px; color: #818cf8; display: inline-block;">{otp}</span>
-            </div>
-            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes. If you did not request a password reset, please secure your account immediately.</p>
-        </div>
-        """
+        html, plain = _render_otp_email(
+            title="Password Reset Code",
+            full_name=full_name,
+            otp=otp,
+            purpose="reset",
+            description="We received a request to reset your ZenFlow password. Enter this verification code to proceed:",
+        )
         self._send(to_email, subject, html, plain)
 
     def send_account_deletion_email(self, to_email: str, full_name: str, otp: str) -> None:
         subject = "ZenFlow: Account Deletion Code"
-        plain = f"Hi {full_name},\n\nYour account deletion code is: {otp}\nExpires in 5 minutes."
-        html = f"""
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
-            <h2 style="color: #ef4444; margin-top: 0;">ZenFlow Account Deletion</h2>
-            <p>Hi <strong>{full_name}</strong>,</p>
-            <p>You requested to permanently delete your ZenFlow account. Enter this verification code to confirm:</p>
-            <div style="text-align: center; margin: 24px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 12px; color: #f87171; display: inline-block;">{otp}</span>
-            </div>
-            <p style="font-size: 13px; color: #f87171; font-weight: 500;">Warning: This will permanently delete your account, tasks, expenses, budgets, and events.</p>
-            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes.</p>
-        </div>
-        """
+        html, plain = _render_otp_email(
+            title="Account Deletion Code",
+            full_name=full_name,
+            otp=otp,
+            purpose="delete",
+            description="You requested to permanently delete your ZenFlow account. Enter this verification code to confirm deletion:",
+            warning="Entering this code will permanently delete your ZenFlow account and erase all your tasks, expenses, budgets, and events.",
+        )
         self._send(to_email, subject, html, plain)
 
 
@@ -267,51 +424,36 @@ class BrevoEmailService(BaseEmailService):
 
     def send_verification_email(self, to_email: str, full_name: str, otp: str) -> None:
         subject = "ZenFlow: Verify Your Email"
-        plain = f"Hi {full_name},\n\nYour verification code is: {otp}\nExpires in 5 minutes."
-        html = f"""
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
-            <h2 style="color: #6366f1; margin-top: 0;">ZenFlow</h2>
-            <p>Hi <strong>{full_name}</strong>,</p>
-            <p>Your verification code is:</p>
-            <div style="text-align: center; margin: 24px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(99, 102, 241, 0.15); border: 1px solid #6366f1; border-radius: 12px; color: #818cf8; display: inline-block;">{otp}</span>
-            </div>
-            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes. If you did not request this, you can safely ignore this email.</p>
-        </div>
-        """
+        html, plain = _render_otp_email(
+            title="Verify Your Email",
+            full_name=full_name,
+            otp=otp,
+            purpose="verify",
+            description="Welcome to ZenFlow! Enter the 6-digit verification code below to activate your account:",
+        )
         self._send(to_email, full_name, subject, html, plain)
 
     def send_password_reset_email(self, to_email: str, full_name: str, otp: str) -> None:
         subject = "ZenFlow: Password Reset Code"
-        plain = f"Hi {full_name},\n\nYour password reset code is: {otp}\nExpires in 5 minutes."
-        html = f"""
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
-            <h2 style="color: #6366f1; margin-top: 0;">ZenFlow</h2>
-            <p>Hi <strong>{full_name}</strong>,</p>
-            <p>Your password reset code is:</p>
-            <div style="text-align: center; margin: 24px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(99, 102, 241, 0.15); border: 1px solid #6366f1; border-radius: 12px; color: #818cf8; display: inline-block;">{otp}</span>
-            </div>
-            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes. If you did not request a password reset, please secure your account immediately.</p>
-        </div>
-        """
+        html, plain = _render_otp_email(
+            title="Password Reset Code",
+            full_name=full_name,
+            otp=otp,
+            purpose="reset",
+            description="We received a request to reset your ZenFlow password. Enter this verification code to proceed:",
+        )
         self._send(to_email, full_name, subject, html, plain)
 
     def send_account_deletion_email(self, to_email: str, full_name: str, otp: str) -> None:
         subject = "ZenFlow: Account Deletion Code"
-        plain = f"Hi {full_name},\n\nYour account deletion code is: {otp}\nExpires in 5 minutes."
-        html = f"""
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
-            <h2 style="color: #ef4444; margin-top: 0;">ZenFlow Account Deletion</h2>
-            <p>Hi <strong>{full_name}</strong>,</p>
-            <p>You requested to permanently delete your ZenFlow account. Enter this verification code to confirm:</p>
-            <div style="text-align: center; margin: 24px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 12px; color: #f87171; display: inline-block;">{otp}</span>
-            </div>
-            <p style="font-size: 13px; color: #f87171; font-weight: 500;">Warning: This will permanently delete your account, tasks, expenses, budgets, and events.</p>
-            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes.</p>
-        </div>
-        """
+        html, plain = _render_otp_email(
+            title="Account Deletion Code",
+            full_name=full_name,
+            otp=otp,
+            purpose="delete",
+            description="You requested to permanently delete your ZenFlow account. Enter this verification code to confirm deletion:",
+            warning="Entering this code will permanently delete your ZenFlow account and erase all your tasks, expenses, budgets, and events.",
+        )
         self._send(to_email, full_name, subject, html, plain)
 
 
