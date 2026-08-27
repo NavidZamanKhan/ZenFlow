@@ -218,11 +218,110 @@ class ResendEmailService(BaseEmailService):
         self._send(to_email, subject, html, plain)
 
 
+class BrevoEmailService(BaseEmailService):
+    """
+    HTTP REST API email service using Brevo (https://brevo.com).
+    Bypasses cloud SMTP port bans and allows sending to ANY recipient
+    email address (300 free emails/day) without requiring custom domain DNS verification.
+    """
+
+    def __init__(self, api_key: str | None = None, from_email: str | None = None) -> None:
+        import requests
+        self._requests = requests
+        self.api_key = api_key or getattr(settings, "BREVO_API_KEY", "")
+        self.from_email = from_email or getattr(settings, "EMAIL_HOST_USER", "mrnavid55@gmail.com")
+
+    def _send(self, to_email: str, full_name: str, subject: str, html_body: str, plain_text: str) -> None:
+        if not self.api_key:
+            logger.error("BREVO_API_KEY is not configured.")
+            raise ValueError("Email service is not configured (missing BREVO_API_KEY).")
+
+        payload = {
+            "sender": {"name": "ZenFlow", "email": self.from_email},
+            "to": [{"email": to_email, "name": full_name or "ZenFlow User"}],
+            "subject": subject,
+            "htmlContent": html_body,
+            "textContent": plain_text,
+        }
+
+        try:
+            response = self._requests.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={
+                    "api-key": self.api_key,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                json=payload,
+                timeout=getattr(settings, "EMAIL_TIMEOUT", 10),
+            )
+            if response.status_code >= 400:
+                logger.error("Brevo API error [%s]: %s", response.status_code, response.text)
+                raise RuntimeError(f"Brevo error ({response.status_code}): {response.text}")
+            logger.info("Email sent via Brevo API to %s", to_email)
+        except Exception:
+            logger.exception("Failed to send email via Brevo to %s", to_email)
+            raise
+
+    def send_verification_email(self, to_email: str, full_name: str, otp: str) -> None:
+        subject = "ZenFlow: Verify Your Email"
+        plain = f"Hi {full_name},\n\nYour verification code is: {otp}\nExpires in 5 minutes."
+        html = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
+            <h2 style="color: #6366f1; margin-top: 0;">ZenFlow</h2>
+            <p>Hi <strong>{full_name}</strong>,</p>
+            <p>Your verification code is:</p>
+            <div style="text-align: center; margin: 24px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(99, 102, 241, 0.15); border: 1px solid #6366f1; border-radius: 12px; color: #818cf8; display: inline-block;">{otp}</span>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes. If you did not request this, you can safely ignore this email.</p>
+        </div>
+        """
+        self._send(to_email, full_name, subject, html, plain)
+
+    def send_password_reset_email(self, to_email: str, full_name: str, otp: str) -> None:
+        subject = "ZenFlow: Password Reset Code"
+        plain = f"Hi {full_name},\n\nYour password reset code is: {otp}\nExpires in 5 minutes."
+        html = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
+            <h2 style="color: #6366f1; margin-top: 0;">ZenFlow</h2>
+            <p>Hi <strong>{full_name}</strong>,</p>
+            <p>Your password reset code is:</p>
+            <div style="text-align: center; margin: 24px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(99, 102, 241, 0.15); border: 1px solid #6366f1; border-radius: 12px; color: #818cf8; display: inline-block;">{otp}</span>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes. If you did not request a password reset, please secure your account immediately.</p>
+        </div>
+        """
+        self._send(to_email, full_name, subject, html, plain)
+
+    def send_account_deletion_email(self, to_email: str, full_name: str, otp: str) -> None:
+        subject = "ZenFlow: Account Deletion Code"
+        plain = f"Hi {full_name},\n\nYour account deletion code is: {otp}\nExpires in 5 minutes."
+        html = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
+            <h2 style="color: #ef4444; margin-top: 0;">ZenFlow Account Deletion</h2>
+            <p>Hi <strong>{full_name}</strong>,</p>
+            <p>You requested to permanently delete your ZenFlow account. Enter this verification code to confirm:</p>
+            <div style="text-align: center; margin: 24px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 12px; color: #f87171; display: inline-block;">{otp}</span>
+            </div>
+            <p style="font-size: 13px; color: #f87171; font-weight: 500;">Warning: This will permanently delete your account, tasks, expenses, budgets, and events.</p>
+            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes.</p>
+        </div>
+        """
+        self._send(to_email, full_name, subject, html, plain)
+
+
 def get_email_service() -> BaseEmailService:
     """
     Factory function to return the configured email service.
-    Prefers HTTP API (Resend) when RESEND_API_KEY is configured.
+    1. Prefers Brevo when BREVO_API_KEY is configured (sends to any recipient email without custom domain verification).
+    2. Uses Resend when RESEND_API_KEY is configured.
+    3. Falls back to Django SMTP.
     """
+    if getattr(settings, "BREVO_API_KEY", ""):
+        return BrevoEmailService()
     if getattr(settings, "RESEND_API_KEY", ""):
         return ResendEmailService()
     return SMTPEmailService()
