@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from datetime import date, time
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -143,3 +144,54 @@ class TaskViewSetTests(TestCase):
         response = self.client_a.post(self.list_url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIsNone(response.data["dueDate"])
+
+    def test_create_task_with_due_time(self):
+        """Test POST creates task with dueDate and dueTime in camelCase."""
+        payload = {
+            "title": "Timed Task",
+            "dueDate": "2026-08-15",
+            "dueTime": "10:30",
+        }
+        response = self.client_a.post(self.list_url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["dueDate"], "2026-08-15")
+        self.assertEqual(response.data["dueTime"], "10:30")
+
+    def test_create_task_with_null_due_time_succeeds(self):
+        """Test creating a task with dueTime: null succeeds."""
+        payload = {
+            "title": "All-day task",
+            "dueDate": "2026-08-15",
+            "dueTime": None,
+        }
+        response = self.client_a.post(self.list_url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNone(response.data["dueTime"])
+
+    def test_create_task_due_time_without_date_returns_400(self):
+        """Test dueTime without dueDate returns 400 Bad Request."""
+        payload = {
+            "title": "Invalid timed task",
+            "dueTime": "10:30",
+        }
+        response = self.client_a.post(self.list_url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("dueTime", response.data)
+
+    def test_clearing_due_date_clears_due_time(self):
+        """Test PATCH dueDate null clears stored due_time."""
+        task = Task.objects.create(
+            user=self.user_a,
+            title="Timed task",
+            due_date=date(2026, 8, 15),
+            due_time=time(10, 30),
+        )
+        url = f"{self.list_url}{task.id}/"
+        response = self.client_a.patch(url, {"dueDate": None}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(response.data["dueDate"])
+        self.assertIsNone(response.data["dueTime"])
+
+        task.refresh_from_db()
+        self.assertIsNone(task.due_date)
+        self.assertIsNone(task.due_time)

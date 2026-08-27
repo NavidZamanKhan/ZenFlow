@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, time
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
@@ -51,10 +51,29 @@ class TaskModelTests(TestCase):
         """Test that due_date can be explicitly set to None."""
         task = Task.objects.create(
             user=self.user,
-            title="Task without due date",
+            title='Task without due date',
             due_date=None,
         )
         self.assertIsNone(task.due_date)
+
+    def test_task_due_time_can_be_null(self):
+        """Test that due_time defaults to None."""
+        task = Task.objects.create(
+            user=self.user,
+            title='Task without due time',
+            due_date=date(2026, 8, 1),
+        )
+        self.assertIsNone(task.due_time)
+
+    def test_create_task_with_due_time(self):
+        """Test creating a task with due_date and due_time."""
+        task = Task.objects.create(
+            user=self.user,
+            title='Timed Task',
+            due_date=date(2026, 8, 15),
+            due_time=time(10, 30),
+        )
+        self.assertEqual(task.due_time, time(10, 30))
 
     def test_task_id_is_uuid(self):
         """Test that task id primary key is a UUID instance."""

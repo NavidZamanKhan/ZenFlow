@@ -104,8 +104,8 @@ export function CalendarPage() {
       .map((task) => ({
         id: `${TASK_ID_PREFIX}${task.id}`,
         title: task.completed ? `✓ ${task.title}` : task.title,
-        start: task.dueDate as string,
-        allDay: true,
+        start: task.dueTime ? `${task.dueDate}T${task.dueTime}` : (task.dueDate as string),
+        allDay: !task.dueTime,
         editable: false,
         classNames: ['zenflow-task-event'],
       }))

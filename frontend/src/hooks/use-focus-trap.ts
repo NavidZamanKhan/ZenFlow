@@ -60,6 +60,13 @@ export function useFocusTrap(
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Tab') return
+      const active = document.activeElement
+      if (
+        active instanceof HTMLInputElement &&
+        (active.type === 'date' || active.type === 'time' || active.type === 'datetime-local')
+      ) {
+        return
+      }
       const focusable = getFocusable(container)
       if (focusable.length === 0) {
         event.preventDefault()
@@ -68,7 +75,6 @@ export function useFocusTrap(
       }
       const first = focusable[0]
       const last = focusable[focusable.length - 1]
-      const active = document.activeElement
 
       if (event.shiftKey) {
         if (active === first || !container.contains(active)) {
