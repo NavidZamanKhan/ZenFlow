@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useFocusTrap } from '@/hooks/use-focus-trap'
@@ -15,11 +16,16 @@ interface ModalProps {
 // Same easing as SlideDrawer for a consistent motion language.
 const EASE = [0.32, 0.72, 0, 1] as const
 
-/** Centered dialog styled to match the dashboard card treatment. */
+/** Centered dialog styled to match the dashboard card treatment. Rendered in a portal to avoid parent transform/grid containment issues. */
 export function Modal({ open, title, onClose, children }: ModalProps) {
+  const [mounted, setMounted] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
   useFocusTrap(open, panelRef, { lockScroll: true })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -30,7 +36,7 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [open, onClose])
 
-  return (
+  const content = (
     <AnimatePresence>
       {open ? (
         <div
@@ -84,4 +90,7 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
       ) : null}
     </AnimatePresence>
   )
+
+  if (!mounted) return null
+  return createPortal(content, document.body)
 }
