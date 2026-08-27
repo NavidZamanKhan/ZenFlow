@@ -65,7 +65,12 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
     // opacity fades kept).
     <MotionConfig reducedMotion="user">
       <NotificationsProvider>
-        <div className="zf-screen-h flex w-full overflow-hidden bg-white font-sans pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] dark:bg-[var(--zf-canvas)]">
+        <div
+          className={cn(
+            'flex w-full flex-col bg-white font-sans pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] dark:bg-[var(--zf-canvas)]',
+            'min-h-dvh lg:zf-screen-h lg:flex-row lg:overflow-hidden',
+          )}
+        >
           <a href="#main-content" className="zf-skip-link">
             Skip to main content
           </a>
@@ -86,14 +91,17 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
           </SlideDrawer>
 
           {/* Content column - full width when drawer is closed */}
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:overflow-hidden">
             <MobileHeader
               menuOpen={mobileNavOpen}
               onMenuClick={() => setOpenForPath(pathname)}
             />
             <main
               id="main-content"
-              className="flex min-h-0 flex-1 flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]"
+              className={cn(
+                'flex-1 pb-[env(safe-area-inset-bottom)]',
+                'lg:min-h-0 lg:flex lg:flex-col lg:overflow-hidden',
+              )}
             >
               {children ?? <MainContent />}
             </main>

@@ -2,8 +2,8 @@ import { ContentGrid } from './content-grid'
 
 export function MainContent() {
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white dark:bg-[var(--zf-canvas)]">
-      <div className="min-h-0 flex-1 overflow-auto">
+    <div className="flex-1 bg-white dark:bg-[var(--zf-canvas)] lg:flex lg:min-h-0 lg:flex-col lg:overflow-hidden">
+      <div className="lg:min-h-0 lg:flex-1 lg:overflow-auto">
         <ContentGrid />
       </div>
     </div>
