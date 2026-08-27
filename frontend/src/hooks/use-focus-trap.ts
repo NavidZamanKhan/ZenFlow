@@ -34,9 +34,8 @@ export function useFocusTrap(
 
   useEffect(() => {
     if (!open) {
-      if (lockScroll) {
-        document.body.style.removeProperty('overflow')
-      }
+      document.documentElement.style.removeProperty('overflow')
+      document.body.style.removeProperty('overflow')
       return
     }
 

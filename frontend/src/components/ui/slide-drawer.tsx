@@ -38,7 +38,7 @@ export function SlideDrawer({
 
   useEffect(() => {
     if (!open) {
-      // Release any scroll lock left over from a prior route (e.g. landing menu → login).
+      document.documentElement.style.removeProperty('overflow')
       document.body.style.removeProperty('overflow')
       return
     }

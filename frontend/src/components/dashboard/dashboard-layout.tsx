@@ -7,6 +7,7 @@ import { useTheme } from 'next-themes'
 import { Toaster } from 'sonner'
 import { useAccentCssVars } from '@/hooks/use-accent-css-vars'
 import { useMediaQuery } from '@/hooks/use-media-query'
+import { cn } from '@/lib/utils'
 import { SlideDrawer } from '@/components/ui/slide-drawer'
 import { SpotlightModal } from './spotlight-modal'
 import { MobileHeader } from './mobile-header'
@@ -52,8 +53,9 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
 
   const closeMobileNav = () => setOpenForPath(null)
 
-  // Clear body scroll lock when entering the dashboard (e.g. after landing mobile menu).
+  // Clear any scroll lock left from landing drawers / auth modals before paint.
   useEffect(() => {
+    document.documentElement.style.removeProperty('overflow')
     document.body.style.removeProperty('overflow')
   }, [])
 
@@ -63,7 +65,13 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
     // opacity fades kept).
     <MotionConfig reducedMotion="user">
       <NotificationsProvider>
-        <div className="zf-screen-h flex w-full overflow-hidden bg-white font-sans pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] dark:bg-[var(--zf-canvas)]">
+        <div
+          className={cn(
+            'flex w-full flex-col bg-white font-sans pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] dark:bg-[var(--zf-canvas)]',
+            // Mobile: let the document scroll (reliable on iOS). Desktop: trapped shell.
+            'min-h-dvh lg:zf-screen-h lg:flex-row lg:overflow-hidden',
+          )}
+        >
           <a href="#main-content" className="zf-skip-link">
             Skip to main content
           </a>
@@ -84,14 +92,17 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
           </SlideDrawer>
 
           {/* Content column - full width when drawer is closed */}
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:overflow-hidden">
             <MobileHeader
               menuOpen={mobileNavOpen}
               onMenuClick={() => setOpenForPath(pathname)}
             />
             <main
               id="main-content"
-              className="flex min-h-0 flex-1 flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]"
+              className={cn(
+                'flex-1 pb-[env(safe-area-inset-bottom)]',
+                'lg:min-h-0 lg:basis-0 lg:overflow-y-auto lg:overscroll-y-contain',
+              )}
             >
               {children ?? <MainContent />}
             </main>
