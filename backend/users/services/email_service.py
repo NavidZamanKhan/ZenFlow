@@ -179,30 +179,22 @@ def _render_otp_email(
     warning: str | None = None,
 ) -> tuple[str, str]:
     """
-    Renders a responsive, high-end HTML email with branded ZenFlow aesthetics.
-    - Blue/Indigo accent for Verification & Password Reset
-    - Danger Crimson Red accent for Account Deletion
-    - Copy-friendly OTP container with double-click select-all
+    Renders a high-contrast, comfortable, ultra-clean professional email template.
+    - Deep obsidian card (#0f172a) with crisp borders (#334155)
+    - High-contrast vibrant digits (#ff5252 for deletion, #38bdf8 for verification)
+    - Pure white headings and bright readable body text (#e2e8f0)
     """
     is_danger = purpose == "delete"
+    code_color = "#ff5252" if is_danger else "#38bdf8"
+    code_bg = "rgba(239, 68, 68, 0.15)" if is_danger else "rgba(59, 130, 246, 0.15)"
+    code_border = "#ef4444" if is_danger else "#3b82f6"
 
-    accent_color = "#EF4444" if is_danger else "#3B82F6"
-    accent_glow = "#F87171" if is_danger else "#818CF8"
-    accent_bg = "rgba(239, 68, 68, 0.12)" if is_danger else "rgba(99, 102, 241, 0.12)"
-    accent_border = "rgba(239, 68, 68, 0.35)" if is_danger else "rgba(99, 102, 241, 0.3)"
-    gradient_header = (
-        "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"
-        if is_danger
-        else "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)"
-    )
-    badge_text = "Security Alert · Danger Zone" if is_danger else "ZenFlow Security"
-
-    warning_block = ""
+    warning_html = ""
     if warning:
-        warning_block = f"""
-        <div style="margin: 16px 0; padding: 12px 16px; background: rgba(239, 68, 68, 0.12); border-left: 4px solid #ef4444; border-radius: 8px; text-align: left;">
-            <p style="margin: 0; font-size: 13px; font-weight: 600; color: #fca5a5;">⚠️ {warning}</p>
-        </div>
+        warning_html = f"""
+        <p style="margin: 16px 0 0 0; font-size: 13px; line-height: 1.5; color: #fca5a5; font-weight: 600;">
+          ⚠️ <strong>Warning:</strong> {warning}
+        </p>
         """
 
     html = f"""<!DOCTYPE html>
@@ -212,74 +204,44 @@ def _render_otp_email(
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{title}</title>
 </head>
-<body style="margin: 0; padding: 32px 12px; background-color: #030712; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center" style="max-width: 520px; margin: 0 auto;">
+<body style="margin: 0; padding: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center" style="max-width: 480px; margin: 0 auto;">
     <tr>
-      <td>
-        <!-- Outer Card -->
-        <div style="background-color: #0b1329; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 36px 28px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7); text-align: center;">
+      <td style="padding: 0 12px;">
+        <!-- High-Contrast Floating Obsidian Card -->
+        <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 34px 28px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);">
           
-          <!-- Brand Header Badge -->
-          <div style="margin-bottom: 20px;">
-            <div style="display: inline-block; padding: 6px 16px; background: {accent_bg}; border: 1px solid {accent_border}; border-radius: 9999px; margin-bottom: 12px;">
-              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: {accent_glow};">
-                {badge_text}
-              </span>
-            </div>
-            <h1 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; background: {gradient_header}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: {accent_color};">
-              {title}
-            </h1>
+          <!-- Brand Wordmark -->
+          <div style="margin-bottom: 22px;">
+            <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.4px; color: #ffffff;">ZenFlow</span>
           </div>
 
           <!-- Greeting & Description -->
-          <p style="margin: 0 0 10px 0; font-size: 15px; color: #e2e8f0; line-height: 1.5;">
-            Hi <strong>{full_name}</strong>,
+          <p style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; line-height: 1.5; color: #ffffff;">
+            Hi {full_name},
           </p>
-          <p style="margin: 0 0 20px 0; font-size: 14px; color: #94a3b8; line-height: 1.6;">
+          <p style="margin: 0 0 22px 0; font-size: 14px; line-height: 1.6; color: #e2e8f0;">
             {description}
           </p>
 
-          {warning_block}
-
-          <!-- Copy-Friendly OTP Display -->
-          <div style="margin: 24px 0 16px 0; padding: 20px 16px; background-color: #030712; border: 1px solid {accent_border}; border-radius: 16px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);">
-            <span style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; margin-bottom: 8px;">
-              Your 6-Digit Verification Code
-            </span>
-            <div style="user-select: all; -webkit-user-select: all; -moz-user-select: all; cursor: text; font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #ffffff; padding: 4px 0;">
+          <!-- High-Contrast OTP Box -->
+          <div style="margin: 22px 0; padding: 18px 20px; background-color: #020617; background-image: radial-gradient(circle, {code_bg} 0%, transparent 80%); border: 1.5px solid {code_border}; border-radius: 12px; text-align: center;">
+            <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: {code_color}; user-select: all; -webkit-user-select: all;">
               {otp}
             </div>
-            <div style="margin-top: 8px; font-size: 11px; color: {accent_glow}; font-weight: 500;">
-              📋 Double-click or hold code to copy
-            </div>
           </div>
 
-          <!-- Expiry Notice -->
-          <p style="margin: 0 0 20px 0; font-size: 13px; color: #64748b;">
-            ⏱️ This code will expire in <strong style="color: #94a3b8;">5 minutes</strong>.
+          <p style="margin: 0 0 8px 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">
+            This code will expire in <strong style="color: #ffffff;">5 minutes</strong>. If you didn't request this code, you can safely ignore this email.
           </p>
 
-          <!-- Dashboard Link -->
-          <div style="margin-top: 16px;">
-            <a href="https://zenflowbd.netlify.app/dashboard" target="_blank" style="display: inline-block; padding: 10px 24px; background: {accent_bg}; border: 1px solid {accent_border}; border-radius: 12px; font-size: 13px; font-weight: 600; color: #ffffff; text-decoration: none;">
-              Open ZenFlow Dashboard &rarr;
-            </a>
-          </div>
+          {warning_html}
 
-          <!-- Security Footnote -->
-          <hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 28px 0 16px 0;">
-          <p style="margin: 0; font-size: 12px; color: #64748b; line-height: 1.5;">
-            If you did not request this verification code, you can safely ignore this email.
-          </p>
-        </div>
+          <!-- Minimal Footer -->
+          <hr style="border: none; border-top: 1px solid #334155; margin: 26px 0 16px 0;">
 
-        <!-- Footer -->
-        <div style="text-align: center; margin-top: 24px;">
-          <p style="margin: 0 0 4px 0; font-size: 12px; font-weight: 600; color: #475569;">
-            ZenFlow Workspace &middot; Productivity & Finance
-          </p>
-          <p style="margin: 0; font-size: 11px; color: #334155;">
-            &copy; 2026 ZenFlow. All rights reserved.
+          <p style="margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.5;">
+            ZenFlow &middot; Bring clarity to your day
           </p>
         </div>
       </td>
@@ -288,10 +250,10 @@ def _render_otp_email(
 </body>
 </html>"""
 
-    plain = f"ZenFlow: {title}\n\nHi {full_name},\n\n{description}\n\nYour 6-Digit Code: {otp}\n(Expires in 5 minutes)\n\n"
+    plain = f"ZenFlow: {title}\n\nHi {full_name},\n\n{description}\n\nYour Verification Code: {otp}\n\nThis code will expire in 5 minutes.\n"
     if warning:
-        plain += f"WARNING: {warning}\n\n"
-    plain += "If you did not request this, please secure your account immediately.\n\nZenFlow Team"
+        plain += f"\nWarning: {warning}\n"
+    plain += "\nZenFlow Team"
 
     return html, plain
 
