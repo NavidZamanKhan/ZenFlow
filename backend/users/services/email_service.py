@@ -135,7 +135,9 @@ class ResendEmailService(BaseEmailService):
         import requests
         self._requests = requests
         self.api_key = api_key or getattr(settings, "RESEND_API_KEY", "")
-        self.from_email = from_email or getattr(settings, "RESEND_FROM_EMAIL", "ZenFlow <onboarding@resend.dev>")
+        self.from_email = from_email or getattr(
+            settings, "RESEND_FROM_EMAIL", "ZenFlow <noreply@zenflow.navidzamankhan.com>"
+        )
 
     def _send(self, to_email: str, subject: str, html_body: str, plain_text: str) -> None:
         if not self.api_key:

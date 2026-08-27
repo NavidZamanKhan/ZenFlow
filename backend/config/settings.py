@@ -264,7 +264,9 @@ DEFAULT_FROM_EMAIL = config(
 
 # HTTP-based Email APIs (Bypasses cloud SMTP port bans)
 RESEND_API_KEY = config("RESEND_API_KEY", default="")
-RESEND_FROM_EMAIL = config("RESEND_FROM_EMAIL", default="ZenFlow <onboarding@resend.dev>")
+RESEND_FROM_EMAIL = config(
+    "RESEND_FROM_EMAIL", default="ZenFlow <noreply@zenflow.navidzamankhan.com>"
+)
 BREVO_API_KEY = config("BREVO_API_KEY", default="")
 
 # If SMTP credentials are not configured, log emails to console for easy local development
