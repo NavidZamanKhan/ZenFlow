@@ -12,6 +12,8 @@ import {
 import { useAuth } from '@/lib/auth'
 import type { Task, TaskInput } from '@/types/task'
 
+import { clientCache } from '@/lib/client-cache'
+
 type MutationOptions = {
   silent?: boolean
   successMessage?: string
@@ -40,21 +42,43 @@ function taskErrorMessage(error: unknown, fallback: string): string {
 
 export function useTasks() {
   const { user } = useAuth()
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(true)
+  const userEmail = user?.email ?? ''
+  const cacheKey = userEmail ? `${userEmail}:tasks` : ''
+
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    return cacheKey ? clientCache.get<Task[]>(cacheKey) ?? [] : []
+  })
+  const [loading, setLoading] = useState<boolean>(() => {
+    return !cacheKey || !clientCache.has(cacheKey)
+  })
   const [error, setError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
-    if (!user) return
+    if (!cacheKey) return
+    const unsubscribe = clientCache.subscribe(cacheKey, () => {
+      const cached = clientCache.get<Task[]>(cacheKey)
+      if (cached) {
+        setTasks(cached)
+        setLoading(false)
+      }
+    })
+    return unsubscribe
+  }, [cacheKey])
+
+  useEffect(() => {
+    if (!user || !cacheKey) return
     let cancelled = false
-    /* eslint-disable react-hooks/set-state-in-effect -- reset load flags before async list */
-    setLoading(true)
+
+    if (!clientCache.has(cacheKey)) {
+      setLoading(true)
+    }
     setError(null)
-    /* eslint-enable react-hooks/set-state-in-effect */
+
     apiGetTasks()
       .then((records) => {
         if (!cancelled) {
+          clientCache.set(cacheKey, records)
           setTasks(records)
           setError(null)
         }
@@ -64,7 +88,9 @@ export function useTasks() {
         if (!cancelled) {
           const message = taskErrorMessage(err, 'Could not load your tasks.')
           setError(message)
-          toast.error(message)
+          if (!clientCache.has(cacheKey)) {
+            toast.error(message)
+          }
         }
       })
       .finally(() => {
@@ -73,7 +99,7 @@ export function useTasks() {
     return () => {
       cancelled = true
     }
-  }, [user, reloadKey])
+  }, [user, cacheKey, reloadKey])
 
   const reload = useCallback(() => {
     setReloadKey((key) => key + 1)
@@ -82,7 +108,9 @@ export function useTasks() {
   const createTask = useCallback(async (input: TaskInput) => {
     try {
       const created = await apiCreateTask(input)
-      setTasks((prev) => [...prev, created])
+      const updatedList = [...(clientCache.get<Task[]>(cacheKey) ?? tasks), created]
+      clientCache.set(cacheKey, updatedList)
+      setTasks(updatedList)
       toast.success('Task created')
       return true
     } catch (err: unknown) {
@@ -90,13 +118,16 @@ export function useTasks() {
       toast.error(taskErrorMessage(err, 'Could not create the task.'))
       return false
     }
-  }, [])
+  }, [cacheKey, tasks])
 
   const updateTask = useCallback(
     async (id: string, patch: Partial<TaskInput>, options?: MutationOptions) => {
       try {
         const updated = await apiUpdateTask(id, patch)
-        setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
+        const currentList = clientCache.get<Task[]>(cacheKey) ?? tasks
+        const updatedList = currentList.map((t) => (t.id === id ? updated : t))
+        clientCache.set(cacheKey, updatedList)
+        setTasks(updatedList)
         if (!options?.silent) {
           toast.success(options?.successMessage ?? 'Task updated')
         }
@@ -107,13 +138,16 @@ export function useTasks() {
         return false
       }
     },
-    [],
+    [cacheKey, tasks],
   )
 
   const deleteTask = useCallback(async (id: string) => {
     try {
       await apiDeleteTask(id)
-      setTasks((prev) => prev.filter((t) => t.id !== id))
+      const currentList = clientCache.get<Task[]>(cacheKey) ?? tasks
+      const updatedList = currentList.filter((t) => t.id !== id)
+      clientCache.set(cacheKey, updatedList)
+      setTasks(updatedList)
       toast.success('Task deleted')
       return true
     } catch (err: unknown) {
@@ -121,7 +155,7 @@ export function useTasks() {
       toast.error(taskErrorMessage(err, 'Could not delete the task.'))
       return false
     }
-  }, [])
+  }, [cacheKey, tasks])
 
   const toggleTask = useCallback(
     (task: Task) =>

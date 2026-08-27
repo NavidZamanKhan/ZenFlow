@@ -17,6 +17,7 @@ import {
 
 import type { CurrencyCode } from '@/lib/currency'
 import { useCurrency } from '@/lib/currency-context'
+import { clientCache } from '@/lib/client-cache'
 
 function emptyCategoryBudgets(): Record<ExpenseCategory, number> {
   return Object.fromEntries(
@@ -44,30 +45,57 @@ function nonNegativeNumber(value: unknown, fallback = 0): number {
 }
 
 /**
- * User-scoped budget persistence boundary connected to ZenFlow backend API.
+ * User-scoped budget persistence boundary connected to ZenFlow backend API with in-memory SWR caching.
  */
 export function useBudget() {
   const { user } = useAuth()
+  const userEmail = user?.email ?? ''
+  const cacheKey = userEmail ? `${userEmail}:budget` : ''
   const { currency: activeCurrency, convert } = useCurrency()
-  const [budget, setBudget] = useState<Budget>(createDefaultBudget)
-  const [loading, setLoading] = useState(true)
+
+  const [budget, setBudget] = useState<Budget>(() => {
+    return cacheKey ? clientCache.get<Budget>(cacheKey) ?? createDefaultBudget() : createDefaultBudget()
+  })
+  const [loading, setLoading] = useState<boolean>(() => {
+    return !cacheKey || !clientCache.has(cacheKey)
+  })
   const [error, setError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const budgetRef = useRef(budget)
 
   useEffect(() => {
-    if (!user) {
+    budgetRef.current = budget
+  }, [budget])
+
+  useEffect(() => {
+    if (!cacheKey) return
+    const unsubscribe = clientCache.subscribe(cacheKey, () => {
+      const cached = clientCache.get<Budget>(cacheKey)
+      if (cached) {
+        budgetRef.current = cached
+        setBudget(cached)
+        setLoading(false)
+      }
+    })
+    return unsubscribe
+  }, [cacheKey])
+
+  useEffect(() => {
+    if (!user || !cacheKey) {
       setLoading(false)
       return
     }
 
     let cancelled = false
-    setLoading(true)
+    if (!clientCache.has(cacheKey)) {
+      setLoading(true)
+    }
     setError(null)
 
     apiGetBudget()
       .then((fetchedBudget) => {
         if (cancelled) return
+        clientCache.set(cacheKey, fetchedBudget)
         budgetRef.current = fetchedBudget
         setBudget(fetchedBudget)
         setError(null)
@@ -83,7 +111,7 @@ export function useBudget() {
     return () => {
       cancelled = true
     }
-  }, [user, reloadKey])
+  }, [user, cacheKey, reloadKey])
 
   const reload = useCallback(() => {
     setReloadKey((key) => key + 1)
@@ -97,6 +125,7 @@ export function useBudget() {
         }
         if (currency) patch.currency = currency
         const updated = await apiUpdateBudget(patch)
+        clientCache.set(cacheKey, updated)
         budgetRef.current = updated
         setBudget(updated)
         return true
@@ -104,7 +133,7 @@ export function useBudget() {
         return false
       }
     },
-    [],
+    [cacheKey],
   )
 
   const setCategoryBudget = useCallback(
@@ -120,6 +149,7 @@ export function useBudget() {
         }
         if (currency) patch.currency = currency
         const updated = await apiUpdateBudget(patch)
+        clientCache.set(cacheKey, updated)
         budgetRef.current = updated
         setBudget(updated)
         return true
@@ -127,7 +157,7 @@ export function useBudget() {
         return false
       }
     },
-    [],
+    [cacheKey],
   )
 
   const recordThresholdAlerts = useCallback(

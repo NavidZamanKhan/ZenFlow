@@ -9,38 +9,63 @@ import {
   apiUpdateExpense,
 } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import { clientCache } from '@/lib/client-cache'
 import type { Expense, ExpenseInput } from '@/types/expense'
 
 /**
  * Expenses data hook.
- * Backed by Django REST API endpoints (/api/expenses/).
+ * Backed by Django REST API endpoints (/api/expenses/) with in-memory SWR caching.
  */
 export function useExpenses() {
   const { user } = useAuth()
   const userEmail = user?.email ?? ''
-  const [expenses, setExpenses] = useState<Expense[]>([])
-  const [loading, setLoading] = useState(true)
+  const cacheKey = userEmail ? `${userEmail}:expenses` : ''
+
+  const [expenses, setExpenses] = useState<Expense[]>(() => {
+    return cacheKey ? clientCache.get<Expense[]>(cacheKey) ?? [] : []
+  })
+  const [loading, setLoading] = useState<boolean>(() => {
+    return !cacheKey || !clientCache.has(cacheKey)
+  })
   const [error, setError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
-    if (!userEmail) return
+    if (!cacheKey) return
+    const unsubscribe = clientCache.subscribe(cacheKey, () => {
+      const cached = clientCache.get<Expense[]>(cacheKey)
+      if (cached) {
+        setExpenses(cached)
+        setLoading(false)
+      }
+    })
+    return unsubscribe
+  }, [cacheKey])
+
+  useEffect(() => {
+    if (!userEmail || !cacheKey) return
     let cancelled = false
-    /* eslint-disable react-hooks/set-state-in-effect -- reset load flags before async list */
-    setLoading(true)
+
+    if (!clientCache.has(cacheKey)) {
+      setLoading(true)
+    }
     setError(null)
-    /* eslint-enable react-hooks/set-state-in-effect */
+
     apiGetExpenses()
       .then((records) => {
         if (!cancelled) {
+          clientCache.set(cacheKey, records)
           setExpenses(records)
           setError(null)
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setError('Could not load your expenses.')
-          toast.error('Could not load your expenses.')
+          const msg = 'Could not load your expenses.'
+          setError(msg)
+          if (!clientCache.has(cacheKey)) {
+            toast.error(msg)
+          }
         }
       })
       .finally(() => {
@@ -49,7 +74,7 @@ export function useExpenses() {
     return () => {
       cancelled = true
     }
-  }, [userEmail, reloadKey])
+  }, [userEmail, cacheKey, reloadKey])
 
   const reload = useCallback(() => {
     setReloadKey((key) => key + 1)
@@ -58,22 +83,28 @@ export function useExpenses() {
   const createExpense = useCallback(async (input: ExpenseInput) => {
     try {
       const created = await apiCreateExpense(input)
-      setExpenses((prev) => [...prev, created])
+      const currentList = clientCache.get<Expense[]>(cacheKey) ?? expenses
+      const updatedList = [...currentList, created]
+      clientCache.set(cacheKey, updatedList)
+      setExpenses(updatedList)
       toast.success('Expense added')
       return true
     } catch {
       toast.error('Could not add the expense.')
       return false
     }
-  }, [])
+  }, [cacheKey, expenses])
 
   const updateExpense = useCallback(
     async (id: string, patch: Partial<ExpenseInput>) => {
       try {
         const updated = await apiUpdateExpense(id, patch)
-        setExpenses((prev) =>
-          prev.map((expense) => (expense.id === id ? updated : expense)),
+        const currentList = clientCache.get<Expense[]>(cacheKey) ?? expenses
+        const updatedList = currentList.map((expense) =>
+          expense.id === id ? updated : expense,
         )
+        clientCache.set(cacheKey, updatedList)
+        setExpenses(updatedList)
         toast.success('Expense updated')
         return true
       } catch {
@@ -81,20 +112,23 @@ export function useExpenses() {
         return false
       }
     },
-    [],
+    [cacheKey, expenses],
   )
 
   const deleteExpense = useCallback(async (id: string) => {
     try {
       await apiDeleteExpense(id)
-      setExpenses((prev) => prev.filter((expense) => expense.id !== id))
+      const currentList = clientCache.get<Expense[]>(cacheKey) ?? expenses
+      const updatedList = currentList.filter((expense) => expense.id !== id)
+      clientCache.set(cacheKey, updatedList)
+      setExpenses(updatedList)
       toast.success('Expense deleted')
       return true
     } catch {
       toast.error('Could not delete the expense.')
       return false
     }
-  }, [])
+  }, [cacheKey, expenses])
 
   return {
     expenses,

@@ -17,6 +17,7 @@ import {
   getStoredTokens,
   storeTokens,
 } from './api'
+import { clientCache } from './client-cache'
 
 // ---------------------------------------------------------------------------
 // Context type
@@ -231,6 +232,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     clearTokens()
     clearUser()
+    clientCache.clear()
     setIsAuthenticated(false)
     setUser(null)
     router.push('/login')

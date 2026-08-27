@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/auth'
 import { createClientStore } from '@/lib/client-store'
+import { clientCache } from '@/lib/client-cache'
 import type { CalendarEvent, CalendarEventInput } from '@/types/event'
 
 const eventStore = createClientStore<CalendarEventInput, CalendarEvent>('events')
@@ -16,30 +17,54 @@ type MutationOptions = {
 export function useEvents() {
   const { user } = useAuth()
   const userEmail = user?.email ?? ''
-  const [events, setEvents] = useState<CalendarEvent[]>([])
-  const [loading, setLoading] = useState(true)
+  const cacheKey = userEmail ? `${userEmail}:events` : ''
+
+  const [events, setEvents] = useState<CalendarEvent[]>(() => {
+    return cacheKey ? clientCache.get<CalendarEvent[]>(cacheKey) ?? [] : []
+  })
+  const [loading, setLoading] = useState<boolean>(() => {
+    return !cacheKey || !clientCache.has(cacheKey)
+  })
   const [error, setError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
-    if (!userEmail) return
+    if (!cacheKey) return
+    const unsubscribe = clientCache.subscribe(cacheKey, () => {
+      const cached = clientCache.get<CalendarEvent[]>(cacheKey)
+      if (cached) {
+        setEvents(cached)
+        setLoading(false)
+      }
+    })
+    return unsubscribe
+  }, [cacheKey])
+
+  useEffect(() => {
+    if (!userEmail || !cacheKey) return
     let cancelled = false
-    /* eslint-disable react-hooks/set-state-in-effect -- reset load flags before async list */
-    setLoading(true)
+
+    if (!clientCache.has(cacheKey)) {
+      setLoading(true)
+    }
     setError(null)
-    /* eslint-enable react-hooks/set-state-in-effect */
+
     eventStore
       .list(userEmail)
       .then((records) => {
         if (!cancelled) {
+          clientCache.set(cacheKey, records)
           setEvents(records)
           setError(null)
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setError('Could not load your events.')
-          toast.error('Could not load your events.')
+          const msg = 'Could not load your events.'
+          setError(msg)
+          if (!clientCache.has(cacheKey)) {
+            toast.error(msg)
+          }
         }
       })
       .finally(() => {
@@ -48,7 +73,7 @@ export function useEvents() {
     return () => {
       cancelled = true
     }
-  }, [userEmail, reloadKey])
+  }, [userEmail, cacheKey, reloadKey])
 
   const reload = useCallback(() => {
     setReloadKey((key) => key + 1)
@@ -58,7 +83,10 @@ export function useEvents() {
     async (input: CalendarEventInput) => {
       try {
         const created = await eventStore.create(userEmail, input)
-        setEvents((prev) => [...prev, created])
+        const currentList = clientCache.get<CalendarEvent[]>(cacheKey) ?? events
+        const updatedList = [...currentList, created]
+        clientCache.set(cacheKey, updatedList)
+        setEvents(updatedList)
         toast.success('Event created')
         return true
       } catch {
@@ -66,7 +94,7 @@ export function useEvents() {
         return false
       }
     },
-    [userEmail],
+    [userEmail, cacheKey, events],
   )
 
   const updateEvent = useCallback(
@@ -77,7 +105,10 @@ export function useEvents() {
     ) => {
       try {
         const updated = await eventStore.update(userEmail, id, patch)
-        setEvents((prev) => prev.map((e) => (e.id === id ? updated : e)))
+        const currentList = clientCache.get<CalendarEvent[]>(cacheKey) ?? events
+        const updatedList = currentList.map((e) => (e.id === id ? updated : e))
+        clientCache.set(cacheKey, updatedList)
+        setEvents(updatedList)
         if (!options?.silent) {
           toast.success(options?.successMessage ?? 'Event updated')
         }
@@ -87,14 +118,17 @@ export function useEvents() {
         return false
       }
     },
-    [userEmail],
+    [userEmail, cacheKey, events],
   )
 
   const deleteEvent = useCallback(
     async (id: string) => {
       try {
         await eventStore.remove(userEmail, id)
-        setEvents((prev) => prev.filter((e) => e.id !== id))
+        const currentList = clientCache.get<CalendarEvent[]>(cacheKey) ?? events
+        const updatedList = currentList.filter((e) => e.id !== id)
+        clientCache.set(cacheKey, updatedList)
+        setEvents(updatedList)
         toast.success('Event deleted')
         return true
       } catch {
@@ -102,7 +136,7 @@ export function useEvents() {
         return false
       }
     },
-    [userEmail],
+    [userEmail, cacheKey, events],
   )
 
   return {
