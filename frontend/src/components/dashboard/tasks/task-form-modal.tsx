@@ -17,7 +17,7 @@ const taskSchema = z.object({
 type TaskFormValues = z.infer<typeof taskSchema>
 
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--zf-surface)] border border-slate-200 dark:border-[var(--zf-border)] text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-[var(--zf-accent)] transition-all'
+  'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--zf-surface)] border border-slate-200 dark:border-[var(--zf-border)] text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] focus:border-[var(--zf-accent)] transition-colors'
 const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5'
 
 const priorityLabels: Record<TaskPriority, string> = {
@@ -111,22 +111,22 @@ function TaskForm({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
+        <div className="min-w-0">
           <label htmlFor="task-due-date" className={labelClass}>
             Due date <span className="text-slate-500 dark:text-slate-400 font-normal">(optional)</span>
           </label>
           <input
             id="task-due-date"
             type="date"
-            className={inputClass}
+            className={`${inputClass} min-h-[42px]`}
             {...register('dueDate')}
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <label htmlFor="task-priority" className={labelClass}>
             Priority
           </label>
-          <select id="task-priority" className={inputClass} {...register('priority')}>
+          <select id="task-priority" className={`${inputClass} min-h-[42px]`} {...register('priority')}>
             {TASK_PRIORITIES.map((p) => (
               <option key={p} value={p}>
                 {priorityLabels[p]}

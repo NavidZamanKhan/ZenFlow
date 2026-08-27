@@ -51,11 +51,16 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
           <motion.div
             ref={panelRef}
             tabIndex={-1}
-            className="relative max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-slate-100/80 bg-white p-6 shadow-xl outline-none dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:shadow-black/40"
+            className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-3xl border border-slate-100/80 bg-white p-6 shadow-xl outline-none dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:shadow-black/40"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.2, ease: EASE }}
+            onAnimationComplete={() => {
+              if (panelRef.current) {
+                panelRef.current.style.transform = 'none'
+              }
+            }}
           >
             <div className="mb-5 flex items-center justify-between">
               <h2
