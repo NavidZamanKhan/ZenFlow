@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useFocusTrap } from '@/hooks/use-focus-trap'
@@ -15,11 +16,16 @@ interface ModalProps {
 // Same easing as SlideDrawer for a consistent motion language.
 const EASE = [0.32, 0.72, 0, 1] as const
 
-/** Centered dialog styled to match the dashboard card treatment. */
+/** Centered dialog styled to match the dashboard card treatment. Rendered in a portal to avoid parent transform/grid containment issues. */
 export function Modal({ open, title, onClose, children }: ModalProps) {
+  const [mounted, setMounted] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
   useFocusTrap(open, panelRef, { lockScroll: true })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -30,7 +36,7 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [open, onClose])
 
-  return (
+  const content = (
     <AnimatePresence>
       {open ? (
         <div
@@ -51,11 +57,16 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
           <motion.div
             ref={panelRef}
             tabIndex={-1}
-            className="relative max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl border border-slate-100/80 bg-white p-6 shadow-xl outline-none dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:shadow-black/40"
+            className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-3xl border border-slate-100/80 bg-white p-6 shadow-xl outline-none dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:shadow-black/40"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.2, ease: EASE }}
+            onAnimationComplete={() => {
+              if (panelRef.current) {
+                panelRef.current.style.transform = 'none'
+              }
+            }}
           >
             <div className="mb-5 flex items-center justify-between">
               <h2
@@ -79,4 +90,7 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
       ) : null}
     </AnimatePresence>
   )
+
+  if (!mounted) return null
+  return createPortal(content, document.body)
 }
