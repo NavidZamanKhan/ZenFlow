@@ -8,6 +8,7 @@ export interface ApiUser {
   email: string
   full_name: string
   avatar: string | null
+  avatar_url?: string | null
   email_verified: boolean
   has_password?: boolean
   date_joined: string
@@ -21,6 +22,7 @@ export interface User {
   email: string
   fullName: string
   avatar: string | null
+  avatarUrl: string | null
   emailVerified: boolean
   hasPassword: boolean
   dateJoined: string
@@ -123,11 +125,14 @@ export interface LogoutResponse {
 export function toUser(
   api: ApiUser | Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified'> | (Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified'> & { has_password?: boolean }),
 ): User {
+  const rawAvatarUrl = 'avatar_url' in api ? (api.avatar_url ?? null) : null
+  const rawAvatar = 'avatar' in api ? (api.avatar ?? null) : null
   return {
     id: api.id,
     email: api.email,
     fullName: api.full_name,
-    avatar: 'avatar' in api ? (api.avatar ?? null) : null,
+    avatar: rawAvatar,
+    avatarUrl: rawAvatarUrl || rawAvatar,
     emailVerified: api.email_verified,
     hasPassword: 'has_password' in api ? Boolean(api.has_password) : false,
     dateJoined: 'date_joined' in api ? api.date_joined : '',

@@ -76,12 +76,17 @@ async function request<T>(
 ): Promise<T> {
   const { headers, ...rest } = options
 
+  const isFormData = typeof FormData !== 'undefined' && rest.body instanceof FormData
+  const defaultHeaders: Record<string, string> = isFormData
+    ? {}
+    : { 'Content-Type': 'application/json' }
+
   let res: Response
   try {
     res = await fetch(`${API_BASE}${path}`, {
       ...rest,
       headers: {
-        'Content-Type': 'application/json',
+        ...defaultHeaders,
         ...headers,
       },
     })
@@ -212,6 +217,23 @@ export function apiLogout(refresh: string): Promise<LogoutResponse> {
 
 export function apiMe(): Promise<ApiUser> {
   return authRequest<ApiUser>('/api/auth/me/')
+}
+
+export function apiUpdateProfile(data: {
+  fullName?: string
+  avatar?: File | null
+}): Promise<ApiUser> {
+  const formData = new FormData()
+  if (data.fullName !== undefined) {
+    formData.append('full_name', data.fullName)
+  }
+  if (data.avatar instanceof File) {
+    formData.append('avatar', data.avatar)
+  }
+  return authRequest<ApiUser>('/api/auth/me/', {
+    method: 'PATCH',
+    body: formData,
+  })
 }
 
 export function apiSetPassword(

@@ -299,6 +299,47 @@ class MeViewTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_me_patch_full_name_success(self):
+        """Test PATCH /me updates full_name in database."""
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(
+            self.url,
+            {"full_name": "Navid Zaman Khan"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["full_name"], "Navid Zaman Khan")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.full_name, "Navid Zaman Khan")
+
+    def test_me_patch_avatar_success(self):
+        """Test PATCH /me updates avatar image."""
+        import io
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        image = Image.new("RGB", (100, 100), color="blue")
+        image_bytes = io.BytesIO()
+        image.save(image_bytes, format="JPEG")
+        image_bytes.seek(0)
+
+        uploaded_file = SimpleUploadedFile(
+            "test_avatar.jpg",
+            image_bytes.read(),
+            content_type="image/jpeg",
+        )
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(
+            self.url,
+            {"avatar": uploaded_file},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertTrue(bool(self.user.avatar))
+        self.assertIsNotNone(response.data["avatar_url"])
+
 
 class GoogleAuthViewTests(TestCase):
     """Tests for POST /api/auth/google/."""

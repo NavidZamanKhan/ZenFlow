@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from rest_framework import status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -14,6 +15,7 @@ from .serializers import (
     RegisterSerializer,
     ResendOTPSerializer,
     SetPasswordSerializer,
+    UpdateProfileSerializer,
     UserSerializer,
     VerifyEmailSerializer,
 )
@@ -192,15 +194,28 @@ class LogoutView(APIView):
 
 class MeView(APIView):
     """
-    GET /api/auth/me/
-    Return the currently authenticated user.
+    GET /api/auth/me/ - Return the currently authenticated user.
+    PATCH /api/auth/me/ - Update full_name and/or avatar for authenticated user.
     """
 
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request: Request) -> Response:
-        serializer = UserSerializer(request.user)
+        serializer = UserSerializer(request.user, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request: Request) -> Response:
+        serializer = UpdateProfileSerializer(
+            request.user,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        response_serializer = UserSerializer(request.user, context={"request": request})
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
 class SetPasswordView(APIView):

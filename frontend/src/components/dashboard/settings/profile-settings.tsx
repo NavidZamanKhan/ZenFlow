@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Camera, Pencil, Save, UserRound } from 'lucide-react'
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import type { ProfileSettings } from '@/types/settings'
+import { useAuth } from '@/lib/auth'
 import {
   SETTINGS_INPUT_CLASS,
   SettingsField,
@@ -76,9 +77,18 @@ export function ProfileSettingsSection({
   profile: ProfileSettings
   onSave: (profile: ProfileSettings) => boolean
 }) {
+  const { user, updateProfile } = useAuth()
   const [editing, setEditing] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const effectiveProfile = useMemo(() => ({
+    ...profile,
+    fullName: user?.fullName || profile.fullName,
+    email: user?.email || profile.email,
+  }), [profile, user])
+
   const {
     register,
     control,
@@ -88,24 +98,32 @@ export function ProfileSettingsSection({
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     mode: 'onTouched',
-    defaultValues: profile,
+    defaultValues: effectiveProfile,
   })
 
   useEffect(() => {
-    reset(profile)
-  }, [profile, reset])
+    reset(effectiveProfile)
+  }, [effectiveProfile, reset])
 
-  const submitProfile = (values: ProfileFormValues) => {
-    if (onSave(values)) {
+  const submitProfile = async (values: ProfileFormValues) => {
+    try {
+      await updateProfile({
+        fullName: values.fullName,
+        avatar: avatarFile,
+      })
+      onSave(values)
       setEditing(false)
-      toast.success('Profile preferences saved on this device.')
-    } else {
-      toast.error('Could not save your profile preferences.')
+      setAvatarFile(null)
+      toast.success('Profile and avatar saved to your account.')
+    } catch {
+      toast.error('Could not save your profile changes to server.')
     }
   }
 
   const cancelEditing = () => {
-    reset(profile)
+    reset(effectiveProfile)
+    setAvatarPreview(null)
+    setAvatarFile(null)
     setEditing(false)
   }
 
@@ -120,31 +138,37 @@ export function ProfileSettingsSection({
       return
     }
 
+    setAvatarFile(file)
     const reader = new FileReader()
     reader.onload = () => setAvatarPreview(String(reader.result))
     reader.readAsDataURL(file)
   }
 
+  const currentFullName = user?.fullName || profile.fullName
+  const currentEmail = user?.email || profile.email
+
   const initials =
-    profile.fullName
+    currentFullName
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase())
-      .join('') || profile.email[0]?.toUpperCase() || 'Z'
+      .join('') || currentEmail[0]?.toUpperCase() || 'Z'
+
+  const activeAvatarSrc = avatarPreview || user?.avatarUrl || ''
 
   return (
     <SettingsSection
       id="profile"
       icon={UserRound}
       title="Profile"
-      description="Manage the personal details shown in your local workspace."
+      description="Manage your account profile details and workspace appearance."
     >
       <form onSubmit={handleSubmit(submitProfile)} noValidate>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative w-fit">
             <Avatar className="size-20">
-              {avatarPreview && <AvatarImage src={avatarPreview} alt="" />}
+              {activeAvatarSrc && <AvatarImage src={activeAvatarSrc} alt="" />}
               <AvatarFallback className="bg-[var(--zf-accent-soft)] text-lg font-bold text-[var(--zf-accent-fg)]">
                 {initials}
               </AvatarFallback>
@@ -169,13 +193,10 @@ export function ProfileSettingsSection({
           </div>
           <div className="flex-1">
             <p className="text-sm font-bold text-slate-800 dark:text-[var(--zf-text)]">
-              {profile.fullName || 'ZenFlow user'}
+              {currentFullName || 'ZenFlow user'}
             </p>
             <p className="mt-0.5 text-xs text-slate-500 dark:text-[var(--zf-text-muted)]">
-              {profile.email}
-            </p>
-            <p className="mt-1.5 text-xs text-slate-500 dark:text-[var(--zf-text-muted)]">
-              Avatar previews last for this browser session only.
+              {currentEmail}
             </p>
           </div>
           {!editing && (
@@ -260,8 +281,7 @@ export function ProfileSettingsSection({
 
         <div className="mt-5">
           <SettingsNote>
-            These profile details are stored locally. They do not update your
-            authentication account or upload an avatar.
+            Your full name and avatar image are permanently synced with your cloud account across all devices.
           </SettingsNote>
         </div>
 

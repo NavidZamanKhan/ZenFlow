@@ -11,6 +11,7 @@ import {
   apiMe,
   apiRegister,
   apiResendOtp,
+  apiUpdateProfile,
   apiVerifyEmail,
   ApiError,
   clearTokens,
@@ -38,6 +39,7 @@ interface AuthContextType {
   verifyEmail: (pendingRegistrationId: string, otp: string) => Promise<void>
   resendOtp: (pendingRegistrationId: string) => Promise<void>
   refreshUser: () => Promise<void>
+  updateProfile: (data: { fullName?: string; avatar?: File | null }) => Promise<User>
   logout: () => Promise<void>
 }
 
@@ -218,6 +220,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // -- Update Profile ------------------------------------------------------
+
+  const updateProfile = useCallback(async (data: {
+    fullName?: string
+    avatar?: File | null
+  }): Promise<User> => {
+    const apiUser = await apiUpdateProfile(data)
+    const freshUser = toUser(apiUser)
+    setUser(freshUser)
+    storeUser(freshUser)
+    return freshUser
+  }, [])
+
   // -- Logout ---------------------------------------------------------------
 
   const logout = useCallback(async (): Promise<void> => {
@@ -239,7 +254,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router])
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, loading, login, loginWithGoogle, signup, verifyEmail, resendOtp, refreshUser, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, loading, login, loginWithGoogle, signup, verifyEmail, resendOtp, refreshUser, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   )

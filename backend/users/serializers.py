@@ -111,6 +111,7 @@ class UserSerializer(serializers.ModelSerializer):
     """Read-only serializer for returning user data in responses."""
 
     has_password = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -119,6 +120,7 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "full_name",
             "avatar",
+            "avatar_url",
             "email_verified",
             "has_password",
             "date_joined",
@@ -129,6 +131,32 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_has_password(self, obj: User) -> bool:
         return obj.has_usable_password()
+
+    def get_avatar_url(self, obj: User) -> str | None:
+        if not obj.avatar:
+            return None
+        request = self.context.get("request")
+        if request:
+            return request.build_absolute_uri(obj.avatar.url)
+        return obj.avatar.url
+
+
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    """Validates user profile updates (full_name, avatar)."""
+
+    full_name = serializers.CharField(max_length=150, required=False)
+    avatar = serializers.ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = User
+        fields = ["full_name", "avatar"]
+
+    def validate_full_name(self, value: str) -> str:
+        trimmed = value.strip()
+        if len(trimmed) < 2:
+            raise serializers.ValidationError("Full name must be at least 2 characters.")
+        return trimmed
+
 
 
 def validate_password_strength(value: str) -> str:

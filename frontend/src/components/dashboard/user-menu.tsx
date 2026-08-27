@@ -46,11 +46,19 @@ export function UserMenu({ className }: UserMenuProps) {
       <DropdownMenuTrigger
         aria-label="User menu"
         className={cn(
-          'zf-tap flex h-9 w-9 items-center justify-center rounded-full bg-[var(--zf-accent-soft)] text-sm font-bold text-[var(--zf-accent-fg)] transition-colors hover:bg-[var(--zf-accent-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent-fg)] dark:hover:bg-[var(--zf-hover-fill)]',
+          'zf-tap relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[var(--zf-accent-soft)] text-sm font-bold text-[var(--zf-accent-fg)] transition-colors hover:bg-[var(--zf-accent-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent-fg)] dark:hover:bg-[var(--zf-hover-fill)]',
           className,
         )}
       >
-        <span aria-hidden="true">{letter}</span>
+        {user?.avatarUrl ? (
+          <img
+            src={user.avatarUrl}
+            alt={displayName}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span aria-hidden="true">{letter}</span>
+        )}
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
