@@ -47,11 +47,11 @@ export function UserMenu({ className }: UserMenuProps) {
       <DropdownMenuTrigger
         aria-label="User menu"
         className={cn(
-          'zf-tap flex h-9 w-9 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]',
+          'zf-tap flex h-8.5 w-8.5 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]',
           className,
         )}
       >
-        <Avatar className="size-9 rounded-full">
+        <Avatar className="size-8.5 rounded-full">
           {user?.avatarUrl && (
             <AvatarImage
               src={user.avatarUrl}
@@ -59,7 +59,7 @@ export function UserMenu({ className }: UserMenuProps) {
               className="h-full w-full rounded-full object-cover"
             />
           )}
-          <AvatarFallback className="bg-[var(--zf-accent-soft)] text-sm font-bold text-[var(--zf-accent-fg)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent-fg)]">
+          <AvatarFallback className="bg-[var(--zf-accent-soft)] text-xs font-bold text-[var(--zf-accent-fg)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent-fg)]">
             {letter}
           </AvatarFallback>
         </Avatar>

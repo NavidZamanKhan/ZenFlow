@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils'
 import { SlideDrawer } from '@/components/ui/slide-drawer'
 import { SpotlightModal } from './spotlight-modal'
 import { MobileHeader } from './mobile-header'
-import { HeaderActions } from './header-actions'
 import { NotificationsProvider } from './notifications-provider'
 import { Sidebar } from './sidebar'
 import { MainContent } from './main-content'
@@ -66,18 +65,12 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
     // opacity fades kept).
     <MotionConfig reducedMotion="user">
       <NotificationsProvider>
-        <div
-          className={cn(
-            'flex w-full flex-col bg-white font-sans pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] dark:bg-[var(--zf-canvas)]',
-            // Mobile: let the document scroll (reliable on iOS). Desktop: trapped shell.
-            'min-h-dvh lg:zf-screen-h lg:flex-row lg:overflow-hidden',
-          )}
-        >
+        <div className="zf-screen-h flex w-full overflow-hidden bg-white font-sans pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] dark:bg-[var(--zf-canvas)]">
           <a href="#main-content" className="zf-skip-link">
             Skip to main content
           </a>
 
-          {/* Desktop sidebar - unchanged at lg+ */}
+          {/* Desktop sidebar */}
           <div className="hidden h-full flex-shrink-0 lg:flex">
             <Sidebar />
           </div>
@@ -93,23 +86,14 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
           </SlideDrawer>
 
           {/* Content column - full width when drawer is closed */}
-          <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:overflow-hidden">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             <MobileHeader
               menuOpen={mobileNavOpen}
               onMenuClick={() => setOpenForPath(pathname)}
             />
-
-            {/* Desktop Top Header Bar */}
-            <header className="hidden h-14 flex-shrink-0 items-center justify-end border-b border-slate-100/80 px-8 dark:border-[var(--zf-border)]/80 dark:bg-[var(--zf-surface)] lg:flex">
-              <HeaderActions className="gap-2.5" />
-            </header>
-
             <main
               id="main-content"
-              className={cn(
-                'flex-1 pb-[env(safe-area-inset-bottom)]',
-                'lg:min-h-0 lg:basis-0 lg:overflow-y-auto lg:overscroll-y-contain',
-              )}
+              className="flex min-h-0 flex-1 flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]"
             >
               {children ?? <MainContent />}
             </main>

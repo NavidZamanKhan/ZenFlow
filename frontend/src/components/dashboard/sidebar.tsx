@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { HeaderActions } from './header-actions'
 import { ZenflowSearch } from './zenflow-search'
 
 type NavItem = {
@@ -84,8 +85,8 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
         className,
       )}
     >
-      {/* Brand logo */}
-      <div className="flex items-center px-6 pb-2 pt-5">
+      {/* Brand logo + header actions */}
+      <div className="flex items-center justify-between px-5 pb-2 pt-5">
         <Link
           href="/dashboard"
           prefetch={true}
@@ -93,19 +94,20 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
           onTouchStart={() => prefetch('/dashboard')}
           onClick={onNavigate}
           aria-label="ZenFlow home"
-          className="flex items-center gap-3 transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]"
+          className="flex items-center gap-2.5 transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]"
         >
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--zf-accent)] shadow-sm">
-            <Grid3x3 size={18} className="text-white" aria-hidden="true" />
+          <div className="flex h-8.5 w-8.5 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--zf-accent)] shadow-sm">
+            <Grid3x3 size={17} className="text-white" aria-hidden="true" />
           </div>
-          <p className="text-xl font-bold tracking-tight text-slate-800 dark:text-[var(--zf-text)]">
+          <p className="text-lg font-bold tracking-tight text-slate-800 dark:text-[var(--zf-text)]">
             ZenFlow
           </p>
         </Link>
+        <HeaderActions />
       </div>
 
       {/* Dedicated full-width search bar */}
-      <div className="px-5 py-2.5">
+      <div className="px-5 py-2">
         <ZenflowSearch
           id="sidebar-zenflow-search"
           className="w-full"
