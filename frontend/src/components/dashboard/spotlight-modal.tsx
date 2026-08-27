@@ -290,7 +290,14 @@ export function SpotlightModal() {
                               type="button"
                               data-spotlight-index={itemIndex}
                               onClick={() => selectResult(item)}
-                              onMouseEnter={() => setActiveIndex(itemIndex)}
+                              onMouseEnter={() => {
+                                setActiveIndex(itemIndex)
+                                try {
+                                  router.prefetch(item.href)
+                                } catch {
+                                  // Ignore
+                                }
+                              }}
                               className={cn(
                                 'flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition-colors',
                                 isSelected

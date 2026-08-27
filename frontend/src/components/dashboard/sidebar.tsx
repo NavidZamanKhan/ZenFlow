@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   Grid3x3,
   LayoutDashboard,
@@ -68,6 +68,15 @@ type SidebarProps = {
 
 export function Sidebar({ onNavigate, className }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const prefetch = (href: string) => {
+    try {
+      router.prefetch(href)
+    } catch {
+      // Ignore
+    }
+  }
 
   return (
     <div
@@ -80,6 +89,9 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
       <div className="flex items-center justify-between px-5 pb-2 pt-5">
         <Link
           href="/dashboard"
+          prefetch={true}
+          onMouseEnter={() => prefetch('/dashboard')}
+          onTouchStart={() => prefetch('/dashboard')}
           onClick={onNavigate}
           aria-label="ZenFlow home"
           className="flex items-center gap-2.5 transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]"
@@ -123,6 +135,9 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
               <div key={item.id}>
                 <Link
                   href={item.href}
+                  prefetch={true}
+                  onMouseEnter={() => prefetch(item.href)}
+                  onTouchStart={() => prefetch(item.href)}
                   className={itemClass}
                   onClick={onNavigate}
                   aria-current={isActive && !item.children ? 'page' : undefined}
@@ -147,6 +162,9 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                         <Link
                           key={child.href}
                           href={child.href}
+                          prefetch={true}
+                          onMouseEnter={() => prefetch(child.href)}
+                          onTouchStart={() => prefetch(child.href)}
                           onClick={onNavigate}
                           aria-current={childActive ? 'page' : undefined}
                           className={cn(
