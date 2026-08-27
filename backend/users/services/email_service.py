@@ -124,10 +124,106 @@ class SMTPEmailService(BaseEmailService):
             raise
 
 
+class ResendEmailService(BaseEmailService):
+    """
+    HTTP REST API email service using Resend (https://resend.com).
+    Bypasses cloud host SMTP port restrictions (ports 25, 465, 587)
+    by communicating directly over HTTPS (port 443).
+    """
+
+    def __init__(self, api_key: str | None = None, from_email: str | None = None) -> None:
+        import requests
+        self._requests = requests
+        self.api_key = api_key or getattr(settings, "RESEND_API_KEY", "")
+        self.from_email = from_email or getattr(settings, "RESEND_FROM_EMAIL", "ZenFlow <onboarding@resend.dev>")
+
+    def _send(self, to_email: str, subject: str, html_body: str, plain_text: str) -> None:
+        if not self.api_key:
+            logger.error("RESEND_API_KEY is not configured.")
+            raise ValueError("Email service is not configured (missing RESEND_API_KEY).")
+
+        payload = {
+            "from": self.from_email,
+            "to": [to_email],
+            "subject": subject,
+            "html": html_body,
+            "text": plain_text,
+        }
+
+        try:
+            response = self._requests.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=getattr(settings, "EMAIL_TIMEOUT", 10),
+            )
+            if response.status_code >= 400:
+                logger.error("Resend API error [%s]: %s", response.status_code, response.text)
+                raise RuntimeError(f"Resend error ({response.status_code}): {response.text}")
+            logger.info("Email sent via Resend API to %s", to_email)
+        except Exception:
+            logger.exception("Failed to send email via Resend to %s", to_email)
+            raise
+
+    def send_verification_email(self, to_email: str, full_name: str, otp: str) -> None:
+        subject = "ZenFlow: Verify Your Email"
+        plain = f"Hi {full_name},\n\nYour verification code is: {otp}\nExpires in 5 minutes."
+        html = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
+            <h2 style="color: #6366f1; margin-top: 0;">ZenFlow</h2>
+            <p>Hi <strong>{full_name}</strong>,</p>
+            <p>Your verification code is:</p>
+            <div style="text-align: center; margin: 24px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(99, 102, 241, 0.15); border: 1px solid #6366f1; border-radius: 12px; color: #818cf8; display: inline-block;">{otp}</span>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes. If you did not request this, you can safely ignore this email.</p>
+        </div>
+        """
+        self._send(to_email, subject, html, plain)
+
+    def send_password_reset_email(self, to_email: str, full_name: str, otp: str) -> None:
+        subject = "ZenFlow: Password Reset Code"
+        plain = f"Hi {full_name},\n\nYour password reset code is: {otp}\nExpires in 5 minutes."
+        html = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
+            <h2 style="color: #6366f1; margin-top: 0;">ZenFlow</h2>
+            <p>Hi <strong>{full_name}</strong>,</p>
+            <p>Your password reset code is:</p>
+            <div style="text-align: center; margin: 24px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(99, 102, 241, 0.15); border: 1px solid #6366f1; border-radius: 12px; color: #818cf8; display: inline-block;">{otp}</span>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes. If you did not request a password reset, please secure your account immediately.</p>
+        </div>
+        """
+        self._send(to_email, subject, html, plain)
+
+    def send_account_deletion_email(self, to_email: str, full_name: str, otp: str) -> None:
+        subject = "ZenFlow: Account Deletion Code"
+        plain = f"Hi {full_name},\n\nYour account deletion code is: {otp}\nExpires in 5 minutes."
+        html = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 16px;">
+            <h2 style="color: #ef4444; margin-top: 0;">ZenFlow Account Deletion</h2>
+            <p>Hi <strong>{full_name}</strong>,</p>
+            <p>You requested to permanently delete your ZenFlow account. Enter this verification code to confirm:</p>
+            <div style="text-align: center; margin: 24px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 12px; color: #f87171; display: inline-block;">{otp}</span>
+            </div>
+            <p style="font-size: 13px; color: #f87171; font-weight: 500;">Warning: This will permanently delete your account, tasks, expenses, budgets, and events.</p>
+            <p style="font-size: 13px; color: #94a3b8;">This code expires in 5 minutes.</p>
+        </div>
+        """
+        self._send(to_email, subject, html, plain)
+
+
 def get_email_service() -> BaseEmailService:
     """
     Factory function to return the configured email service.
-    Change this when switching from SMTP to Resend or another provider.
+    Prefers HTTP API (Resend) when RESEND_API_KEY is configured.
     """
+    if getattr(settings, "RESEND_API_KEY", ""):
+        return ResendEmailService()
     return SMTPEmailService()
 
