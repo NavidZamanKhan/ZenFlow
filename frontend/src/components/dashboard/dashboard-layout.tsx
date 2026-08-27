@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { MotionConfig } from 'framer-motion'
 import { useTheme } from 'next-themes'
@@ -52,6 +52,11 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
 
   const closeMobileNav = () => setOpenForPath(null)
 
+  // Clear body scroll lock when entering the dashboard (e.g. after landing mobile menu).
+  useEffect(() => {
+    document.body.style.removeProperty('overflow')
+  }, [])
+
   return (
     // reducedMotion="user" makes every framer-motion animation in the dashboard
     // respect the OS-level prefers-reduced-motion setting (transforms disabled,
@@ -79,7 +84,7 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
           </SlideDrawer>
 
           {/* Content column - full width when drawer is closed */}
-          <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             <MobileHeader
               menuOpen={mobileNavOpen}
               onMenuClick={() => setOpenForPath(pathname)}
