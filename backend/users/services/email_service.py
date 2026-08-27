@@ -179,21 +179,20 @@ def _render_otp_email(
     warning: str | None = None,
 ) -> tuple[str, str]:
     """
-    Renders a clean, ultra-minimal, professional email template inspired by Claude and ChatGPT.
-    - Crisp white card with subtle neutral border
-    - Distinctive, spacious 6-digit monospaced code box
-    - ZenFlow Blue accent for Verification/Reset, Crimson Red for Deletion
-    - Distraction-free, executive aesthetic
+    Renders a clean, transparent, professional email template.
+    - Transparent outer body (no gray box artifacts in Outlook/Gmail)
+    - Clean slate card with subtle border
+    - ZenFlow Blue for verification, Crimson Red for deletion
     """
     is_danger = purpose == "delete"
-    code_color = "#dc2626" if is_danger else "#2563eb"
-    code_bg = "#fef2f2" if is_danger else "#f0f7ff"
-    code_border = "#fecaca" if is_danger else "#dbeafe"
+    code_color = "#f87171" if is_danger else "#60a5fa"
+    code_bg = "rgba(239, 68, 68, 0.12)" if is_danger else "rgba(99, 102, 241, 0.12)"
+    code_border = "rgba(239, 68, 68, 0.3)" if is_danger else "rgba(99, 102, 241, 0.3)"
 
     warning_html = ""
     if warning:
         warning_html = f"""
-        <p style="margin: 20px 0 0 0; font-size: 13px; line-height: 1.5; color: #dc2626; font-weight: 500;">
+        <p style="margin: 16px 0 0 0; font-size: 13px; line-height: 1.5; color: #f87171; font-weight: 500;">
           <strong>Warning:</strong> {warning}
         </p>
         """
@@ -205,42 +204,46 @@ def _render_otp_email(
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{title}</title>
 </head>
-<body style="margin: 0; padding: 40px 16px; background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; -webkit-font-smoothing: antialiased;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center" style="max-width: 460px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 36px 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+<body style="margin: 0; padding: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center" style="max-width: 480px; margin: 0 auto;">
     <tr>
-      <td>
-        <!-- Brand Header -->
-        <div style="margin-bottom: 24px;">
-          <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.4px; color: #111827;">ZenFlow</span>
-        </div>
-
-        <!-- Greeting & Subtitle -->
-        <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #374151;">
-          Hi {full_name},
-        </p>
-        <p style="margin: 0 0 28px 0; font-size: 15px; line-height: 1.6; color: #374151;">
-          {description}
-        </p>
-
-        <!-- Minimalist Code Box -->
-        <div style="margin: 0 0 28px 0; padding: 18px 24px; background-color: {code_bg}; border: 1px solid {code_border}; border-radius: 10px; text-align: center;">
-          <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 32px; font-weight: 700; letter-spacing: 8px; color: {code_color}; user-select: all; -webkit-user-select: all;">
-            {otp}
+      <td style="padding: 0 12px;">
+        <!-- Clean Floating Card -->
+        <div style="background-color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 32px 26px;">
+          
+          <!-- Brand Wordmark -->
+          <div style="margin-bottom: 20px;">
+            <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.3px; color: #ffffff;">ZenFlow</span>
           </div>
+
+          <!-- Greeting & Description -->
+          <p style="margin: 0 0 12px 0; font-size: 15px; line-height: 1.5; color: #f8fafc;">
+            Hi <strong>{full_name}</strong>,
+          </p>
+          <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #cbd5e1;">
+            {description}
+          </p>
+
+          <!-- Clean OTP Box -->
+          <div style="margin: 20px 0; padding: 16px 20px; background-color: {code_bg}; border: 1px solid {code_border}; border-radius: 12px; text-align: center;">
+            <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 32px; font-weight: 700; letter-spacing: 8px; color: {code_color}; user-select: all; -webkit-user-select: all;">
+              {otp}
+            </div>
+          </div>
+
+          <p style="margin: 0 0 8px 0; font-size: 13px; line-height: 1.5; color: #94a3b8;">
+            This code will expire in <strong>5 minutes</strong>. If you didn't request this code, you can safely ignore this email.
+          </p>
+
+          {warning_html}
+
+          <!-- Minimal Footer -->
+          <hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 24px 0 16px 0;">
+
+          <p style="margin: 0; font-size: 12px; color: #64748b; line-height: 1.5;">
+            ZenFlow &middot; Bring clarity to your day
+          </p>
         </div>
-
-        <p style="margin: 0 0 8px 0; font-size: 13px; line-height: 1.5; color: #6b7280;">
-          This code will expire in <strong>5 minutes</strong>. If you didn't request this code, you can safely ignore this email.
-        </p>
-
-        {warning_html}
-
-        <!-- Divider & Footer -->
-        <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 28px 0 20px 0;">
-
-        <p style="margin: 0; font-size: 12px; color: #9ca3af; line-height: 1.5;">
-          ZenFlow &middot; Bring clarity to your day
-        </p>
       </td>
     </tr>
   </table>
