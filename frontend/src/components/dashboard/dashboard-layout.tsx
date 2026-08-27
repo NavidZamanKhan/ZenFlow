@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import { SlideDrawer } from '@/components/ui/slide-drawer'
 import { SpotlightModal } from './spotlight-modal'
 import { MobileHeader } from './mobile-header'
+import { HeaderActions } from './header-actions'
 import { NotificationsProvider } from './notifications-provider'
 import { Sidebar } from './sidebar'
 import { MainContent } from './main-content'
@@ -97,6 +98,12 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
               menuOpen={mobileNavOpen}
               onMenuClick={() => setOpenForPath(pathname)}
             />
+
+            {/* Desktop Top Header Bar */}
+            <header className="hidden h-14 flex-shrink-0 items-center justify-end border-b border-slate-100/80 px-8 dark:border-[var(--zf-border)]/80 dark:bg-[var(--zf-surface)] lg:flex">
+              <HeaderActions className="gap-2.5" />
+            </header>
+
             <main
               id="main-content"
               className={cn(
