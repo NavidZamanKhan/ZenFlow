@@ -431,6 +431,12 @@ class AuthService:
         otp_expires_at = self.otp_service.get_expiry_time()
         resend_available_at = self.otp_service.get_resend_available_time()
 
+        try:
+            self.email_service.send_password_reset_email(user.email, user.full_name, otp)
+        except Exception as e:
+            logger.error("Failed to send password reset email to %s: %s", user.email, e)
+            raise ValidationError("Could not send email. Please verify email/SMTP settings and try again.")
+
         AccountOTP.objects.update_or_create(
             user=user,
             purpose=AccountOTP.PURPOSE_PASSWORD_RESET,
@@ -441,13 +447,6 @@ class AuthService:
                 "failed_attempts": 0,
             },
         )
-
-        try:
-            self.email_service.send_password_reset_email(user.email, user.full_name, otp)
-        except Exception as e:
-            logger.error("Failed to send password reset email to %s: %s", user.email, e)
-            AccountOTP.objects.filter(user=user, purpose=AccountOTP.PURPOSE_PASSWORD_RESET).delete()
-            raise ValidationError("Could not send email. Please verify email/SMTP settings and try again.")
 
         logger.info("Password reset OTP sent to %s", user.email)
         return {"message": "Verification code sent to your email."}
@@ -474,7 +473,7 @@ class AuthService:
         if not self.otp_service.verify_otp(otp, record.otp_hash):
             record.failed_attempts += 1
             record.save(update_fields=["failed_attempts"])
-            remaining = OTP_MAX_FAILED_ATTEMPTS - record.failed_attempts
+            remaining = 3 - record.failed_attempts
             if remaining <= 0:
                 record.delete()
                 raise ValidationError("Too many failed attempts. Please request a new code.")
@@ -506,6 +505,12 @@ class AuthService:
         otp_expires_at = self.otp_service.get_expiry_time()
         resend_available_at = self.otp_service.get_resend_available_time()
 
+        try:
+            self.email_service.send_account_deletion_email(user.email, user.full_name, otp)
+        except Exception as e:
+            logger.error("Failed to send account deletion email to %s: %s", user.email, e)
+            raise ValidationError("Could not send email. Please verify email/SMTP settings and try again.")
+
         AccountOTP.objects.update_or_create(
             user=user,
             purpose=AccountOTP.PURPOSE_DELETE_ACCOUNT,
@@ -516,13 +521,6 @@ class AuthService:
                 "failed_attempts": 0,
             },
         )
-
-        try:
-            self.email_service.send_account_deletion_email(user.email, user.full_name, otp)
-        except Exception as e:
-            logger.error("Failed to send account deletion email to %s: %s", user.email, e)
-            AccountOTP.objects.filter(user=user, purpose=AccountOTP.PURPOSE_DELETE_ACCOUNT).delete()
-            raise ValidationError("Could not send email. Please verify email/SMTP settings and try again.")
 
         logger.info("Account deletion OTP sent to %s", user.email)
         return {"message": "Account deletion verification code sent to your email."}
