@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { LogOut, Settings, UserRound } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,19 +47,22 @@ export function UserMenu({ className }: UserMenuProps) {
       <DropdownMenuTrigger
         aria-label="User menu"
         className={cn(
-          'zf-tap relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[var(--zf-accent-soft)] text-sm font-bold text-[var(--zf-accent-fg)] transition-colors hover:bg-[var(--zf-accent-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent-fg)] dark:hover:bg-[var(--zf-hover-fill)]',
+          'zf-tap flex h-9 w-9 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]',
           className,
         )}
       >
-        {user?.avatarUrl ? (
-          <img
-            src={user.avatarUrl}
-            alt={displayName}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span aria-hidden="true">{letter}</span>
-        )}
+        <Avatar className="size-9 rounded-full">
+          {user?.avatarUrl && (
+            <AvatarImage
+              src={user.avatarUrl}
+              alt={displayName}
+              className="h-full w-full rounded-full object-cover"
+            />
+          )}
+          <AvatarFallback className="bg-[var(--zf-accent-soft)] text-sm font-bold text-[var(--zf-accent-fg)] dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-accent-fg)]">
+            {letter}
+          </AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
