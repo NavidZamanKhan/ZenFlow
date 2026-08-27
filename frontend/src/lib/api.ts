@@ -135,20 +135,54 @@ async function request<T>(
   return body as T
 }
 
+// Single-flight token refresh promise to prevent duplicate concurrent refresh requests
+let refreshPromise: Promise<string | null> | null = null
+
+export async function silentRefreshToken(): Promise<string | null> {
+  const tokens = getStoredTokens()
+  if (!tokens?.refresh) {
+    return null
+  }
+
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/refresh/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh: tokens.refresh }),
+        })
+        if (!res.ok) {
+          clearTokens()
+          return null
+        }
+        const data = (await res.json()) as { access: string; refresh?: string }
+        const newAccess = data.access
+        const newRefresh = data.refresh || tokens.refresh
+        storeTokens(newAccess, newRefresh)
+        return newAccess
+      } catch {
+        return null
+      } finally {
+        refreshPromise = null
+      }
+    })()
+  }
+
+  return refreshPromise
+}
+
 /**
  * Wrapper around request() that attaches the stored access token.
- * If the request returns 401, tokens are cleared - the auth context
- * will detect this and redirect to /login.
- *
- * TODO: Wire silent token refresh here once the backend exposes
- * POST /api/auth/refresh/ (TokenRefreshView). Until then, a 401
- * means the session is over and the user must re-login.
+ * If the request returns 401 (token expired), it transparently attempts
+ * a silent token refresh using the 30-day refresh token and automatically
+ * retries the request without interrupting the user.
  */
 async function authRequest<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const tokens = getStoredTokens()
+  let tokens = getStoredTokens()
   if (!tokens) {
     throw new ApiError(401, ['Not authenticated.'])
   }
@@ -163,6 +197,16 @@ async function authRequest<T>(
     })
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
+      const newAccess = await silentRefreshToken()
+      if (newAccess) {
+        return await request<T>(path, {
+          ...options,
+          headers: {
+            ...options.headers,
+            Authorization: `Bearer ${newAccess}`,
+          },
+        })
+      }
       clearTokens()
     }
     throw err

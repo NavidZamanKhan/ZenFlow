@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ZenFlowLogo } from '@/components/zenflow-logo'
 import { SlideDrawer } from '@/components/ui/slide-drawer'
 import { LandingHashLink } from '@/components/landing-hash-link'
+import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 
 const links = [
@@ -18,6 +19,7 @@ const links = [
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -74,19 +76,30 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            render={<Link href="/login" />}
-            className="hidden rounded-full text-sm text-muted-foreground hover:bg-accent/60 hover:text-foreground sm:inline-flex"
-          >
-            Login
-          </Button>
-          <Button
-            render={<Link href="/register" />}
-            className="rounded-full px-5 text-sm shadow-sm transition-transform hover:-translate-y-0.5"
-          >
-            Sign Up
-          </Button>
+          {isAuthenticated ? (
+            <Button
+              render={<Link href="/dashboard" />}
+              className="rounded-full px-5 text-sm shadow-sm transition-transform hover:-translate-y-0.5"
+            >
+              Go to Dashboard &rarr;
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                render={<Link href="/login" />}
+                className="hidden rounded-full text-sm text-muted-foreground hover:bg-accent/60 hover:text-foreground sm:inline-flex"
+              >
+                Login
+              </Button>
+              <Button
+                render={<Link href="/register" />}
+                className="rounded-full px-5 text-sm shadow-sm transition-transform hover:-translate-y-0.5"
+              >
+                Sign Up
+              </Button>
+            </>
+          )}
           <button
             type="button"
             className="zf-tap relative inline-flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] md:hidden"
@@ -123,19 +136,30 @@ export function SiteHeader() {
             ))}
           </nav>
           <div className="mt-auto flex flex-col gap-2 border-t border-border/60 pt-5 sm:hidden">
-            <Button
-              variant="outline"
-              render={<Link href="/login" onClick={closeMenu} />}
-              className="w-full rounded-full"
-            >
-              Login
-            </Button>
-            <Button
-              render={<Link href="/register" onClick={closeMenu} />}
-              className="w-full rounded-full"
-            >
-              Sign Up
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                render={<Link href="/dashboard" onClick={closeMenu} />}
+                className="w-full rounded-full"
+              >
+                Go to Dashboard &rarr;
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  render={<Link href="/login" onClick={closeMenu} />}
+                  className="w-full rounded-full"
+                >
+                  Login
+                </Button>
+                <Button
+                  render={<Link href="/register" onClick={closeMenu} />}
+                  className="w-full rounded-full"
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </SlideDrawer>
