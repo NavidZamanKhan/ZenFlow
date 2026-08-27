@@ -179,21 +179,21 @@ def _render_otp_email(
     warning: str | None = None,
 ) -> tuple[str, str]:
     """
-    Renders a clean, transparent, professional email template.
-    - Transparent outer body (no gray box artifacts in Outlook/Gmail)
-    - Clean slate card with subtle border
-    - ZenFlow Blue for verification, Crimson Red for deletion
+    Renders a high-contrast, comfortable, ultra-clean professional email template.
+    - Deep obsidian card (#0f172a) with crisp borders (#334155)
+    - High-contrast vibrant digits (#ff5252 for deletion, #38bdf8 for verification)
+    - Pure white headings and bright readable body text (#e2e8f0)
     """
     is_danger = purpose == "delete"
-    code_color = "#f87171" if is_danger else "#60a5fa"
-    code_bg = "rgba(239, 68, 68, 0.12)" if is_danger else "rgba(99, 102, 241, 0.12)"
-    code_border = "rgba(239, 68, 68, 0.3)" if is_danger else "rgba(99, 102, 241, 0.3)"
+    code_color = "#ff5252" if is_danger else "#38bdf8"
+    code_bg = "rgba(239, 68, 68, 0.15)" if is_danger else "rgba(59, 130, 246, 0.15)"
+    code_border = "#ef4444" if is_danger else "#3b82f6"
 
     warning_html = ""
     if warning:
         warning_html = f"""
-        <p style="margin: 16px 0 0 0; font-size: 13px; line-height: 1.5; color: #f87171; font-weight: 500;">
-          <strong>Warning:</strong> {warning}
+        <p style="margin: 16px 0 0 0; font-size: 13px; line-height: 1.5; color: #fca5a5; font-weight: 600;">
+          ⚠️ <strong>Warning:</strong> {warning}
         </p>
         """
 
@@ -208,39 +208,39 @@ def _render_otp_email(
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center" style="max-width: 480px; margin: 0 auto;">
     <tr>
       <td style="padding: 0 12px;">
-        <!-- Clean Floating Card -->
-        <div style="background-color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 32px 26px;">
+        <!-- High-Contrast Floating Obsidian Card -->
+        <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 34px 28px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);">
           
           <!-- Brand Wordmark -->
-          <div style="margin-bottom: 20px;">
-            <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.3px; color: #ffffff;">ZenFlow</span>
+          <div style="margin-bottom: 22px;">
+            <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.4px; color: #ffffff;">ZenFlow</span>
           </div>
 
           <!-- Greeting & Description -->
-          <p style="margin: 0 0 12px 0; font-size: 15px; line-height: 1.5; color: #f8fafc;">
-            Hi <strong>{full_name}</strong>,
+          <p style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; line-height: 1.5; color: #ffffff;">
+            Hi {full_name},
           </p>
-          <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #cbd5e1;">
+          <p style="margin: 0 0 22px 0; font-size: 14px; line-height: 1.6; color: #e2e8f0;">
             {description}
           </p>
 
-          <!-- Clean OTP Box -->
-          <div style="margin: 20px 0; padding: 16px 20px; background-color: {code_bg}; border: 1px solid {code_border}; border-radius: 12px; text-align: center;">
-            <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 32px; font-weight: 700; letter-spacing: 8px; color: {code_color}; user-select: all; -webkit-user-select: all;">
+          <!-- High-Contrast OTP Box -->
+          <div style="margin: 22px 0; padding: 18px 20px; background-color: #020617; background-image: radial-gradient(circle, {code_bg} 0%, transparent 80%); border: 1.5px solid {code_border}; border-radius: 12px; text-align: center;">
+            <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: {code_color}; user-select: all; -webkit-user-select: all;">
               {otp}
             </div>
           </div>
 
-          <p style="margin: 0 0 8px 0; font-size: 13px; line-height: 1.5; color: #94a3b8;">
-            This code will expire in <strong>5 minutes</strong>. If you didn't request this code, you can safely ignore this email.
+          <p style="margin: 0 0 8px 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">
+            This code will expire in <strong style="color: #ffffff;">5 minutes</strong>. If you didn't request this code, you can safely ignore this email.
           </p>
 
           {warning_html}
 
           <!-- Minimal Footer -->
-          <hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 24px 0 16px 0;">
+          <hr style="border: none; border-top: 1px solid #334155; margin: 26px 0 16px 0;">
 
-          <p style="margin: 0; font-size: 12px; color: #64748b; line-height: 1.5;">
+          <p style="margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.5;">
             ZenFlow &middot; Bring clarity to your day
           </p>
         </div>
