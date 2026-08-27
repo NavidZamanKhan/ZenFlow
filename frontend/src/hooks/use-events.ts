@@ -81,15 +81,41 @@ export function useEvents() {
 
   const createEvent = useCallback(
     async (input: CalendarEventInput) => {
+      const currentList = clientCache.get<CalendarEvent[]>(cacheKey) ?? events
+      const tempId = `temp-${crypto.randomUUID()}`
+      const now = new Date().toISOString()
+      const optimisticEvent: CalendarEvent = {
+        id: tempId,
+        title: input.title,
+        description: input.description ?? '',
+        start: input.start,
+        end: input.end,
+        allDay: input.allDay ?? false,
+        createdAt: now,
+        updatedAt: now,
+      }
+
+      // Optimistic 0ms insert
+      const optimisticList = [optimisticEvent, ...currentList]
+      clientCache.set(cacheKey, optimisticList)
+      setEvents(optimisticList)
+      toast.success('Event created')
+
       try {
         const created = await eventStore.create(userEmail, input)
-        const currentList = clientCache.get<CalendarEvent[]>(cacheKey) ?? events
-        const updatedList = [...currentList, created]
-        clientCache.set(cacheKey, updatedList)
-        setEvents(updatedList)
-        toast.success('Event created')
+        const syncedList = (clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList).map(
+          (e) => (e.id === tempId ? created : e),
+        )
+        clientCache.set(cacheKey, syncedList)
+        setEvents(syncedList)
         return true
       } catch {
+        // Rollback
+        const rolledBackList = (clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList).filter(
+          (e) => e.id !== tempId,
+        )
+        clientCache.set(cacheKey, rolledBackList)
+        setEvents(rolledBackList)
         toast.error('Could not create the event.')
         return false
       }
@@ -103,17 +129,36 @@ export function useEvents() {
       patch: Partial<CalendarEventInput>,
       options?: MutationOptions,
     ) => {
+      const currentList = clientCache.get<CalendarEvent[]>(cacheKey) ?? events
+      const originalEvent = currentList.find((e) => e.id === id)
+      if (!originalEvent) return false
+
+      // Optimistic 0ms update
+      const now = new Date().toISOString()
+      const optimisticList = currentList.map((e) =>
+        e.id === id ? { ...e, ...patch, updatedAt: now } : e,
+      )
+      clientCache.set(cacheKey, optimisticList)
+      setEvents(optimisticList)
+      if (!options?.silent) {
+        toast.success(options?.successMessage ?? 'Event updated')
+      }
+
       try {
         const updated = await eventStore.update(userEmail, id, patch)
-        const currentList = clientCache.get<CalendarEvent[]>(cacheKey) ?? events
-        const updatedList = currentList.map((e) => (e.id === id ? updated : e))
-        clientCache.set(cacheKey, updatedList)
-        setEvents(updatedList)
-        if (!options?.silent) {
-          toast.success(options?.successMessage ?? 'Event updated')
-        }
+        const syncedList = (clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList).map(
+          (e) => (e.id === id ? updated : e),
+        )
+        clientCache.set(cacheKey, syncedList)
+        setEvents(syncedList)
         return true
       } catch {
+        // Rollback
+        const rolledBackList = (clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList).map(
+          (e) => (e.id === id ? originalEvent : e),
+        )
+        clientCache.set(cacheKey, rolledBackList)
+        setEvents(rolledBackList)
         toast.error('Could not update the event.')
         return false
       }
@@ -123,15 +168,24 @@ export function useEvents() {
 
   const deleteEvent = useCallback(
     async (id: string) => {
+      const currentList = clientCache.get<CalendarEvent[]>(cacheKey) ?? events
+      const originalEvent = currentList.find((e) => e.id === id)
+      if (!originalEvent) return false
+
+      // Optimistic 0ms delete
+      const optimisticList = currentList.filter((e) => e.id !== id)
+      clientCache.set(cacheKey, optimisticList)
+      setEvents(optimisticList)
+      toast.success('Event deleted')
+
       try {
         await eventStore.remove(userEmail, id)
-        const currentList = clientCache.get<CalendarEvent[]>(cacheKey) ?? events
-        const updatedList = currentList.filter((e) => e.id !== id)
-        clientCache.set(cacheKey, updatedList)
-        setEvents(updatedList)
-        toast.success('Event deleted')
         return true
       } catch {
+        // Rollback
+        const rolledBackList = [...(clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList), originalEvent]
+        clientCache.set(cacheKey, rolledBackList)
+        setEvents(rolledBackList)
         toast.error('Could not delete the event.')
         return false
       }

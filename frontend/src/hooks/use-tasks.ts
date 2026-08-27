@@ -105,35 +105,86 @@ export function useTasks() {
     setReloadKey((key) => key + 1)
   }, [])
 
-  const createTask = useCallback(async (input: TaskInput) => {
-    try {
-      const created = await apiCreateTask(input)
-      const updatedList = [...(clientCache.get<Task[]>(cacheKey) ?? tasks), created]
-      clientCache.set(cacheKey, updatedList)
-      setTasks(updatedList)
+  const createTask = useCallback(
+    async (input: TaskInput) => {
+      const currentList = clientCache.get<Task[]>(cacheKey) ?? tasks
+      const tempId = `temp-${crypto.randomUUID()}`
+      const now = new Date().toISOString()
+      const optimisticTask: Task = {
+        id: tempId,
+        title: input.title,
+        description: input.description ?? '',
+        dueDate: input.dueDate ?? null,
+        priority: input.priority ?? 'medium',
+        category: input.category ?? '',
+        completed: input.completed ?? false,
+        createdAt: now,
+        updatedAt: now,
+      }
+
+      // Optimistic 0ms insert
+      const optimisticList = [optimisticTask, ...currentList]
+      clientCache.set(cacheKey, optimisticList)
+      setTasks(optimisticList)
       toast.success('Task created')
-      return true
-    } catch (err: unknown) {
-      console.error('Failed to create task', err)
-      toast.error(taskErrorMessage(err, 'Could not create the task.'))
-      return false
-    }
-  }, [cacheKey, tasks])
+
+      try {
+        const created = await apiCreateTask(input)
+        // Swap temp task with server task
+        const syncedList = (clientCache.get<Task[]>(cacheKey) ?? optimisticList).map(
+          (t) => (t.id === tempId ? created : t),
+        )
+        clientCache.set(cacheKey, syncedList)
+        setTasks(syncedList)
+        return true
+      } catch (err: unknown) {
+        console.error('Failed to create task', err)
+        // Rollback
+        const rolledBackList = (clientCache.get<Task[]>(cacheKey) ?? optimisticList).filter(
+          (t) => t.id !== tempId,
+        )
+        clientCache.set(cacheKey, rolledBackList)
+        setTasks(rolledBackList)
+        toast.error(taskErrorMessage(err, 'Could not create the task.'))
+        return false
+      }
+    },
+    [cacheKey, tasks],
+  )
 
   const updateTask = useCallback(
     async (id: string, patch: Partial<TaskInput>, options?: MutationOptions) => {
+      const currentList = clientCache.get<Task[]>(cacheKey) ?? tasks
+      const originalTask = currentList.find((t) => t.id === id)
+      if (!originalTask) return false
+
+      // Optimistic 0ms update
+      const now = new Date().toISOString()
+      const optimisticList = currentList.map((t) =>
+        t.id === id ? { ...t, ...patch, updatedAt: now } : t,
+      )
+      clientCache.set(cacheKey, optimisticList)
+      setTasks(optimisticList)
+      if (!options?.silent) {
+        toast.success(options?.successMessage ?? 'Task updated')
+      }
+
       try {
         const updated = await apiUpdateTask(id, patch)
-        const currentList = clientCache.get<Task[]>(cacheKey) ?? tasks
-        const updatedList = currentList.map((t) => (t.id === id ? updated : t))
-        clientCache.set(cacheKey, updatedList)
-        setTasks(updatedList)
-        if (!options?.silent) {
-          toast.success(options?.successMessage ?? 'Task updated')
-        }
+        const syncedList = (clientCache.get<Task[]>(cacheKey) ?? optimisticList).map(
+          (t) => (t.id === id ? updated : t),
+        )
+        clientCache.set(cacheKey, syncedList)
+        setTasks(syncedList)
         return true
       } catch (err: unknown) {
         console.error('Failed to update task', err)
+        // Rollback
+        const rolledBackList = (clientCache.get<Task[]>(cacheKey) ?? optimisticList).map(
+          (t) => (t.id === id ? originalTask : t),
+        )
+        clientCache.set(cacheKey, rolledBackList)
+        setTasks(rolledBackList)
         toast.error(taskErrorMessage(err, 'Could not update the task.'))
         return false
       }
@@ -141,21 +192,33 @@ export function useTasks() {
     [cacheKey, tasks],
   )
 
-  const deleteTask = useCallback(async (id: string) => {
-    try {
-      await apiDeleteTask(id)
+  const deleteTask = useCallback(
+    async (id: string) => {
       const currentList = clientCache.get<Task[]>(cacheKey) ?? tasks
-      const updatedList = currentList.filter((t) => t.id !== id)
-      clientCache.set(cacheKey, updatedList)
-      setTasks(updatedList)
+      const originalTask = currentList.find((t) => t.id === id)
+      if (!originalTask) return false
+
+      // Optimistic 0ms delete
+      const optimisticList = currentList.filter((t) => t.id !== id)
+      clientCache.set(cacheKey, optimisticList)
+      setTasks(optimisticList)
       toast.success('Task deleted')
-      return true
-    } catch (err: unknown) {
-      console.error('Failed to delete task', err)
-      toast.error(taskErrorMessage(err, 'Could not delete the task.'))
-      return false
-    }
-  }, [cacheKey, tasks])
+
+      try {
+        await apiDeleteTask(id)
+        return true
+      } catch (err: unknown) {
+        console.error('Failed to delete task', err)
+        // Rollback
+        const rolledBackList = [...(clientCache.get<Task[]>(cacheKey) ?? optimisticList), originalTask]
+        clientCache.set(cacheKey, rolledBackList)
+        setTasks(rolledBackList)
+        toast.error(taskErrorMessage(err, 'Could not delete the task.'))
+        return false
+      }
+    },
+    [cacheKey, tasks],
+  )
 
   const toggleTask = useCallback(
     (task: Task) =>
