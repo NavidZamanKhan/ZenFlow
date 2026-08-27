@@ -50,7 +50,7 @@ export function SiteHeader() {
         className={cn(
           'mx-auto flex max-w-6xl items-center justify-between rounded-full px-4 py-2.5 transition-all duration-300 sm:px-6',
           scrolled
-            ? 'glass-strong border border-border/70 shadow-[0_12px_40px_-18px_rgba(56,89,140,0.4)]'
+            ? 'bg-background border border-border/70 shadow-[0_12px_40px_-18px_rgba(56,89,140,0.4)]'
             : 'border border-transparent',
         )}
       >
