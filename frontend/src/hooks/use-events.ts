@@ -101,24 +101,25 @@ export function useEvents() {
       setEvents(optimisticList)
       toast.success('Event created')
 
-      try {
-        const created = await eventStore.create(userEmail, input)
-        const syncedList = (clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList).map(
-          (e) => (e.id === tempId ? created : e),
-        )
-        clientCache.set(cacheKey, syncedList)
-        setEvents(syncedList)
-        return true
-      } catch {
-        // Rollback
-        const rolledBackList = (clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList).filter(
-          (e) => e.id !== tempId,
-        )
-        clientCache.set(cacheKey, rolledBackList)
-        setEvents(rolledBackList)
-        toast.error('Could not create the event.')
-        return false
-      }
+      // Fire store sync in background
+      eventStore
+        .create(userEmail, input)
+        .then((created) => {
+          const current = clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList
+          const syncedList = current.map((e) => (e.id === tempId ? created : e))
+          clientCache.set(cacheKey, syncedList)
+          setEvents(syncedList)
+        })
+        .catch(() => {
+          // Rollback
+          const current = clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList
+          const rolledBackList = current.filter((e) => e.id !== tempId)
+          clientCache.set(cacheKey, rolledBackList)
+          setEvents(rolledBackList)
+          toast.error('Could not create the event.')
+        })
+
+      return true
     },
     [userEmail, cacheKey, events],
   )
@@ -144,24 +145,25 @@ export function useEvents() {
         toast.success(options?.successMessage ?? 'Event updated')
       }
 
-      try {
-        const updated = await eventStore.update(userEmail, id, patch)
-        const syncedList = (clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList).map(
-          (e) => (e.id === id ? updated : e),
-        )
-        clientCache.set(cacheKey, syncedList)
-        setEvents(syncedList)
-        return true
-      } catch {
-        // Rollback
-        const rolledBackList = (clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList).map(
-          (e) => (e.id === id ? originalEvent : e),
-        )
-        clientCache.set(cacheKey, rolledBackList)
-        setEvents(rolledBackList)
-        toast.error('Could not update the event.')
-        return false
-      }
+      // Fire store sync in background
+      eventStore
+        .update(userEmail, id, patch)
+        .then((updated) => {
+          const current = clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList
+          const syncedList = current.map((e) => (e.id === id ? updated : e))
+          clientCache.set(cacheKey, syncedList)
+          setEvents(syncedList)
+        })
+        .catch(() => {
+          // Rollback
+          const current = clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList
+          const rolledBackList = current.map((e) => (e.id === id ? originalEvent : e))
+          clientCache.set(cacheKey, rolledBackList)
+          setEvents(rolledBackList)
+          toast.error('Could not update the event.')
+        })
+
+      return true
     },
     [userEmail, cacheKey, events],
   )
@@ -178,17 +180,16 @@ export function useEvents() {
       setEvents(optimisticList)
       toast.success('Event deleted')
 
-      try {
-        await eventStore.remove(userEmail, id)
-        return true
-      } catch {
+      eventStore.remove(userEmail, id).catch(() => {
         // Rollback
-        const rolledBackList = [...(clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList), originalEvent]
+        const current = clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList
+        const rolledBackList = [...current, originalEvent]
         clientCache.set(cacheKey, rolledBackList)
         setEvents(rolledBackList)
         toast.error('Could not delete the event.')
-        return false
-      }
+      })
+
+      return true
     },
     [userEmail, cacheKey, events],
   )

@@ -108,24 +108,24 @@ export function useExpenses() {
       setExpenses(optimisticList)
       toast.success('Expense added')
 
-      try {
-        const created = await apiCreateExpense(input)
-        const syncedList = (clientCache.get<Expense[]>(cacheKey) ?? optimisticList).map(
-          (e) => (e.id === tempId ? created : e),
-        )
-        clientCache.set(cacheKey, syncedList)
-        setExpenses(syncedList)
-        return true
-      } catch {
-        // Rollback
-        const rolledBackList = (clientCache.get<Expense[]>(cacheKey) ?? optimisticList).filter(
-          (e) => e.id !== tempId,
-        )
-        clientCache.set(cacheKey, rolledBackList)
-        setExpenses(rolledBackList)
-        toast.error('Could not add the expense.')
-        return false
-      }
+      // Fire network request in background
+      apiCreateExpense(input)
+        .then((created) => {
+          const current = clientCache.get<Expense[]>(cacheKey) ?? optimisticList
+          const syncedList = current.map((e) => (e.id === tempId ? created : e))
+          clientCache.set(cacheKey, syncedList)
+          setExpenses(syncedList)
+        })
+        .catch(() => {
+          // Rollback
+          const current = clientCache.get<Expense[]>(cacheKey) ?? optimisticList
+          const rolledBackList = current.filter((e) => e.id !== tempId)
+          clientCache.set(cacheKey, rolledBackList)
+          setExpenses(rolledBackList)
+          toast.error('Could not add the expense.')
+        })
+
+      return true
     },
     [cacheKey, expenses],
   )
@@ -152,24 +152,24 @@ export function useExpenses() {
       setExpenses(optimisticList)
       toast.success('Expense updated')
 
-      try {
-        const updated = await apiUpdateExpense(id, patch)
-        const syncedList = (clientCache.get<Expense[]>(cacheKey) ?? optimisticList).map(
-          (e) => (e.id === id ? updated : e),
-        )
-        clientCache.set(cacheKey, syncedList)
-        setExpenses(syncedList)
-        return true
-      } catch {
-        // Rollback
-        const rolledBackList = (clientCache.get<Expense[]>(cacheKey) ?? optimisticList).map(
-          (e) => (e.id === id ? originalExpense : e),
-        )
-        clientCache.set(cacheKey, rolledBackList)
-        setExpenses(rolledBackList)
-        toast.error('Could not update the expense.')
-        return false
-      }
+      // Fire network request in background
+      apiUpdateExpense(id, patch)
+        .then((updated) => {
+          const current = clientCache.get<Expense[]>(cacheKey) ?? optimisticList
+          const syncedList = current.map((e) => (e.id === id ? updated : e))
+          clientCache.set(cacheKey, syncedList)
+          setExpenses(syncedList)
+        })
+        .catch(() => {
+          // Rollback
+          const current = clientCache.get<Expense[]>(cacheKey) ?? optimisticList
+          const rolledBackList = current.map((e) => (e.id === id ? originalExpense : e))
+          clientCache.set(cacheKey, rolledBackList)
+          setExpenses(rolledBackList)
+          toast.error('Could not update the expense.')
+        })
+
+      return true
     },
     [cacheKey, expenses],
   )
@@ -186,17 +186,16 @@ export function useExpenses() {
       setExpenses(optimisticList)
       toast.success('Expense deleted')
 
-      try {
-        await apiDeleteExpense(id)
-        return true
-      } catch {
+      apiDeleteExpense(id).catch(() => {
         // Rollback
-        const rolledBackList = [...(clientCache.get<Expense[]>(cacheKey) ?? optimisticList), originalExpense]
+        const current = clientCache.get<Expense[]>(cacheKey) ?? optimisticList
+        const rolledBackList = [...current, originalExpense]
         clientCache.set(cacheKey, rolledBackList)
         setExpenses(rolledBackList)
         toast.error('Could not delete the expense.')
-        return false
-      }
+      })
+
+      return true
     },
     [cacheKey, expenses],
   )

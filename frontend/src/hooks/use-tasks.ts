@@ -128,26 +128,24 @@ export function useTasks() {
       setTasks(optimisticList)
       toast.success('Task created')
 
-      try {
-        const created = await apiCreateTask(input)
-        // Swap temp task with server task
-        const syncedList = (clientCache.get<Task[]>(cacheKey) ?? optimisticList).map(
-          (t) => (t.id === tempId ? created : t),
-        )
-        clientCache.set(cacheKey, syncedList)
-        setTasks(syncedList)
-        return true
-      } catch (err: unknown) {
-        console.error('Failed to create task', err)
-        // Rollback
-        const rolledBackList = (clientCache.get<Task[]>(cacheKey) ?? optimisticList).filter(
-          (t) => t.id !== tempId,
-        )
-        clientCache.set(cacheKey, rolledBackList)
-        setTasks(rolledBackList)
-        toast.error(taskErrorMessage(err, 'Could not create the task.'))
-        return false
-      }
+      // Fire network request in background
+      apiCreateTask(input)
+        .then((created) => {
+          const current = clientCache.get<Task[]>(cacheKey) ?? optimisticList
+          const syncedList = current.map((t) => (t.id === tempId ? created : t))
+          clientCache.set(cacheKey, syncedList)
+          setTasks(syncedList)
+        })
+        .catch((err: unknown) => {
+          console.error('Failed to create task', err)
+          const current = clientCache.get<Task[]>(cacheKey) ?? optimisticList
+          const rolledBackList = current.filter((t) => t.id !== tempId)
+          clientCache.set(cacheKey, rolledBackList)
+          setTasks(rolledBackList)
+          toast.error(taskErrorMessage(err, 'Could not create the task.'))
+        })
+
+      return true
     },
     [cacheKey, tasks],
   )
@@ -169,25 +167,24 @@ export function useTasks() {
         toast.success(options?.successMessage ?? 'Task updated')
       }
 
-      try {
-        const updated = await apiUpdateTask(id, patch)
-        const syncedList = (clientCache.get<Task[]>(cacheKey) ?? optimisticList).map(
-          (t) => (t.id === id ? updated : t),
-        )
-        clientCache.set(cacheKey, syncedList)
-        setTasks(syncedList)
-        return true
-      } catch (err: unknown) {
-        console.error('Failed to update task', err)
-        // Rollback
-        const rolledBackList = (clientCache.get<Task[]>(cacheKey) ?? optimisticList).map(
-          (t) => (t.id === id ? originalTask : t),
-        )
-        clientCache.set(cacheKey, rolledBackList)
-        setTasks(rolledBackList)
-        toast.error(taskErrorMessage(err, 'Could not update the task.'))
-        return false
-      }
+      // Fire network request in background
+      apiUpdateTask(id, patch)
+        .then((updated) => {
+          const current = clientCache.get<Task[]>(cacheKey) ?? optimisticList
+          const syncedList = current.map((t) => (t.id === id ? updated : t))
+          clientCache.set(cacheKey, syncedList)
+          setTasks(syncedList)
+        })
+        .catch((err: unknown) => {
+          console.error('Failed to update task', err)
+          const current = clientCache.get<Task[]>(cacheKey) ?? optimisticList
+          const rolledBackList = current.map((t) => (t.id === id ? originalTask : t))
+          clientCache.set(cacheKey, rolledBackList)
+          setTasks(rolledBackList)
+          toast.error(taskErrorMessage(err, 'Could not update the task.'))
+        })
+
+      return true
     },
     [cacheKey, tasks],
   )
@@ -204,18 +201,16 @@ export function useTasks() {
       setTasks(optimisticList)
       toast.success('Task deleted')
 
-      try {
-        await apiDeleteTask(id)
-        return true
-      } catch (err: unknown) {
+      apiDeleteTask(id).catch((err: unknown) => {
         console.error('Failed to delete task', err)
-        // Rollback
-        const rolledBackList = [...(clientCache.get<Task[]>(cacheKey) ?? optimisticList), originalTask]
+        const current = clientCache.get<Task[]>(cacheKey) ?? optimisticList
+        const rolledBackList = [...current, originalTask]
         clientCache.set(cacheKey, rolledBackList)
         setTasks(rolledBackList)
         toast.error(taskErrorMessage(err, 'Could not delete the task.'))
-        return false
-      }
+      })
+
+      return true
     },
     [cacheKey, tasks],
   )

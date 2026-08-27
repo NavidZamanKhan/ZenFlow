@@ -119,43 +119,80 @@ export function useBudget() {
 
   const setMonthlyTotal = useCallback(
     async (monthlyTotal: number, currency?: CurrencyCode): Promise<boolean> => {
-      try {
-        const patch: Partial<BudgetValues> = {
-          monthlyTotal: nonNegativeNumber(monthlyTotal),
-        }
-        if (currency) patch.currency = currency
-        const updated = await apiUpdateBudget(patch)
-        clientCache.set(cacheKey, updated)
-        budgetRef.current = updated
-        setBudget(updated)
-        return true
-      } catch {
-        return false
+      const originalBudget = budgetRef.current
+      const optimisticBudget: Budget = {
+        ...originalBudget,
+        monthlyTotal: nonNegativeNumber(monthlyTotal),
+        currency: currency ?? originalBudget.currency,
+        updatedAt: new Date().toISOString(),
       }
+
+      // Optimistic 0ms update
+      clientCache.set(cacheKey, optimisticBudget)
+      budgetRef.current = optimisticBudget
+      setBudget(optimisticBudget)
+
+      const patch: Partial<BudgetValues> = {
+        monthlyTotal: nonNegativeNumber(monthlyTotal),
+      }
+      if (currency) patch.currency = currency
+
+      apiUpdateBudget(patch)
+        .then((updated) => {
+          clientCache.set(cacheKey, updated)
+          budgetRef.current = updated
+          setBudget(updated)
+        })
+        .catch(() => {
+          // Rollback
+          clientCache.set(cacheKey, originalBudget)
+          budgetRef.current = originalBudget
+          setBudget(originalBudget)
+        })
+
+      return true
     },
     [cacheKey],
   )
 
   const setCategoryBudget = useCallback(
     async (category: ExpenseCategory, amount: number, currency?: CurrencyCode): Promise<boolean> => {
-      try {
-        const current = budgetRef.current
-        const mergedCategories = {
-          ...current.categoryBudgets,
-          [category]: nonNegativeNumber(amount),
-        }
-        const patch: Partial<BudgetValues> = {
-          categoryBudgets: mergedCategories,
-        }
-        if (currency) patch.currency = currency
-        const updated = await apiUpdateBudget(patch)
-        clientCache.set(cacheKey, updated)
-        budgetRef.current = updated
-        setBudget(updated)
-        return true
-      } catch {
-        return false
+      const originalBudget = budgetRef.current
+      const mergedCategories = {
+        ...originalBudget.categoryBudgets,
+        [category]: nonNegativeNumber(amount),
       }
+      const optimisticBudget: Budget = {
+        ...originalBudget,
+        categoryBudgets: mergedCategories,
+        currency: currency ?? originalBudget.currency,
+        updatedAt: new Date().toISOString(),
+      }
+
+      // Optimistic 0ms update
+      clientCache.set(cacheKey, optimisticBudget)
+      budgetRef.current = optimisticBudget
+      setBudget(optimisticBudget)
+
+      const patch: Partial<BudgetValues> = {
+        categoryBudgets: mergedCategories,
+      }
+      if (currency) patch.currency = currency
+
+      apiUpdateBudget(patch)
+        .then((updated) => {
+          clientCache.set(cacheKey, updated)
+          budgetRef.current = updated
+          setBudget(updated)
+        })
+        .catch(() => {
+          // Rollback
+          clientCache.set(cacheKey, originalBudget)
+          budgetRef.current = originalBudget
+          setBudget(originalBudget)
+        })
+
+      return true
     },
     [cacheKey],
   )
