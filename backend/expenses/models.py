@@ -69,6 +69,11 @@ class Expense(models.Model):
 
     class Meta:
         ordering = ['-date', '-created_at']
+        indexes = [
+            models.Index(fields=['user', '-date', '-created_at']),
+            models.Index(fields=['user', 'category']),
+            models.Index(fields=['user', 'currency']),
+        ]
 
     def __str__(self):
         return f"{self.title} ({self.amount})"

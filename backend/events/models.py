@@ -18,6 +18,9 @@ class Event(models.Model):
 
     class Meta:
         ordering = ['start_datetime']
+        indexes = [
+            models.Index(fields=['user', 'start_datetime', 'end_datetime']),
+        ]
 
     def __str__(self):
         return self.title
