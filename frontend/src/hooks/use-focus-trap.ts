@@ -33,7 +33,12 @@ export function useFocusTrap(
   const lockScroll = options?.lockScroll ?? true
 
   useEffect(() => {
-    if (!open) return
+    if (!open) {
+      if (lockScroll) {
+        document.body.style.removeProperty('overflow')
+      }
+      return
+    }
 
     previouslyFocused.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null

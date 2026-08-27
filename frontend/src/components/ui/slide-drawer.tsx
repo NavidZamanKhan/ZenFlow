@@ -37,7 +37,11 @@ export function SlideDrawer({
   useFocusTrap(open, panelRef, { lockScroll: false })
 
   useEffect(() => {
-    if (!open) return
+    if (!open) {
+      // Release any scroll lock left over from a prior route (e.g. landing menu → login).
+      document.body.style.removeProperty('overflow')
+      return
+    }
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
