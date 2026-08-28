@@ -1,13 +1,35 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRef } from 'react'
+import { useRef, type ChangeEvent } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { Modal } from '@/components/shared/modal'
 import { TASK_PRIORITIES, type Task, type TaskInput, type TaskPriority } from '@/types/task'
 
 const HH_MM_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/
+
+/** Strip non-digits and format as HH:MM (max 4 digits). */
+function formatTimeMask(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 4)
+  if (digits.length <= 2) return digits
+  return `${digits.slice(0, 2)}:${digits.slice(2)}`
+}
+
+/** Map cursor position from raw input to formatted HH:MM string. */
+function resolveTimeMaskCursor(raw: string, cursor: number, formatted: string): number {
+  const digitsBefore = raw.slice(0, cursor).replace(/\D/g, '').length
+  if (digitsBefore === 0) return 0
+
+  let seen = 0
+  for (let i = 0; i < formatted.length; i++) {
+    if (/\d/.test(formatted[i])) {
+      seen++
+      if (seen === digitsBefore) return i + 1
+    }
+  }
+  return formatted.length
+}
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -79,8 +101,25 @@ function TaskForm({
   const dueDate = useWatch({ control, name: 'dueDate' })
   const hasDueDate = Boolean(dueDate?.trim())
   const dueDateRef = useRef<HTMLInputElement | null>(null)
+  const dueTimeInputRef = useRef<HTMLInputElement | null>(null)
 
   const { onChange: onDueDateChange, ...dueDateField } = register('dueDate')
+  const { onChange: _dueTimeOnChange, ref: dueTimeFieldRef, ...dueTimeField } = register('dueTime')
+
+  const handleDueTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const input = e.target
+    const cursor = input.selectionStart ?? input.value.length
+    const formatted = formatTimeMask(input.value)
+
+    setValue('dueTime', formatted, { shouldValidate: true, shouldDirty: true })
+
+    requestAnimationFrame(() => {
+      const el = dueTimeInputRef.current
+      if (!el) return
+      const nextCursor = resolveTimeMaskCursor(input.value, cursor, formatted)
+      el.setSelectionRange(nextCursor, nextCursor)
+    })
+  }
 
   const openNativePicker = (input: HTMLInputElement | null) => {
     if (!input) return
@@ -180,7 +219,12 @@ function TaskForm({
             spellCheck={false}
             maxLength={5}
             className={`${inputClass} min-h-[42px] disabled:cursor-not-allowed disabled:opacity-50`}
-            {...register('dueTime')}
+            {...dueTimeField}
+            ref={(el) => {
+              dueTimeFieldRef(el)
+              dueTimeInputRef.current = el
+            }}
+            onChange={handleDueTimeChange}
           />
           {errors.dueTime ? (
             <p id="task-due-time-error" role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">

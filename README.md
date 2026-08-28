@@ -23,7 +23,6 @@ ZenFlow is a full-stack web application built with a **Next.js** frontend and a 
 - [Deployment](#deployment)
 - [Roadmap](#roadmap)
 - [Team](#team)
-- [License](#license)
 
 ---
 
