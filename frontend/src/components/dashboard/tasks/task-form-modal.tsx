@@ -102,6 +102,7 @@ function TaskForm({
   const hasDueDate = Boolean(dueDate?.trim())
   const dueDateRef = useRef<HTMLInputElement | null>(null)
   const dueTimeInputRef = useRef<HTMLInputElement | null>(null)
+  const dueTimeDigitsRef = useRef((task?.dueTime ?? '').replace(/\D/g, ''))
 
   const { onChange: onDueDateChange, ...dueDateField } = register('dueDate')
   const { onChange: _dueTimeOnChange, ref: dueTimeFieldRef, ...dueTimeField } = register('dueTime')
@@ -109,16 +110,35 @@ function TaskForm({
   const handleDueTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target
     const cursor = input.selectionStart ?? input.value.length
-    const formatted = formatTimeMask(input.value)
+    const prevDigits = dueTimeDigitsRef.current
+    const native = e.nativeEvent as InputEvent
+    const rawDigits = input.value.replace(/\D/g, '').slice(0, 4)
 
+    let newDigits: string
+    if (rawDigits.length > prevDigits.length) {
+      const inserted = native.data?.replace(/\D/g, '') ?? ''
+      if (inserted.length > 1) {
+        newDigits = rawDigits
+      } else if (inserted.length === 1) {
+        newDigits = (prevDigits + inserted).slice(0, 4)
+      } else {
+        newDigits = rawDigits
+      }
+    } else {
+      newDigits = rawDigits
+    }
+
+    const formatted = formatTimeMask(newDigits)
+    const isAdding = newDigits.length > prevDigits.length
+
+    dueTimeDigitsRef.current = newDigits
     setValue('dueTime', formatted, { shouldValidate: true, shouldDirty: true })
 
-    requestAnimationFrame(() => {
-      const el = dueTimeInputRef.current
-      if (!el) return
-      const nextCursor = resolveTimeMaskCursor(input.value, cursor, formatted)
-      el.setSelectionRange(nextCursor, nextCursor)
-    })
+    const el = dueTimeInputRef.current
+    if (!el) return
+
+    const nextCursor = isAdding ? formatted.length : resolveTimeMaskCursor(input.value, cursor, formatted)
+    el.setSelectionRange(nextCursor, nextCursor)
   }
 
   const openNativePicker = (input: HTMLInputElement | null) => {
@@ -196,7 +216,10 @@ function TaskForm({
             onClick={() => openNativePicker(dueDateRef.current)}
             onChange={(e) => {
               onDueDateChange(e)
-              if (!e.target.value) setValue('dueTime', '')
+              if (!e.target.value) {
+                setValue('dueTime', '')
+                dueTimeDigitsRef.current = ''
+              }
             }}
           />
         </div>
