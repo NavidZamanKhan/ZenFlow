@@ -54,6 +54,10 @@ const PAYMENT_COLORS = [
   'var(--chart-4)',
   'var(--chart-5)',
 ]
+/** Recharts' ResponsiveContainer needs a definite parent height, so charts get a fixed body. */
+const CHART_BODY_CLASS = 'h-[200px] sm:h-[270px]'
+/** Chart + legend cards stack on mobile, so they grow instead of clipping the legend. */
+const CHART_LEGEND_BODY_CLASS = 'min-h-[200px] sm:h-[270px]'
 const AXIS_TICK = { fill: '#94A3B8', fontSize: 10, fontWeight: 500 }
 const TOOLTIP_STYLE = {
   backgroundColor: 'var(--zf-surface, #FFFFFF)',
@@ -191,9 +195,10 @@ export function InsightsPage() {
                 description="Your all-time category mix"
                 empty={analytics.categoryBreakdown.length === 0}
                 emptyMessage="Category activity will appear after you add an expense."
+                bodyClassName={CHART_LEGEND_BODY_CLASS}
               >
-                <div className="h-full flex flex-col items-center gap-2 sm:flex-row">
-                  <div className="w-full sm:w-[58%] h-full min-h-[170px] sm:h-[210px]">
+                <div className="h-full flex flex-col items-center gap-3 sm:flex-row">
+                  <div className="w-full h-[170px] sm:w-[58%] sm:h-[210px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Tooltip
@@ -305,9 +310,10 @@ export function InsightsPage() {
                 empty={analytics.paymentDistribution.length === 0}
                 emptyMessage="Payment method activity will appear here."
                 className="lg:col-span-2"
+                bodyClassName={CHART_LEGEND_BODY_CLASS}
               >
                 <div className="h-full flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
-                  <div className="w-full sm:w-1/2 h-full min-h-[170px] sm:h-[210px]">
+                  <div className="w-full h-[170px] sm:w-1/2 sm:h-[210px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Tooltip
@@ -511,6 +517,7 @@ function ChartCard({
   empty,
   emptyMessage,
   className = '',
+  bodyClassName = CHART_BODY_CLASS,
   children,
 }: {
   icon: LucideIcon
@@ -519,6 +526,8 @@ function ChartCard({
   empty: boolean
   emptyMessage: string
   className?: string
+  /** Cards that stack a legend under the chart need to grow past the fixed height. */
+  bodyClassName?: string
   children: ReactNode
 }) {
   return (
@@ -530,7 +539,11 @@ function ChartCard({
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{description}</p>
         </div>
       </div>
-      <div className="h-[200px] sm:h-[270px]" role="img" aria-label={title}>
+      <div
+        className={empty ? CHART_BODY_CLASS : bodyClassName}
+        role="img"
+        aria-label={title}
+      >
         {empty ? <ChartEmpty message={emptyMessage} /> : children}
       </div>
     </div>
@@ -556,9 +569,9 @@ function ChartLegend({
   wide?: boolean
 }) {
   return (
-    <div className={`${wide ? 'w-full sm:w-1/2 sm:grid sm:grid-cols-2' : 'w-full sm:w-[42%]'} gap-x-5 space-y-2 sm:space-y-0`}>
+    <div className={`flex w-full flex-col gap-3 ${wide ? 'sm:w-1/2' : 'sm:w-[42%]'}`}>
       {items.map((item) => (
-        <div key={item.label} className="flex items-center justify-between gap-3 py-1">
+        <div key={item.label} className="flex items-center justify-between gap-3">
           <span className="flex items-center gap-2 min-w-0">
             <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">{item.label}</span>
