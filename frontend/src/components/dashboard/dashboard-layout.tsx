@@ -7,7 +7,6 @@ import { useTheme } from 'next-themes'
 import { Toaster } from 'sonner'
 import { useAccentCssVars } from '@/hooks/use-accent-css-vars'
 import { useMediaQuery } from '@/hooks/use-media-query'
-import { cn } from '@/lib/utils'
 import { SlideDrawer } from '@/components/ui/slide-drawer'
 import { SpotlightModal } from './spotlight-modal'
 import { MobileHeader } from './mobile-header'
@@ -65,7 +64,7 @@ export function DashboardLayout({ children }: { children?: React.ReactNode }) {
     // opacity fades kept).
     <MotionConfig reducedMotion="user">
       <NotificationsProvider>
-        <div className="zf-screen-h flex w-full overflow-hidden bg-white font-sans pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] dark:bg-[var(--zf-canvas)]">
+        <div className="zf-dashboard-shell flex w-full bg-white font-sans pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] dark:bg-[var(--zf-canvas)]">
           <a href="#main-content" className="zf-skip-link">
             Skip to main content
           </a>

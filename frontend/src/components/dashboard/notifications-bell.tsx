@@ -131,7 +131,7 @@ export function NotificationsBell() {
         side="bottom"
         sideOffset={8}
         collisionPadding={12}
-        className="flex w-[min(22rem,calc(100vw-2rem))] flex-col border border-slate-100 bg-white p-0 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)]"
+        className="flex w-[min(22rem,calc(100vw-2rem))] flex-col border border-slate-100 bg-white p-0 dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:shadow-2xl dark:shadow-black/70"
       >
         <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-[var(--zf-border)]">
           <PopoverTitle className="dark:text-[var(--zf-text)]">Notifications</PopoverTitle>
