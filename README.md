@@ -1,32 +1,72 @@
 # ZenFlow
 
-A calm productivity and expense workspace for organizing tasks, calendar events, reminders, spending, budgets, and insights in one place.
+**A calm productivity and expense workspace** for organizing tasks, calendar events, spending, budgets, and insights in one place.
+
+ZenFlow is a full-stack web application built with a **Next.js** frontend and a **Django REST Framework** backend. It combines day-to-day task management with personal finance tracking behind a minimal, distraction-free interface.
+
+> The live application link is available in the repository **About** section on GitHub.
 
 ![ZenFlow Landing Page](Screenshots/Landing%20Page.png)
+
+---
+
+## Table of contents
+
+- [Overview](#overview)
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Architecture](#architecture)
+- [Project structure](#project-structure)
+- [Getting started](#getting-started)
+- [API overview](#api-overview)
+- [Deployment](#deployment)
+- [Roadmap](#roadmap)
+- [Team](#team)
+- [License](#license)
 
 ---
 
 ## Overview
 
-ZenFlow is a decoupled web application with a **Next.js** frontend and a **Django REST Framework** backend. The product focuses on a quiet, minimal interface: an Overview dashboard for “today’s focus,” full task and calendar management, multi-currency expenses and budgets, and client-side Insights charts.
+ZenFlow helps users stay on top of work and money without switching between multiple tools. The **Overview** dashboard surfaces today's focus: open tasks, upcoming reminders, weekly productivity, and monthly spending at a glance. Dedicated pages extend that foundation with full task and calendar workflows, expense logging, budget tracking, and visual insights.
+
+The application uses a **decoupled architecture**: the React frontend communicates with a REST API secured by JWT authentication, while PostgreSQL persists user data on the backend.
+
+**Why ZenFlow?**
+
+| Challenge | ZenFlow approach |
+|-----------|------------------|
+| Scattered productivity tools | Tasks, calendar, and reminders in one dashboard |
+| No spending context while planning | Expenses and budget alongside daily tasks |
+| Cluttered finance UIs | Clean charts and summaries on the Insights page |
+| Generic SaaS look | Custom accent theming and a calm visual language |
 
 ---
 
 ## Screenshots
 
-### Landing
+### Landing page
+
+Marketing site with feature highlights, about section, contact, and authentication entry points.
 
 ![ZenFlow Landing Page](Screenshots/Landing%20Page.png)
 
 ### Dashboard (Overview)
 
+Personalized greeting, task snapshot, productivity chart, reminders, and expense summary.
+
 ![ZenFlow Dashboard](Screenshots/Dashboard.png)
 
 ### Expenses
 
+Expense list with category, payment method, search, filters, and multi-currency support.
+
 ![ZenFlow Expenses](Screenshots/Expense.png)
 
 ### Insights
+
+Spending analytics with category breakdowns, trends, and summary cards.
 
 ![ZenFlow Insights](Screenshots/Insights.png)
 
@@ -34,30 +74,41 @@ ZenFlow is a decoupled web application with a **Next.js** frontend and a **Djang
 
 ## Features
 
-### Implemented
+### Productivity
 
-| Area | What you get |
-|------|----------------|
-| **Landing** | Marketing page with Features, About, Contact (mailto), and auth CTAs |
-| **Authentication** | Email/password signup with OTP verification, login, Google OAuth, logout, password reset OTP, account deletion OTP |
-| **Overview** | Personalized greeting, tasks snapshot, weekly productivity chart, reminders (task dues + calendar events), expenses & budget summary |
-| **Tasks** | Create/update/complete tasks with priorities, categories, due dates, filters, and sorting |
-| **Calendar** | Day / week / month views via FullCalendar; create and drag-reschedule events |
-| **Expenses** | Log expenses with category & payment method, search/filter/sort, multi-currency display (e.g. BDT) |
-| **Budget** | Monthly budget with remaining balance and spending progress |
-| **Insights** | Spending totals, category/payment donuts, weekly & daily charts, trend cards and smart summary tags |
-| **Search** | Global search (`/` / spotlight) across tasks, expenses, events, and settings destinations |
+| Feature | Description |
+|---------|-------------|
+| **Overview dashboard** | Greeting, tasks card, weekly productivity chart, reminders, and expenses snapshot |
+| **Tasks** | CRUD with priorities, categories, optional due date and time (`HH:mm`), filters, sorting, and time-aware overdue logic |
+| **Calendar** | Month, week, day, and list views (FullCalendar); create events and drag to reschedule; task deadlines shown as all-day or timed events |
+| **Reminders** | Upcoming task dues and calendar events surfaced on the dashboard |
+| **Global search** | Spotlight search (`/`) across tasks, expenses, events, and settings |
 | **Notifications** | In-app notification bell in the dashboard chrome |
-| **Settings** | Appearance (accent colors, density), expense preferences (display currency), security (password / account) |
-| **Profile** | User profile view from the account menu |
-| **Theming** | Light UI with selectable brand accents (blue, teal, violet, coral); dark-mode chrome exists in the shell |
 
-### Planned / future improvements
+### Finance
 
-- Silent JWT access-token refresh (refresh tokens are stored; refresh endpoint wiring is still TODO)
-- Dedicated backend routes under `/api/reminders/` and `/api/analytics/` (stubs today; reminders/insights are driven from tasks, events, and expenses on the client)
-- Full dark / system theme persistence (appearance UI currently emphasizes light)
-- Broader a11y contrast polish for some accent palettes
+| Feature | Description |
+|---------|-------------|
+| **Expenses** | Log spending with category and payment method; search, filter, and sort |
+| **Budget** | Monthly budget with remaining balance and progress visualization |
+| **Multi-currency** | Display currency preferences with conversion for summaries |
+| **Insights** | Totals, category and payment donuts, weekly/daily charts, trend cards |
+
+### Account and settings
+
+| Feature | Description |
+|---------|-------------|
+| **Authentication** | Email/password signup with OTP verification, login, Google OAuth, logout |
+| **Security** | Password change and account deletion via OTP flows |
+| **Appearance** | Selectable brand accents (blue, teal, violet, coral) and UI density |
+| **Profile** | User profile from the account menu |
+
+### Landing and marketing
+
+| Feature | Description |
+|---------|-------------|
+| **Public site** | Landing page with features, about, contact (mailto), and auth CTAs |
+| **Theming** | Light-first UI with dark-mode shell support and accent customization |
 
 ---
 
@@ -65,28 +116,59 @@ ZenFlow is a decoupled web application with a **Next.js** frontend and a **Djang
 
 ### Frontend (`frontend/`)
 
-- **Next.js 16** (App Router) · **React 19** · **TypeScript**
-- **Tailwind CSS v4** · **shadcn/ui** (Base UI) · **Lucide** icons
-- **Framer Motion** · **FullCalendar** · **Recharts**
-- **React Hook Form** + **Zod** · **next-themes** · **Sonner**
-- **@react-oauth/google** for Google sign-in
+| Technology | Role |
+|------------|------|
+| **Next.js 16** (App Router) | Routing, SSR, and production builds |
+| **React 19** · **TypeScript** | UI components and type safety |
+| **Tailwind CSS v4** | Utility-first styling |
+| **shadcn/ui** (Base UI) | Accessible UI primitives |
+| **Framer Motion** | Page and list animations |
+| **FullCalendar** | Interactive calendar views |
+| **Recharts** | Insights and productivity charts |
+| **React Hook Form** + **Zod** | Form validation |
+| **next-themes** · **Sonner** | Theme handling and toasts |
+| **@react-oauth/google** | Google sign-in |
 
 ### Backend (`backend/`)
 
-- **Django 6** · **Django REST Framework**
-- **PostgreSQL** (via **psycopg**)
-- **SimpleJWT** (access + refresh) · **Argon2** password hashing
-- **django-cors-headers** · Google ID token verification
-- **gunicorn** · **whitenoise** · **dj-database-url** (deploy-friendly DB config)
+| Technology | Role |
+|------------|------|
+| **Django 6** · **Django REST Framework** | API layer and business logic |
+| **PostgreSQL** (psycopg) | Primary data store |
+| **SimpleJWT** | Access and refresh token auth |
+| **Argon2** | Password hashing |
+| **django-cors-headers** | Cross-origin API access |
+| **gunicorn** · **whitenoise** | Production serving |
+| **dj-database-url** | Environment-based DB configuration |
 
-### Architecture
+---
+
+## Architecture
 
 ```text
-frontend/ (Next.js)  ←→  REST + JWT  ←→  backend/ (Django DRF + PostgreSQL)
+┌─────────────────────┐         REST + JWT          ┌──────────────────────────┐
+│   Next.js frontend  │  ◄──────────────────────►  │  Django REST Framework   │
+│   (React / TS)      │         JSON over HTTPS     │  + PostgreSQL            │
+└─────────────────────┘                             └──────────────────────────┘
 ```
 
-Backend flow: **Views → Serializers → Services → Models**.  
-Frontend: **Auth context** for session hydration; **custom hooks** (`use-tasks`, `use-expenses`, `use-budget`, `use-events`, …) for domain data.
+**Backend pattern:** Views → Serializers → Services → Models  
+**Frontend pattern:** Auth context for session hydration; domain hooks (`use-tasks`, `use-expenses`, `use-budget`, `use-events`, …) for data fetching and optimistic updates.
+
+### Main routes
+
+| Path | Purpose |
+|------|---------|
+| `/` | Landing page |
+| `/login` · `/register` | Authentication |
+| `/dashboard` | Overview |
+| `/dashboard/tasks` | Task management |
+| `/dashboard/calendar` | Calendar |
+| `/dashboard/expenses` | Expense list |
+| `/dashboard/expenses/budget` | Budget |
+| `/dashboard/insights` | Analytics |
+| `/dashboard/settings` | Preferences and security |
+| `/dashboard/profile` | User profile |
 
 ---
 
@@ -94,60 +176,45 @@ Frontend: **Auth context** for session hydration; **custom hooks** (`use-tasks`,
 
 ```text
 ZenFlow/
-├── Screenshots/          # README product screenshots
-├── frontend/             # Next.js app
+├── Screenshots/              # Product screenshots for documentation
+├── frontend/                 # Next.js application
 │   └── src/
-│       ├── app/          # Routes (landing, login, register, dashboard/*)
-│       ├── components/   # UI, landing, dashboard, auth
-│       ├── hooks/        # Data & UI hooks
-│       ├── lib/          # API client, auth, currency, accents, search
-│       └── types/        # Shared TypeScript types
-├── backend/              # Django project
-│   ├── config/           # Settings & root URLs
-│   ├── users/            # Auth, profile, OTP, Google
-│   ├── tasks/            # Task API
-│   ├── events/           # Calendar events API
-│   ├── expenses/         # Expense API
-│   ├── budget/           # Budget API
-│   ├── reminders/        # URL stub (future)
-│   └── analytics/        # URL stub (future)
-├── netlify.toml          # Frontend deploy (Netlify + Next.js plugin)
+│       ├── app/              # App Router pages
+│       ├── components/       # Landing, dashboard, auth, shared UI
+│       ├── hooks/            # Data and UI hooks
+│       ├── lib/              # API client, auth, currency, search
+│       └── types/            # Shared TypeScript types
+├── backend/                  # Django project
+│   ├── config/               # Settings and root URLs
+│   ├── users/                # Auth, profile, OTP, Google
+│   ├── tasks/                # Task API
+│   ├── events/               # Calendar events API
+│   ├── expenses/             # Expense API
+│   ├── budget/               # Budget API
+│   ├── reminders/            # URL stub (future)
+│   └── analytics/            # URL stub (future)
+├── netlify.toml              # Frontend deploy (Netlify + Next.js plugin)
 └── README.md
 ```
-
-### Main app routes
-
-| Path | Purpose |
-|------|---------|
-| `/` | Landing |
-| `/login`, `/register` | Auth |
-| `/dashboard` | Overview |
-| `/dashboard/tasks` | Tasks |
-| `/dashboard/calendar` | Calendar |
-| `/dashboard/expenses` | All expenses |
-| `/dashboard/expenses/budget` | Budget |
-| `/dashboard/insights` | Insights |
-| `/dashboard/settings` | Settings |
-| `/dashboard/profile` | Profile |
 
 ---
 
 ## Getting started
 
-### Requirements
+### Prerequisites
 
 - **Node.js** 18+
 - **Python** 3.12+
 - **PostgreSQL** 14+ (17 recommended)
 
-### 1. Clone
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/NavidZamanKhan/ZenFlow.git
 cd ZenFlow
 ```
 
-### 2. Backend
+### 2. Backend setup
 
 ```bash
 cd backend
@@ -162,31 +229,31 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Copy `backend/.env.example` to `backend/.env` and set your PostgreSQL credentials (and optional email / Google client ID).
+Copy `backend/.env.example` to `backend/.env` and configure PostgreSQL credentials (and optional email / Google client ID).
 
 ```bash
 python manage.py migrate
 python manage.py runserver
 ```
 
-API defaults to [http://localhost:8000](http://localhost:8000).
+The API runs at [http://localhost:8000](http://localhost:8000) by default.
 
-### 3. Frontend
+### 3. Frontend setup
 
 ```bash
 cd frontend
 npm install
 ```
 
-Copy `frontend/.env.example` to `frontend/.env.local` if you use Google OAuth (`NEXT_PUBLIC_GOOGLE_CLIENT_ID`). Point the API base URL at your backend (see your frontend env / deploy config for `NEXT_PUBLIC_API_URL` when used).
+Copy `frontend/.env.example` to `frontend/.env.local` if using Google OAuth (`NEXT_PUBLIC_GOOGLE_CLIENT_ID`). Set `NEXT_PUBLIC_API_URL` to point at your backend when needed.
 
 ```bash
 npm run dev
 ```
 
-App defaults to [http://localhost:3000](http://localhost:3000).
+The app runs at [http://localhost:3000](http://localhost:3000) by default.
 
-### 4. Useful commands
+### 4. Development commands
 
 ```bash
 # Frontend
@@ -198,26 +265,37 @@ cd backend && python manage.py migrate && python manage.py test
 
 ---
 
-## API surface (high level)
+## API overview
 
-Authenticated routes expect `Authorization: Bearer <access_token>`.
+Authenticated routes require `Authorization: Bearer <access_token>`.
 
-| Prefix | Role |
-|--------|------|
-| `/api/auth/` | Register, OTP verify/resend, login, Google, logout, me, password & delete-account flows |
-| `/api/tasks/` | Task CRUD |
+| Prefix | Description |
+|--------|-------------|
+| `/api/auth/` | Register, OTP verify/resend, login, Google, logout, profile, password and account deletion |
+| `/api/tasks/` | Task CRUD (includes optional `dueDate` and `dueTime`) |
 | `/api/events/` | Calendar event CRUD |
 | `/api/expenses/` | Expense CRUD |
-| `/api/budget/` | Budget read/update & related helpers |
-| `/api/reminders/` | Reserved (no routes yet) |
-| `/api/analytics/` | Reserved (no routes yet) |
+| `/api/budget/` | Budget read/update |
+| `/api/reminders/` | Reserved for future use |
+| `/api/analytics/` | Reserved for future use |
 
 ---
 
-## Deployment notes
+## Deployment
 
-- **Frontend:** Netlify via `netlify.toml` (`@netlify/plugin-nextjs`).
-- **Backend:** Designed for a host that can run Django + PostgreSQL (e.g. Render/Neon-style `DATABASE_URL` through `dj-database-url`).
+| Layer | Platform |
+|-------|----------|
+| **Frontend** | Netlify via `netlify.toml` and `@netlify/plugin-nextjs` |
+| **Backend** | Django host with PostgreSQL (e.g. Render with `DATABASE_URL` via `dj-database-url`) |
+
+---
+
+## Roadmap
+
+- Silent JWT access-token refresh (refresh tokens stored; frontend retry wiring in progress)
+- Dedicated `/api/reminders/` and `/api/analytics/` backends (client-driven reminders and insights today)
+- Full dark and system theme persistence
+- Broader accessibility contrast polish for accent palettes
 
 ---
 
@@ -227,6 +305,3 @@ Built by [NavidZamanKhan](https://github.com/NavidZamanKhan) and [ak1bhasan](htt
 
 ---
 
-## License
-
-No `LICENSE` file is currently published in the repository. Add one if you intend to distribute ZenFlow under a specific open-source license.
