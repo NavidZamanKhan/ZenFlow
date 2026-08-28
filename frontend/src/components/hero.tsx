@@ -6,7 +6,9 @@ import { Reveal } from '@/components/reveal'
 
 export function Hero() {
   return (
-    <section id="top" className="relative px-4 pt-36 pb-20 sm:pt-40 lg:pt-44 lg:pb-28">
+    // overflow-x-clip contains the mockup's blurred glow without creating a
+    // scroll container, so the card's shadow and float travel stay unclipped.
+    <section id="top" className="relative overflow-x-clip px-4 pt-36 pb-20 sm:pt-40 lg:pt-44 lg:pb-28">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.9fr_1.3fr] lg:gap-12">
         {/* copy */}
         <div className="max-w-xl">
@@ -61,7 +63,7 @@ export function Hero() {
         </div>
 
         {/* dashboard */}
-        <Reveal delay={200} className="relative min-w-0 overflow-hidden">
+        <Reveal delay={200} className="relative min-w-0">
           <div
             className="absolute -inset-3 -z-10 rounded-[2rem] bg-primary/10 blur-2xl sm:-inset-6 sm:rounded-[2.5rem] sm:blur-3xl"
             aria-hidden="true"
