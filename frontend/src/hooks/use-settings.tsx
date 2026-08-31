@@ -9,6 +9,7 @@ import React, {
 } from 'react'
 import { useAuth } from '@/lib/auth'
 import { apiGetBudget, apiUpdateBudget } from '@/lib/api'
+import { clientCache } from '@/lib/client-cache'
 import {
   type CurrencyCode,
   convertAmount,
@@ -72,6 +73,26 @@ interface SettingsContextType {
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
+
+const VALID_CATEGORIES = [
+  'Food',
+  'Transportation',
+  'Bills',
+  'Shopping',
+  'Entertainment',
+  'Education',
+  'Healthcare',
+  'Travel',
+  'Subscription',
+  'Others',
+]
+
+function normalizeCategoryName(raw: string): string {
+  const match = VALID_CATEGORIES.find(
+    (c) => c.toLowerCase() === raw.trim().toLowerCase(),
+  )
+  return match || 'Others'
+}
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
@@ -183,7 +204,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                 const convertedCategories: Record<string, number> = {}
                 if (cloudBudget.categoryBudgets) {
                   for (const [cat, amt] of Object.entries(cloudBudget.categoryBudgets)) {
-                    convertedCategories[cat] = convertAmount(
+                    const normalizedCat = normalizeCategoryName(cat)
+                    convertedCategories[normalizedCat] = convertAmount(
                       Number(amt) || 0,
                       newCur,
                       rates,
@@ -195,6 +217,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
                   monthlyTotal: convertedMonthlyTotal,
                   categoryBudgets: convertedCategories,
                   currency: newCur,
+                }).then((updatedBudget) => {
+                  // Invalidate and update SWR in-memory clientCache
+                  const budgetCacheKey = `${userEmail}:budget`
+                  clientCache.set(budgetCacheKey, updatedBudget)
                 })
               })
               .catch((err) => {

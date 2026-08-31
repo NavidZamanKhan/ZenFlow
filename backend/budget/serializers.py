@@ -13,13 +13,16 @@ class BudgetSerializer(serializers.ModelSerializer):
         decimal_places=2,
         min_value=0,
         coerce_to_string=False,
+        required=False,
     )
     categoryBudgets = serializers.JSONField(
         source='category_budgets',
+        required=False,
     )
     warningThresholds = serializers.ListField(
         child=serializers.IntegerField(min_value=0, max_value=200),
         source='warning_thresholds',
+        required=False,
     )
     alertedThresholds = serializers.JSONField(
         source='alerted_thresholds',
@@ -55,19 +58,23 @@ class BudgetSerializer(serializers.ModelSerializer):
         if not isinstance(value, dict):
             raise serializers.ValidationError('categoryBudgets must be a dictionary.')
 
-        valid_categories = set(Expense.Category.values)
+        category_map = {c.lower(): c for c in Expense.Category.values}
+        normalized = {}
 
         for category, amount in value.items():
-            if category not in valid_categories:
-                raise serializers.ValidationError(
-                    f"'{category}' is not a valid expense category."
-                )
-            if not isinstance(amount, (int, float)) or amount < 0:
-                raise serializers.ValidationError(
-                    f"Budget for '{category}' must be a non-negative number."
-                )
+            cat_key = str(category).strip().lower()
+            if cat_key in category_map:
+                std_category = category_map[cat_key]
+                try:
+                    num_amount = float(amount)
+                    if num_amount >= 0:
+                        normalized[std_category] = round(num_amount, 2)
+                except (ValueError, TypeError):
+                    raise serializers.ValidationError(
+                        f"Budget for '{category}' must be a non-negative number."
+                    )
 
-        return value
+        return normalized
 
 
 class RecordAlertItemSerializer(serializers.Serializer):
