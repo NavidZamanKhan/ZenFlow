@@ -5,13 +5,14 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from 'react'
 import { useAuth } from '@/lib/auth'
+import { apiGetBudget, apiUpdateBudget } from '@/lib/api'
 import {
   createDefaultSettings,
   type ZenFlowSettings,
+  type ExpensePreferenceSettings,
 } from '@/types/settings'
 
 export function settingsStorageKey(userEmail: string): string {
@@ -96,8 +97,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     try {
       const raw = localStorage.getItem(settingsStorageKey(userEmail))
       const stored: unknown = raw ? JSON.parse(raw) : null
+      const initialMerged = mergeStoredSettings(stored, defaults)
       if (!cancelled) {
-        setSettings(mergeStoredSettings(stored, defaults))
+        setSettings(initialMerged)
         setError(null)
       }
     } catch {
@@ -108,6 +110,27 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     } finally {
       if (!cancelled) setLoading(false)
     }
+
+    // Cloud synchronization for active currency
+    apiGetBudget()
+      .then((budget) => {
+        if (cancelled || !budget?.currency) return
+        setSettings((prev) => {
+          if (prev.expensePreferences?.currency === budget.currency) return prev
+          const next = {
+            ...prev,
+            expensePreferences: {
+              ...prev.expensePreferences,
+              currency: budget.currency as ZenFlowSettings['expensePreferences']['currency'],
+            },
+          }
+          try {
+            localStorage.setItem(settingsStorageKey(userEmail), JSON.stringify(next))
+          } catch (_) {}
+          return next
+        })
+      })
+      .catch(() => {})
 
     return () => {
       cancelled = true
@@ -133,6 +156,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           if (app.theme && typeof window !== 'undefined') {
             localStorage.setItem('zenflow:ui-theme', app.theme)
           }
+        } else if (section === 'expensePreferences') {
+          const exp = value as ExpensePreferenceSettings
+          if (exp.currency) {
+            apiUpdateBudget({ currency: exp.currency }).catch((err) => {
+              console.error('Failed to sync currency to cloud budget', err)
+            })
+          }
         }
         setSettings(next)
         return true
@@ -143,19 +173,22 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     [settings, userEmail],
   )
 
-  const value = useMemo(
-    () => ({ settings, loading, error, reload, updateSection }),
-    [settings, loading, error, reload, updateSection],
-  )
-
   return (
-    <SettingsContext.Provider value={value}>
+    <SettingsContext.Provider
+      value={{
+        settings,
+        loading,
+        error,
+        reload,
+        updateSection,
+      }}
+    >
       {children}
     </SettingsContext.Provider>
   )
 }
 
-export function useSettings() {
+export function useSettings(): SettingsContextType {
   const context = useContext(SettingsContext)
   if (!context) {
     throw new Error('useSettings must be used within a SettingsProvider')
