@@ -121,10 +121,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       timeZone,
     )
 
+    let initialMerged = defaults
     try {
       const raw = localStorage.getItem(settingsStorageKey(userEmail))
       const stored: unknown = raw ? JSON.parse(raw) : null
-      const initialMerged = mergeStoredSettings(stored, defaults)
+      initialMerged = mergeStoredSettings(stored, defaults)
       if (!cancelled) {
         setSettings(initialMerged)
         setError(null)
@@ -138,24 +139,45 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       if (!cancelled) setLoading(false)
     }
 
-    // Cloud synchronization for active currency preference
+    // Cloud synchronization: verify cloud budget and keep in sync without overwriting user's local explicit preference
     apiGetBudget()
       .then((cloudBudget) => {
         if (cancelled || !cloudBudget?.currency) return
-        setSettings((prev) => {
-          if (prev.expensePreferences?.currency === cloudBudget.currency) return prev
-          const next = {
-            ...prev,
-            expensePreferences: {
-              ...prev.expensePreferences,
-              currency: cloudBudget.currency as SettingsCurrency,
-            },
-          }
-          try {
-            localStorage.setItem(settingsStorageKey(userEmail), JSON.stringify(next))
-          } catch (_) {}
-          return next
-        })
+        const localCur = initialMerged.expensePreferences?.currency
+        if (localCur && localCur !== cloudBudget.currency) {
+          // Push local preferred currency to cloud so cloud catches up to user choice
+          fetchExchangeRates().then((ratesData) => {
+            const oldCur = cloudBudget.currency as CurrencyCode
+            const newCur = localCur as CurrencyCode
+            const rates = ratesData.rates
+            const convertedMonthlyTotal = convertAmount(
+              cloudBudget.monthlyTotal || 0,
+              newCur,
+              rates,
+              oldCur,
+            )
+            const convertedCategories: Record<string, number> = {}
+            if (cloudBudget.categoryBudgets) {
+              for (const [cat, amt] of Object.entries(cloudBudget.categoryBudgets)) {
+                const normalizedCat = normalizeCategoryName(cat)
+                convertedCategories[normalizedCat] = convertAmount(
+                  Number(amt) || 0,
+                  newCur,
+                  rates,
+                  oldCur,
+                )
+              }
+            }
+            apiUpdateBudget({
+              monthlyTotal: convertedMonthlyTotal,
+              categoryBudgets: convertedCategories,
+              currency: newCur,
+            }).then((updatedBudget) => {
+              const budgetCacheKey = `${userEmail}:budget`
+              clientCache.set(budgetCacheKey, updatedBudget)
+            }).catch(() => {})
+          }).catch(() => {})
+        }
       })
       .catch(() => {})
 
