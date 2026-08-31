@@ -10,9 +10,15 @@ import React, {
 import { useAuth } from '@/lib/auth'
 import { apiGetBudget, apiUpdateBudget } from '@/lib/api'
 import {
+  type CurrencyCode,
+  convertAmount,
+  fetchExchangeRates,
+} from '@/lib/currency'
+import {
   createDefaultSettings,
   type ZenFlowSettings,
   type ExpensePreferenceSettings,
+  type SettingsCurrency,
 } from '@/types/settings'
 
 export function settingsStorageKey(userEmail: string): string {
@@ -111,6 +117,27 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       if (!cancelled) setLoading(false)
     }
 
+    // Cloud synchronization for active currency preference
+    apiGetBudget()
+      .then((cloudBudget) => {
+        if (cancelled || !cloudBudget?.currency) return
+        setSettings((prev) => {
+          if (prev.expensePreferences?.currency === cloudBudget.currency) return prev
+          const next = {
+            ...prev,
+            expensePreferences: {
+              ...prev.expensePreferences,
+              currency: cloudBudget.currency as SettingsCurrency,
+            },
+          }
+          try {
+            localStorage.setItem(settingsStorageKey(userEmail), JSON.stringify(next))
+          } catch (_) {}
+          return next
+        })
+      })
+      .catch(() => {})
+
     return () => {
       cancelled = true
     }
@@ -134,6 +161,45 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           const app = value as ZenFlowSettings['appearance']
           if (app.theme && typeof window !== 'undefined') {
             localStorage.setItem('zenflow:ui-theme', app.theme)
+          }
+        } else if (section === 'expensePreferences') {
+          const exp = value as ExpensePreferenceSettings
+          const oldCurrency = settings.expensePreferences?.currency || 'BDT'
+          const newCurrency = exp.currency
+
+          if (newCurrency && newCurrency !== oldCurrency) {
+            // Fetch rates and convert current cloud budget to new currency in real-time
+            Promise.all([apiGetBudget(), fetchExchangeRates()])
+              .then(([cloudBudget, ratesData]) => {
+                const oldCur = (cloudBudget.currency || oldCurrency) as CurrencyCode
+                const newCur = newCurrency as CurrencyCode
+                const rates = ratesData.rates
+                const convertedMonthlyTotal = convertAmount(
+                  cloudBudget.monthlyTotal || 0,
+                  newCur,
+                  rates,
+                  oldCur,
+                )
+                const convertedCategories: Record<string, number> = {}
+                if (cloudBudget.categoryBudgets) {
+                  for (const [cat, amt] of Object.entries(cloudBudget.categoryBudgets)) {
+                    convertedCategories[cat] = convertAmount(
+                      Number(amt) || 0,
+                      newCur,
+                      rates,
+                      oldCur,
+                    )
+                  }
+                }
+                return apiUpdateBudget({
+                  monthlyTotal: convertedMonthlyTotal,
+                  categoryBudgets: convertedCategories,
+                  currency: newCur,
+                })
+              })
+              .catch((err) => {
+                console.error('Failed to sync converted budget to cloud', err)
+              })
           }
         }
         setSettings(next)
