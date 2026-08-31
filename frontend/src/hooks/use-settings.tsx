@@ -111,27 +111,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       if (!cancelled) setLoading(false)
     }
 
-    // Cloud synchronization for active currency
-    apiGetBudget()
-      .then((budget) => {
-        if (cancelled || !budget?.currency) return
-        setSettings((prev) => {
-          if (prev.expensePreferences?.currency === budget.currency) return prev
-          const next = {
-            ...prev,
-            expensePreferences: {
-              ...prev.expensePreferences,
-              currency: budget.currency as ZenFlowSettings['expensePreferences']['currency'],
-            },
-          }
-          try {
-            localStorage.setItem(settingsStorageKey(userEmail), JSON.stringify(next))
-          } catch (_) {}
-          return next
-        })
-      })
-      .catch(() => {})
-
     return () => {
       cancelled = true
     }
@@ -155,13 +134,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           const app = value as ZenFlowSettings['appearance']
           if (app.theme && typeof window !== 'undefined') {
             localStorage.setItem('zenflow:ui-theme', app.theme)
-          }
-        } else if (section === 'expensePreferences') {
-          const exp = value as ExpensePreferenceSettings
-          if (exp.currency) {
-            apiUpdateBudget({ currency: exp.currency }).catch((err) => {
-              console.error('Failed to sync currency to cloud budget', err)
-            })
           }
         }
         setSettings(next)
