@@ -26,7 +26,7 @@ import type { Budget, BudgetValues, ThresholdAlert } from '@/types/budget'
 import type { CalendarEvent, CalendarEventInput } from '@/types/event'
 
 const API_BASE = (
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  process.env.NEXT_PUBLIC_API_URL || 'https://zenflow-5u3r.onrender.com'
 ).replace(/\/$/, '')
 
 // -- Token persistence (localStorage) ---------------------------------------

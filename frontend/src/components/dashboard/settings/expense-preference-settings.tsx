@@ -95,6 +95,7 @@ export function ExpensePreferenceSettingsSection({
     control,
     handleSubmit,
     reset,
+    getValues,
     formState: { isSubmitting },
   } = useForm<ExpensePreferenceFormValues>({
     resolver: zodResolver(expensePreferenceSchema),
@@ -148,7 +149,12 @@ export function ExpensePreferenceSettingsSection({
               render={({ field }) => (
                 <SettingsSelect
                   value={field.value}
-                  onValueChange={field.onChange}
+                  onValueChange={(val) => {
+                    field.onChange(val)
+                    const current = getValues()
+                    onSave({ ...current, currency: val as any })
+                    toast.success('Currency updated and synced with cloud.')
+                  }}
                   options={CURRENCY_OPTIONS}
                   ariaLabel="Default currency"
                 />
