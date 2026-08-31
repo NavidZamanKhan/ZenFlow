@@ -23,6 +23,7 @@ import type {
 import type { Task, TaskInput } from '@/types/task'
 import type { Expense, ExpenseInput } from '@/types/expense'
 import type { Budget, BudgetValues, ThresholdAlert } from '@/types/budget'
+import type { CalendarEvent, CalendarEventInput } from '@/types/event'
 
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -394,6 +395,69 @@ export function apiRecordThresholdAlerts(
   return authRequest<{ recorded: ThresholdAlert[] }>('/api/budget/record-alerts/', {
     method: 'POST',
     body: JSON.stringify({ month, alerts }),
+  })
+}
+
+// -- Events endpoints --------------------------------------------------------
+
+export interface ApiCalendarEvent {
+  id: string
+  title: string
+  description?: string
+  start_datetime: string
+  end_datetime?: string | null
+  all_day: boolean
+  created_at: string
+  updated_at: string
+}
+
+function fromApiEvent(e: ApiCalendarEvent): CalendarEvent {
+  return {
+    id: e.id,
+    title: e.title,
+    description: e.description ?? '',
+    start: e.start_datetime,
+    end: e.end_datetime ?? e.start_datetime,
+    allDay: e.all_day,
+    createdAt: e.created_at,
+    updatedAt: e.updated_at,
+  }
+}
+
+function toApiEventInput(input: CalendarEventInput | Partial<CalendarEventInput>): Record<string, unknown> {
+  const payload: Record<string, unknown> = {}
+  if (input.title !== undefined) payload.title = input.title.trim()
+  if (input.description !== undefined) payload.description = input.description.trim()
+  if (input.start !== undefined) payload.start_datetime = input.start
+  if (input.end !== undefined) payload.end_datetime = input.end || null
+  if (input.allDay !== undefined) payload.all_day = input.allDay
+  return payload
+}
+
+export async function apiGetEvents(): Promise<CalendarEvent[]> {
+  const records = await authRequest<ApiCalendarEvent[]>('/api/events/')
+  return records.map(fromApiEvent)
+}
+
+export async function apiCreateEvent(data: CalendarEventInput): Promise<CalendarEvent> {
+  const created = await authRequest<ApiCalendarEvent>('/api/events/', {
+    method: 'POST',
+    body: JSON.stringify(toApiEventInput(data)),
+  })
+  return fromApiEvent(created)
+}
+
+export async function apiUpdateEvent(id: string, patch: Partial<CalendarEventInput>): Promise<CalendarEvent> {
+  const updated = await authRequest<ApiCalendarEvent>(`/api/events/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(toApiEventInput(patch)),
+  })
+  return fromApiEvent(updated)
+}
+
+export function apiDeleteEvent(id: string): Promise<void> {
+  return authRequest<void>(`/api/events/${id}/`, {
+    method: 'DELETE',
   })
 }
 

@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import {
+  apiCreateEvent,
+  apiDeleteEvent,
+  apiGetEvents,
+  apiUpdateEvent,
+} from '@/lib/api'
 import { useAuth } from '@/lib/auth'
-import { createClientStore } from '@/lib/client-store'
 import { clientCache } from '@/lib/client-cache'
 import type { CalendarEvent, CalendarEventInput } from '@/types/event'
-
-const eventStore = createClientStore<CalendarEventInput, CalendarEvent>('events')
 
 type MutationOptions = {
   silent?: boolean
@@ -41,7 +44,7 @@ export function useEvents() {
   }, [cacheKey])
 
   useEffect(() => {
-    if (!userEmail || !cacheKey) return
+    if (!user || !cacheKey) return
     let cancelled = false
 
     if (!clientCache.has(cacheKey)) {
@@ -49,8 +52,7 @@ export function useEvents() {
     }
     setError(null)
 
-    eventStore
-      .list(userEmail)
+    apiGetEvents()
       .then((records) => {
         if (!cancelled) {
           clientCache.set(cacheKey, records)
@@ -58,7 +60,8 @@ export function useEvents() {
           setError(null)
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        console.error('Failed to load events', err)
         if (!cancelled) {
           const msg = 'Could not load your events.'
           setError(msg)
@@ -73,7 +76,7 @@ export function useEvents() {
     return () => {
       cancelled = true
     }
-  }, [userEmail, cacheKey, reloadKey])
+  }, [user, cacheKey, reloadKey])
 
   const reload = useCallback(() => {
     setReloadKey((key) => key + 1)
@@ -101,16 +104,16 @@ export function useEvents() {
       setEvents(optimisticList)
       toast.success('Event created')
 
-      // Fire store sync in background
-      eventStore
-        .create(userEmail, input)
+      // Fire API sync in background
+      apiCreateEvent(input)
         .then((created) => {
           const current = clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList
           const syncedList = current.map((e) => (e.id === tempId ? created : e))
           clientCache.set(cacheKey, syncedList)
           setEvents(syncedList)
         })
-        .catch(() => {
+        .catch((err: unknown) => {
+          console.error('Failed to create event', err)
           // Rollback
           const current = clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList
           const rolledBackList = current.filter((e) => e.id !== tempId)
@@ -121,7 +124,7 @@ export function useEvents() {
 
       return true
     },
-    [userEmail, cacheKey, events],
+    [cacheKey, events],
   )
 
   const updateEvent = useCallback(
@@ -145,16 +148,16 @@ export function useEvents() {
         toast.success(options?.successMessage ?? 'Event updated')
       }
 
-      // Fire store sync in background
-      eventStore
-        .update(userEmail, id, patch)
+      // Fire API sync in background
+      apiUpdateEvent(id, patch)
         .then((updated) => {
           const current = clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList
           const syncedList = current.map((e) => (e.id === id ? updated : e))
           clientCache.set(cacheKey, syncedList)
           setEvents(syncedList)
         })
-        .catch(() => {
+        .catch((err: unknown) => {
+          console.error('Failed to update event', err)
           // Rollback
           const current = clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList
           const rolledBackList = current.map((e) => (e.id === id ? originalEvent : e))
@@ -165,7 +168,7 @@ export function useEvents() {
 
       return true
     },
-    [userEmail, cacheKey, events],
+    [cacheKey, events],
   )
 
   const deleteEvent = useCallback(
@@ -180,7 +183,8 @@ export function useEvents() {
       setEvents(optimisticList)
       toast.success('Event deleted')
 
-      eventStore.remove(userEmail, id).catch(() => {
+      apiDeleteEvent(id).catch((err: unknown) => {
+        console.error('Failed to delete event', err)
         // Rollback
         const current = clientCache.get<CalendarEvent[]>(cacheKey) ?? optimisticList
         const rolledBackList = [...current, originalEvent]
@@ -191,7 +195,7 @@ export function useEvents() {
 
       return true
     },
-    [userEmail, cacheKey, events],
+    [cacheKey, events],
   )
 
   return {
