@@ -51,6 +51,16 @@ export interface SpendingDay {
   transactions: number
 }
 
+/** Minimal shape of the largest expense - satisfied by `Expense` and by the analytics summary. */
+export interface LargestExpense {
+  id: string
+  title: string
+  amount: number
+  currency: Expense['currency']
+  category: ExpenseCategory
+  date: string
+}
+
 export interface InsightsAnalytics {
   total: number
   thisMonth: number
@@ -71,7 +81,7 @@ export interface InsightsAnalytics {
   biggestCategoryDecrease: CategoryMovement | null
   mostActiveDay: SpendingDay | null
   mostExpensiveDay: SpendingDay | null
-  largestExpense: Expense | null
+  largestExpense: LargestExpense | null
   averageTransactionValue: number
 }
 

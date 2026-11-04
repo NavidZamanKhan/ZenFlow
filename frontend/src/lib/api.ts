@@ -24,6 +24,7 @@ import type { Task, TaskInput } from '@/types/task'
 import type { Expense, ExpenseInput } from '@/types/expense'
 import type { Budget, BudgetValues, ThresholdAlert } from '@/types/budget'
 import type { CalendarEvent, CalendarEventInput } from '@/types/event'
+import type { AnalyticsSummary, AnalyticsSummaryParams } from '@/types/analytics'
 
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_URL || 'https://zenflow-5u3r.onrender.com'
@@ -69,6 +70,16 @@ export class ApiError extends Error {
     this.status = status
     this.errors = errors
   }
+}
+
+function buildQuery(params: Record<string, string | number | boolean | undefined | null>): string {
+  const search = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === '') continue
+    search.set(key, String(value))
+  }
+  const qs = search.toString()
+  return qs ? `?${qs}` : ''
 }
 
 async function request<T>(
@@ -373,6 +384,16 @@ export function apiDeleteExpense(id: string): Promise<void> {
   return authRequest<void>(`/api/expenses/${id}/`, {
     method: 'DELETE',
   })
+}
+
+// -- Analytics endpoints -----------------------------------------------------
+
+export function apiGetAnalyticsSummary(
+  params: AnalyticsSummaryParams = {},
+): Promise<AnalyticsSummary> {
+  return authRequest<AnalyticsSummary>(
+    `/api/analytics/summary/${buildQuery({ start: params.start, end: params.end })}`,
+  )
 }
 
 // -- Budget endpoints --------------------------------------------------------
