@@ -10,6 +10,7 @@ import {
 } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { clientCache } from '@/lib/client-cache'
+import { invalidateAnalyticsSummary } from '@/hooks/use-analytics-summary'
 import type { Expense, ExpenseInput } from '@/types/expense'
 
 /**
@@ -115,6 +116,7 @@ export function useExpenses() {
           const syncedList = current.map((e) => (e.id === tempId ? created : e))
           clientCache.set(cacheKey, syncedList)
           setExpenses(syncedList)
+          invalidateAnalyticsSummary(userEmail)
         })
         .catch(() => {
           // Rollback
@@ -127,7 +129,7 @@ export function useExpenses() {
 
       return true
     },
-    [cacheKey, expenses],
+    [cacheKey, expenses, userEmail],
   )
 
   const updateExpense = useCallback(
@@ -159,6 +161,7 @@ export function useExpenses() {
           const syncedList = current.map((e) => (e.id === id ? updated : e))
           clientCache.set(cacheKey, syncedList)
           setExpenses(syncedList)
+          invalidateAnalyticsSummary(userEmail)
         })
         .catch(() => {
           // Rollback
@@ -171,7 +174,7 @@ export function useExpenses() {
 
       return true
     },
-    [cacheKey, expenses],
+    [cacheKey, expenses, userEmail],
   )
 
   const deleteExpense = useCallback(
@@ -186,18 +189,20 @@ export function useExpenses() {
       setExpenses(optimisticList)
       toast.success('Expense deleted')
 
-      apiDeleteExpense(id).catch(() => {
-        // Rollback
-        const current = clientCache.get<Expense[]>(cacheKey) ?? optimisticList
-        const rolledBackList = [...current, originalExpense]
-        clientCache.set(cacheKey, rolledBackList)
-        setExpenses(rolledBackList)
-        toast.error('Could not delete the expense.')
-      })
+      apiDeleteExpense(id)
+        .then(() => invalidateAnalyticsSummary(userEmail))
+        .catch(() => {
+          // Rollback
+          const current = clientCache.get<Expense[]>(cacheKey) ?? optimisticList
+          const rolledBackList = [...current, originalExpense]
+          clientCache.set(cacheKey, rolledBackList)
+          setExpenses(rolledBackList)
+          toast.error('Could not delete the expense.')
+        })
 
       return true
     },
-    [cacheKey, expenses],
+    [cacheKey, expenses, userEmail],
   )
 
   return {

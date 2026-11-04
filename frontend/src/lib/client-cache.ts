@@ -32,6 +32,22 @@ class ClientMemoryCache {
     this.notify(key)
   }
 
+  /** Delete every key starting with `prefix` (and notify subscribers of each). */
+  deleteByPrefix(prefix: string): void {
+    const keys = new Set<string>()
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(prefix)) keys.add(key)
+    }
+    // Subscribers may exist for keys that were never populated; notify them too.
+    for (const key of this.listeners.keys()) {
+      if (key.startsWith(prefix)) keys.add(key)
+    }
+    for (const key of keys) {
+      this.cache.delete(key)
+      this.notify(key)
+    }
+  }
+
   /** Clear all cached data (called on logout). */
   clear(): void {
     this.cache.clear()

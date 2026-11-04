@@ -34,7 +34,7 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
-import { useExpenses } from '@/hooks/use-expenses'
+import { useAnalyticsSummary } from '@/hooks/use-analytics-summary'
 import { usePrefersReducedMotion } from '@/hooks/use-reduced-motion'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -42,7 +42,8 @@ import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
 import { formatDisplayDate } from '@/lib/format'
 import { useCurrency } from '@/lib/currency-context'
 import { useSettings } from '@/hooks/use-settings'
-import { buildInsightsAnalytics, type SpendingPoint } from '@/lib/insights-stats'
+import type { SpendingPoint } from '@/lib/insights-stats'
+import { buildInsightsFromSummary } from '@/lib/insights-from-summary'
 
 const CARD_CLASS = 'bg-white dark:bg-[var(--zf-surface)] rounded-3xl border border-slate-100/80 dark:border-[var(--zf-border)] shadow-sm'
 const SOFT_BLUE = '#67B2F5'
@@ -88,7 +89,9 @@ function hasSpending(points: SpendingPoint[]): boolean {
 }
 
 export function InsightsPage() {
-  const { expenses, loading, error, reload } = useExpenses()
+  // Aggregation (per-category, per-month, per-day totals) happens in the
+  // database via /api/analytics/summary/; the client only converts currency.
+  const { summary, loading, error, reload } = useAnalyticsSummary()
   const { format, meta, convert } = useCurrency()
   const { settings } = useSettings()
   const accentColor = useMemo(() => {
@@ -98,8 +101,8 @@ export function InsightsPage() {
     return palettes[settings.appearance.accentColor] || palettes.blue
   }, [settings.appearance.accentColor])
   const analytics = useMemo(
-    () => buildInsightsAnalytics(expenses, undefined, convert),
-    [expenses, convert],
+    () => (summary ? buildInsightsFromSummary(summary, convert) : null),
+    [summary, convert],
   )
   // Recharts animates entrances by default - disable under prefers-reduced-motion.
   const animateCharts = !usePrefersReducedMotion()
@@ -113,15 +116,17 @@ export function InsightsPage() {
     }).format(value)
   }
 
-  if (loading) return <InsightsLoading />
+  if (loading && !analytics) return <InsightsLoading />
 
-  if (error) {
+  if (error && !analytics) {
     return (
       <div className="max-w-5xl px-4 py-8 sm:px-8">
         <ErrorState description={error} onRetry={reload} />
       </div>
     )
   }
+
+  if (!analytics) return <InsightsLoading />
 
   return (
     <div className="px-4 sm:px-8 py-8 max-w-5xl">
@@ -132,7 +137,7 @@ export function InsightsPage() {
         <h1 className="text-2xl font-bold text-slate-800 dark:text-[var(--zf-text)] tracking-tight">Insights</h1>
       </div>
 
-      {expenses.length === 0 ? (
+      {analytics.totalTransactions === 0 ? (
         <EmptyInsights />
       ) : (
         <>

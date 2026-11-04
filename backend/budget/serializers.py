@@ -60,19 +60,33 @@ class BudgetSerializer(serializers.ModelSerializer):
 
         category_map = {c.lower(): c for c in Expense.Category.values}
         normalized = {}
+        errors = []
 
         for category, amount in value.items():
             cat_key = str(category).strip().lower()
-            if cat_key in category_map:
-                std_category = category_map[cat_key]
-                try:
-                    num_amount = float(amount)
-                    if num_amount >= 0:
-                        normalized[std_category] = round(num_amount, 2)
-                except (ValueError, TypeError):
-                    raise serializers.ValidationError(
-                        f"Budget for '{category}' must be a non-negative number."
-                    )
+            std_category = category_map.get(cat_key)
+            if std_category is None:
+                errors.append(f"'{category}' is not a valid expense category.")
+                continue
+
+            try:
+                num_amount = float(amount)
+            except (ValueError, TypeError):
+                errors.append(f"Budget for '{std_category}' must be a non-negative number.")
+                continue
+
+            if num_amount != num_amount or num_amount in (float('inf'), float('-inf')):
+                errors.append(f"Budget for '{std_category}' must be a finite number.")
+                continue
+
+            if num_amount < 0:
+                errors.append(f"Budget for '{std_category}' cannot be negative.")
+                continue
+
+            normalized[std_category] = round(num_amount, 2)
+
+        if errors:
+            raise serializers.ValidationError(errors)
 
         return normalized
 
