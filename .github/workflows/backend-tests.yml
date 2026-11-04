@@ -1,0 +1,103 @@
+name: Backend tests
+
+on:
+  push:
+    branches: [dev, main, master, develop]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-tests.yml"
+
+  pull_request:
+    branches: [dev, main, master, develop]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-tests.yml"
+
+  workflow_dispatch:
+
+concurrency:
+  group: backend-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Django test suite (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.13"]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: zenflow_test
+          POSTGRES_USER: zenflow
+          POSTGRES_PASSWORD: zenflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U zenflow -d zenflow_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://zenflow:zenflow@localhost:5432/zenflow_test
+      SECRET_KEY: ci-secret-key-not-for-production
+      DEBUG: "false"
+      ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      CELERY_TASK_ALWAYS_EAGER: "true"
+      CELERY_BROKER_URL: memory://
+      FRONTEND_URL: http://localhost:3000
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Django system checks
+        run: python manage.py check
+
+      - name: Verify migrations are up to date
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Run test suite
+        run: python manage.py test --noinput --verbosity 2
+
+  docker-build:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: false
+          load: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
