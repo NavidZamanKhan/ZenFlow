@@ -25,6 +25,7 @@ import type { Expense, ExpenseInput } from '@/types/expense'
 import type { Budget, BudgetValues, ThresholdAlert } from '@/types/budget'
 import type { CalendarEvent, CalendarEventInput } from '@/types/event'
 import type { AnalyticsSummary, AnalyticsSummaryParams } from '@/types/analytics'
+import type { Reminder, ReminderInput, ReminderNotification } from '@/types/reminder'
 
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_URL || 'https://zenflow-5u3r.onrender.com'
@@ -417,6 +418,66 @@ export function apiRecordThresholdAlerts(
     method: 'POST',
     body: JSON.stringify({ month, alerts }),
   })
+}
+
+// -- Reminders endpoints -----------------------------------------------------
+
+export function apiGetReminders(params: {
+  status?: Reminder['status']
+  upcoming?: boolean
+} = {}): Promise<Reminder[]> {
+  return authRequest<Reminder[]>(
+    `/api/reminders/${buildQuery({ status: params.status, upcoming: params.upcoming ? 1 : undefined })}`,
+  )
+}
+
+export function apiCreateReminder(data: ReminderInput): Promise<Reminder> {
+  return authRequest<Reminder>('/api/reminders/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function apiUpdateReminder(id: string, patch: Partial<ReminderInput>): Promise<Reminder> {
+  return authRequest<Reminder>(`/api/reminders/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function apiDeleteReminder(id: string): Promise<void> {
+  return authRequest<void>(`/api/reminders/${id}/`, { method: 'DELETE' })
+}
+
+export function apiSnoozeReminder(id: string, minutes = 10): Promise<Reminder> {
+  return authRequest<Reminder>(`/api/reminders/${id}/snooze/`, {
+    method: 'POST',
+    body: JSON.stringify({ minutes }),
+  })
+}
+
+export function apiGetReminderNotifications(params: { unread?: boolean } = {}): Promise<ReminderNotification[]> {
+  return authRequest<ReminderNotification[]>(
+    `/api/reminders/notifications/${buildQuery({ unread: params.unread ? 1 : undefined })}`,
+  )
+}
+
+export function apiMarkReminderNotificationRead(id: string): Promise<ReminderNotification> {
+  return authRequest<ReminderNotification>(`/api/reminders/notifications/${id}/read/`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  })
+}
+
+export function apiMarkAllReminderNotificationsRead(): Promise<{ updated: number }> {
+  return authRequest<{ updated: number }>('/api/reminders/notifications/read-all/', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  })
+}
+
+export function apiDeleteReminderNotification(id: string): Promise<void> {
+  return authRequest<void>(`/api/reminders/notifications/${id}/`, { method: 'DELETE' })
 }
 
 // -- Events endpoints --------------------------------------------------------

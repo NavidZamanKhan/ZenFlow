@@ -14,6 +14,11 @@ import { useTasks } from '@/hooks/use-tasks'
 import { useExpenses } from '@/hooks/use-expenses'
 import { useBudget } from '@/hooks/use-budget'
 import { useEvents } from '@/hooks/use-events'
+import {
+  fromReminderNotificationId,
+  toNotification,
+  useReminderNotifications,
+} from '@/hooks/use-reminder-notifications'
 import { useCurrency } from '@/lib/currency-context'
 import type { Notification } from '@/types/notification'
 
@@ -47,6 +52,13 @@ function saveStoredReadIds(ids: Set<string>): void {
   }
 }
 
+function sortNotifications(list: Notification[]): Notification[] {
+  return [...list].sort((a, b) => {
+    if (a.read !== b.read) return a.read ? 1 : -1
+    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  })
+}
+
 const NotificationsContext = createContext<NotificationsContextValue | null>(
   null,
 )
@@ -57,6 +69,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { budget } = useBudget()
   const { events } = useEvents()
   const { currency } = useCurrency()
+  const {
+    items: reminderItems,
+    markRead: markReminderRead,
+    markAllRead: markAllRemindersRead,
+  } = useReminderNotifications()
 
   const [readIds, setReadIds] = useState<Set<string>>(() => new Set())
 
@@ -65,8 +82,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     setReadIds(getStoredReadIds())
   }, [])
 
-  // Derive notifications dynamically whenever live data or read state changes
-  const notifications = useMemo(() => {
+  // Derived (client-side) notifications: tasks, events, budget thresholds.
+  const derived = useMemo(() => {
     return deriveNotifications({
       tasks,
       expenses,
@@ -77,30 +94,47 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     })
   }, [tasks, expenses, budget, events, readIds, currency])
 
+  // Server-side reminder notifications (fired by the scheduler).
+  const reminderNotifications = useMemo(
+    () => reminderItems.map(toNotification),
+    [reminderItems],
+  )
+
+  const notifications = useMemo(
+    () => sortNotifications([...reminderNotifications, ...derived]),
+    [reminderNotifications, derived],
+  )
+
   const unreadCount = useMemo(
     () => notifications.reduce((count, item) => count + (item.read ? 0 : 1), 0),
     [notifications],
   )
 
   const markAsRead = useCallback((id: string) => {
+    const serverId = fromReminderNotificationId(id)
+    if (serverId) {
+      void markReminderRead(serverId)
+      return
+    }
     setReadIds((prev) => {
       const next = new Set(prev)
       next.add(id)
       saveStoredReadIds(next)
       return next
     })
-  }, [])
+  }, [markReminderRead])
 
   const markAllAsRead = useCallback(() => {
+    void markAllRemindersRead()
     setReadIds((prev) => {
       const next = new Set(prev)
-      for (const n of notifications) {
+      for (const n of derived) {
         next.add(n.id)
       }
       saveStoredReadIds(next)
       return next
     })
-  }, [notifications])
+  }, [derived, markAllRemindersRead])
 
   const value = useMemo(
     () => ({ notifications, unreadCount, markAsRead, markAllAsRead }),
