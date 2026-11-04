@@ -84,6 +84,11 @@ The platform employs a decoupled full-stack architecture where the Next.js clien
 * Multi-Currency Engine: Display currency configuration with automatic conversion and precision rounding heuristics.
 * Visual Insights: Spending analytics powered by Recharts, including category donut distributions, payment method breakdowns, and daily spending wave charts.
 
+### Reminders & Notifications
+* Scheduled Reminders: Create reminders with an in-app, email, or combined delivery channel; optionally link them to a task or calendar event.
+* Background Dispatcher: Celery Beat (or a cron-driven management command) fires due reminders, creates in-app notifications and sends emails.
+* Notification Bell: Merges server-side reminder notifications (read state persisted per user) with derived task, event and budget alerts.
+
 ### Security, Theming & Identity
 * Comprehensive Authentication: Email and password registration with 6-digit email OTP verification, native Google OAuth 2.0, and JWT token management.
 * Account Security: Password change workflows and account deletion safeguarded by OTP verification.
@@ -100,8 +105,8 @@ The platform employs a decoupled full-stack architecture where the Next.js clien
 └───────────────────────────────┘                                     └──────────────────────────────┘
 ```
 
-* **Frontend Architecture:** Next.js App Router, Domain-driven Custom React Hooks (`use-tasks`, `use-expenses`, `use-budget`, `use-events`), and centralized AuthContext for session hydration.
-* **Backend Architecture:** Django REST Framework with strict layered separation: `Views -> Serializers -> Services -> Models` with SimpleJWT and Argon2 password hashing.
+* **Frontend Architecture:** Next.js App Router, Domain-driven Custom React Hooks (`use-tasks`, `use-expenses`, `use-budget`, `use-events`, `use-reminders`), and centralized AuthContext for session hydration.
+* **Backend Architecture:** Django REST Framework with strict layered separation: `Views -> Serializers -> Services -> Models` with SimpleJWT, Argon2 password hashing, and Celery for background jobs.
 
 ---
 
@@ -122,12 +127,13 @@ ZenFlow/
 │       ├── lib/              # API client, authentication, currency conversion
 │       └── types/            # TypeScript schemas and data interfaces
 ├── backend/                  # Django REST API service
-│   ├── config/               # Settings, root URLs, and WSGI/ASGI configuration
+│   ├── config/               # Settings, root URLs, Celery app, and WSGI/ASGI configuration
 │   ├── users/                # Authentication, user profile, OTP, and Google OAuth
 │   ├── tasks/                # Task CRUD and deadline logic
 │   ├── events/               # Calendar events and scheduling
 │   ├── expenses/             # Expense transactions and multi-currency models
-│   └── budget/               # Monthly and category budget limit models
+│   ├── budget/               # Monthly and category budget limit models
+│   └── reminders/            # Reminder model, CRUD API, Celery Beat dispatcher
 ├── netlify.toml              # Frontend deployment configuration
 └── README.md                 # Project documentation
 ```
@@ -149,6 +155,7 @@ ZenFlow/
 * Framework: Django 6.0, Django REST Framework
 * Database: PostgreSQL (via `psycopg` and `dj-database-url`)
 * Authentication: `djangorestframework-simplejwt`, Argon2
+* Background Jobs: Celery 5 + Redis (Celery Beat schedules the reminder dispatcher)
 * CORS & Headers: `django-cors-headers`
 * Production Serving: Gunicorn, Whitenoise
 * Deployment: Netlify (Frontend), Render (Backend), Supabase (Database)
@@ -209,6 +216,22 @@ npm run dev
 
 The Next.js web application will start on `http://localhost:3000`.
 
+### 4. Reminder Scheduler (optional locally)
+
+Reminders are dispatched by a Celery Beat task that runs every minute (`REMINDER_DISPATCH_INTERVAL_SECONDS`). With Redis running:
+
+```bash
+cd backend
+celery -A config worker --loglevel=info
+celery -A config beat --loglevel=info
+```
+
+Hosts without a broker can run the equivalent management command from cron instead:
+
+```bash
+python manage.py fire_due_reminders   # e.g. * * * * *
+```
+
 ---
 
 ## API Route Summary
@@ -222,6 +245,7 @@ All authenticated endpoints require an `Authorization: Bearer <access_token>` he
 | `/api/events/` | Calendar event management and schedule queries |
 | `/api/expenses/` | Expense transaction logging, filtering, and currency conversion |
 | `/api/budget/` | Monthly budget limits and category allocation endpoints |
+| `/api/reminders/` | Reminder CRUD, `POST {id}/snooze/`, and `notifications/` (list, `read`, `read-all`) |
 
 ---
 

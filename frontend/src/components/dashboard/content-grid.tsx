@@ -11,6 +11,7 @@ import { useTasks } from '@/hooks/use-tasks'
 import { useEvents } from '@/hooks/use-events'
 import { useExpenses } from '@/hooks/use-expenses'
 import { useBudget } from '@/hooks/use-budget'
+import { useReminders } from '@/hooks/use-reminders'
 
 // The lifted stores update independently. Memoized card boundaries let an
 // expense change skip task/productivity/reminder renders, and vice versa.
@@ -49,6 +50,13 @@ export function ContentGrid() {
     reload: reloadExpenses,
   } = useExpenses()
   const { budget, hasBudget, loading: budgetLoading } = useBudget()
+  const {
+    reminders: scheduledReminders,
+    loading: remindersLoading,
+    createReminder,
+    snoozeReminder,
+    cancelReminder,
+  } = useReminders()
 
   const remainingTasks = tasks.filter((task) => !task.completed).length
   const loadError = tasksError || eventsError || expensesError
@@ -97,10 +105,14 @@ export function ContentGrid() {
         <MemoRemindersCard
           tasks={tasks}
           events={events}
-          loading={tasksLoading || eventsLoading}
+          scheduled={scheduledReminders}
+          loading={tasksLoading || eventsLoading || remindersLoading}
           onToggleTask={toggleTask}
           onUpdateTask={snoozeTask}
           onUpdateEvent={snoozeEvent}
+          onCreateReminder={createReminder}
+          onSnoozeReminder={snoozeReminder}
+          onCancelReminder={cancelReminder}
         />
 
         <MemoExpensesCard

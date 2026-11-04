@@ -282,3 +282,34 @@ else:
 # ------------------------------------------------------------------------------
 
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", default="")
+
+# ------------------------------------------------------------------------------
+# Celery (reminders scheduler)
+# ------------------------------------------------------------------------------
+# Celery Beat fires `reminders.tasks.dispatch_due_reminders` every minute. The
+# same job is also exposed as `python manage.py fire_due_reminders` so hosts
+# without a Redis broker can run it from an external cron.
+
+CELERY_BROKER_URL = config("CELERY_BROKER_URL", default=config("REDIS_URL", default="redis://localhost:6379/0"))
+CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default=None)
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+CELERY_TASK_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_ACKS_LATE = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+# Run tasks inline (no broker needed) when explicitly requested, e.g. in tests.
+CELERY_TASK_ALWAYS_EAGER = config("CELERY_TASK_ALWAYS_EAGER", default=False, cast=bool)
+REMINDER_DISPATCH_INTERVAL_SECONDS = config("REMINDER_DISPATCH_INTERVAL_SECONDS", default=60, cast=int)
+# Email attempts per reminder before it is marked "failed" (retries back off 1/5/15/60 min).
+REMINDER_EMAIL_MAX_ATTEMPTS = config("REMINDER_EMAIL_MAX_ATTEMPTS", default=5, cast=int)
+CELERY_BEAT_SCHEDULE = {
+    "dispatch-due-reminders": {
+        "task": "reminders.tasks.dispatch_due_reminders",
+        "schedule": REMINDER_DISPATCH_INTERVAL_SECONDS,
+        # A tick that could not run before the next one is due is worthless
+        # (the next tick picks up the same rows), so let the broker drop it
+        # instead of replaying a backlog after a worker outage.
+        "options": {"expires": max(REMINDER_DISPATCH_INTERVAL_SECONDS - 5, 5)},
+    },
+}
