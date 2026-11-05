@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import logging
 from abc import ABC, abstractmethod
 
@@ -41,6 +42,12 @@ class BaseEmailService(ABC):
     ) -> None:
         """Send a public password-recovery email containing a one-time reset link."""
 
+    @abstractmethod
+    def send_reminder_email(
+        self, to_email: str, full_name: str, title: str, message: str, due_label: str
+    ) -> None:
+        """Send a reminder notification email."""
+
 
 def _recovery_plain_text(full_name: str, reset_url: str) -> str:
     return (
@@ -52,6 +59,14 @@ def _recovery_plain_text(full_name: str, reset_url: str) -> str:
         f"Best regards,\n"
         f"The ZenFlow Team"
     )
+
+
+def _reminder_plain_text(full_name: str, title: str, message: str, due_label: str) -> str:
+    body = f"Hi {full_name},\n\nReminder: {title}\nWhen: {due_label}\n"
+    if message:
+        body += f"\n{message}\n"
+    body += "\nBest regards,\nThe ZenFlow Team"
+    return body
 
 
 class SMTPEmailService(BaseEmailService):
@@ -159,6 +174,24 @@ class SMTPEmailService(BaseEmailService):
             logger.exception("Failed to send password recovery email to %s", to_email)
             raise
 
+    def send_reminder_email(
+        self, to_email: str, full_name: str, title: str, message: str, due_label: str
+    ) -> None:
+        normalized_title = " ".join(title.split())
+        subject = f"ZenFlow reminder: {normalized_title}"
+        try:
+            send_mail(
+                subject=subject,
+                message=_reminder_plain_text(full_name, title, message, due_label),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[to_email],
+                fail_silently=False,
+            )
+            logger.info("Reminder email sent to %s", to_email)
+        except Exception:
+            logger.exception("Failed to send reminder email to %s", to_email)
+            raise
+
 
 def _render_link_email(
     title: str,
@@ -198,6 +231,41 @@ def _render_link_email(
         </div>
       </td>
     </tr>
+  </table>
+</body>
+</html>"""
+
+
+def _render_reminder_email(full_name: str, title: str, message: str, due_label: str) -> str:
+    safe_name = html.escape(full_name)
+    safe_title = html.escape(title)
+    safe_due_label = html.escape(due_label)
+    if message:
+        escaped_message = html.escape(message)
+        formatted_message = escaped_message.replace("\r\n", "\n").replace("\r", "\n").replace("\n", "<br>")
+        message_html = (
+            f'<p style="margin: 0 0 22px 0; font-size: 14px; line-height: 1.6; color: #e2e8f0; white-space: pre-wrap; word-break: break-word;">{formatted_message}</p>'
+        )
+    else:
+        message_html = ""
+
+    return f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Reminder: {safe_title}</title></head>
+<body style="margin: 0; padding: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center" style="max-width: 480px; margin: 0 auto;">
+    <tr><td style="padding: 0 12px;">
+      <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 34px 28px;">
+        <div style="margin-bottom: 22px;"><span style="font-size: 22px; font-weight: 800; color: #ffffff;">ZenFlow</span></div>
+        <p style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: #ffffff;">Hi {safe_name},</p>
+        <p style="margin: 0 0 6px 0; font-size: 13px; color: #94a3b8;">Reminder</p>
+        <p style="margin: 0 0 6px 0; font-size: 18px; font-weight: 700; color: #ffffff;">{safe_title}</p>
+        <p style="margin: 0 0 18px 0; font-size: 13px; color: #38bdf8; font-weight: 600;">{safe_due_label}</p>
+        {message_html}
+        <hr style="border: none; border-top: 1px solid #334155; margin: 26px 0 16px 0;">
+        <p style="margin: 0; font-size: 12px; color: #94a3b8;">ZenFlow &middot; Bring clarity to your day</p>
+      </div>
+    </td></tr>
   </table>
 </body>
 </html>"""
@@ -383,6 +451,14 @@ class ResendEmailService(BaseEmailService):
         )
         self._send(to_email, subject, html, _recovery_plain_text(full_name, reset_url))
 
+    def send_reminder_email(
+        self, to_email: str, full_name: str, title: str, message: str, due_label: str
+    ) -> None:
+        normalized_title = " ".join(title.split())
+        subject = f"ZenFlow reminder: {normalized_title}"
+        html = _render_reminder_email(full_name, title, message, due_label)
+        self._send(to_email, subject, html, _reminder_plain_text(full_name, title, message, due_label))
+
 
 class BrevoEmailService(BaseEmailService):
     """
@@ -474,6 +550,16 @@ class BrevoEmailService(BaseEmailService):
             footnote="This link is valid for a limited time and can only be used once. If you didn't request a reset, you can safely ignore this email.",
         )
         self._send(to_email, full_name, subject, html, _recovery_plain_text(full_name, reset_url))
+
+    def send_reminder_email(
+        self, to_email: str, full_name: str, title: str, message: str, due_label: str
+    ) -> None:
+        normalized_title = " ".join(title.split())
+        subject = f"ZenFlow reminder: {normalized_title}"
+        html = _render_reminder_email(full_name, title, message, due_label)
+        self._send(
+            to_email, full_name, subject, html, _reminder_plain_text(full_name, title, message, due_label)
+        )
 
 
 def get_email_service() -> BaseEmailService:
