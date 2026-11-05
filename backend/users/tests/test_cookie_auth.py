@@ -298,6 +298,112 @@ class SessionEstablishingCsrfTests(TestCase):
         ok = self.client.post(GOOGLE_URL, {"id_token": "t"}, format="json", HTTP_X_CSRFTOKEN=self._csrf())
         self.assertEqual(ok.status_code, status.HTTP_200_OK)
 
+    # -- origin checking ----------------------------------------------
+
+    def test_login_with_production_origin_succeeds(self):
+        token = self._csrf()
+        response = self.client.post(
+            LOGIN_URL,
+            self.credentials,
+            format="json",
+            HTTP_X_CSRFTOKEN=token,
+            HTTP_ORIGIN="https://zenflowbd.vercel.app",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(settings.JWT_AUTH_COOKIE, response.cookies)
+
+    def test_login_with_untrusted_origin_is_refused(self):
+        token = self._csrf()
+        response = self.client.post(
+            LOGIN_URL,
+            self.credentials,
+            format="json",
+            HTTP_X_CSRFTOKEN=token,
+            HTTP_ORIGIN="https://malicious.evil.com",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("CSRF", str(response.data))
+        self.assertNotIn(settings.JWT_AUTH_COOKIE, response.cookies)
+
+    def test_verify_email_with_production_origin_succeeds(self):
+        pending = self._create_pending()
+        token = self._csrf()
+        payload = {"pending_registration_id": str(pending.id), "otp": "123456"}
+        response = self.client.post(
+            VERIFY_EMAIL_URL,
+            payload,
+            format="json",
+            HTTP_X_CSRFTOKEN=token,
+            HTTP_ORIGIN="https://zenflowbd.vercel.app",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(settings.JWT_AUTH_COOKIE, response.cookies)
+        self.assertIn(settings.JWT_AUTH_REFRESH_COOKIE, response.cookies)
+
+    def test_verify_email_with_untrusted_origin_is_refused(self):
+        pending = self._create_pending()
+        token = self._csrf()
+        payload = {"pending_registration_id": str(pending.id), "otp": "123456"}
+        response = self.client.post(
+            VERIFY_EMAIL_URL,
+            payload,
+            format="json",
+            HTTP_X_CSRFTOKEN=token,
+            HTTP_ORIGIN="https://malicious.evil.com",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("CSRF", str(response.data))
+        self.assertNotIn(settings.JWT_AUTH_COOKIE, response.cookies)
+        self.assertNotIn(settings.JWT_AUTH_REFRESH_COOKIE, response.cookies)
+
+    @patch(VERIFY_GOOGLE)
+    def test_google_with_production_origin_succeeds(self, mock_verify):
+        mock_verify.return_value = {
+            "iss": "accounts.google.com",
+            "email": "csrf@example.com",
+            "email_verified": True,
+            "name": "CSRF User",
+        }
+        token = self._csrf()
+        response = self.client.post(
+            GOOGLE_URL,
+            {"id_token": "t"},
+            format="json",
+            HTTP_X_CSRFTOKEN=token,
+            HTTP_ORIGIN="https://zenflowbd.vercel.app",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(settings.JWT_AUTH_COOKIE, response.cookies)
+
+    @patch(VERIFY_GOOGLE)
+    def test_google_with_untrusted_origin_is_refused(self, mock_verify):
+        token = self._csrf()
+        response = self.client.post(
+            GOOGLE_URL,
+            {"id_token": "t"},
+            format="json",
+            HTTP_X_CSRFTOKEN=token,
+            HTTP_ORIGIN="https://malicious.evil.com",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("CSRF", str(response.data))
+        mock_verify.assert_not_called()
+        self.assertNotIn(settings.JWT_AUTH_COOKIE, response.cookies)
+
+    @override_settings(GOOGLE_CLIENT_ID="")
+    def test_google_missing_client_id_with_valid_csrf_fails_safely(self):
+        token = self._csrf()
+        response = self.client.post(
+            GOOGLE_URL,
+            {"id_token": "t"},
+            format="json",
+            HTTP_X_CSRFTOKEN=token,
+            HTTP_ORIGIN="https://zenflowbd.vercel.app",
+        )
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertIn("Google sign-in is not available right now.", str(response.data))
+        self.assertNotIn(settings.JWT_AUTH_COOKIE, response.cookies)
+
     # -- refresh ------------------------------------------------------
 
     def _login(self):
@@ -506,3 +612,112 @@ class AuthenticatedPasswordChangeSessionTests(TestCase):
         res6 = self.laptop.post(CHANGE_URL, payload, format="json")
         self.assertEqual(res6.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("No active password reset request found", str(res6.data))
+
+
+class OriginConfigurationTests(TestCase):
+    """
+    Test origin normalization, comma-separated parsing, localhost preservation,
+    independent cookie domain settings, and CSRF/CORS settings behavior.
+    """
+
+    def test_normalize_origin_valid_cases(self):
+        from config.settings import _normalize_origin
+
+        valid_cases = {
+            "https://zenflowbd.vercel.app": "https://zenflowbd.vercel.app",
+            "https://zenflowbd.vercel.app/": "https://zenflowbd.vercel.app",
+            "https://example.com:8443": "https://example.com:8443",
+            "http://localhost:3000": "http://localhost:3000",
+            "http://localhost:3000/": "http://localhost:3000",
+            "https://[::1]:8443": "https://[::1]:8443",
+            "zenflowbd.vercel.app": "https://zenflowbd.vercel.app",
+            "example.com:8080": "https://example.com:8080",
+            "http://example.com:80": "http://example.com",
+            "https://example.com:443": "https://example.com",
+            "HTTPS://EXAMPLE.COM": "https://example.com",
+            "  https://zenflowbd.vercel.app  ": "https://zenflowbd.vercel.app",
+            '"https://zenflowbd.vercel.app"': "https://zenflowbd.vercel.app",
+            "'https://zenflowbd.vercel.app'": "https://zenflowbd.vercel.app",
+        }
+        for input_val, expected in valid_cases.items():
+            with self.subTest(origin=input_val):
+                self.assertEqual(_normalize_origin(input_val), expected)
+
+    def test_normalize_origin_invalid_cases(self):
+        from config.settings import _normalize_origin
+
+        invalid_cases = [
+            "ftp://example.com",
+            "javascript:alert(1)",
+            "data:text/html,test",
+            "https://user:pass@example.com",
+            "https://example.com/path",
+            "https://example.com?x=1",
+            "https://example.com#fragment",
+            "https://",
+            "https://example.com:invalid",
+            "*",
+            "https://*",
+            "https://*.vercel.app",
+            "",
+            "   ",
+            "mailto:test@example.com",
+            "https://example.com:70000",
+            "https://-badhost.com",
+            "https://badhost-.com",
+        ]
+        for input_val in invalid_cases:
+            with self.subTest(origin=input_val):
+                self.assertIsNone(_normalize_origin(input_val))
+
+    def test_parse_origins_handles_comma_separated_strings(self):
+        from config.settings import _parse_origins
+
+        raw = " https://zenflowbd.vercel.app/ , 'https://custom.app:8443' , http://localhost:3000 "
+        parsed = _parse_origins(raw)
+        self.assertIn("https://zenflowbd.vercel.app", parsed)
+        self.assertIn("https://custom.app:8443", parsed)
+        self.assertIn("http://localhost:3000", parsed)
+        self.assertIn("http://127.0.0.1:3000", parsed)
+
+    def test_parse_origins_discards_invalid_origins(self):
+        from config.settings import _parse_origins
+
+        raw = (
+            "ftp://bad.com, https://zenflowbd.vercel.app, javascript:alert(1), "
+            "https://example.com/path, *, https://example.com:8443"
+        )
+        parsed = _parse_origins(raw)
+        self.assertIn("https://zenflowbd.vercel.app", parsed)
+        self.assertIn("https://example.com:8443", parsed)
+        self.assertNotIn("ftp://bad.com", parsed)
+        self.assertNotIn("javascript:alert(1)", parsed)
+        self.assertNotIn("https://example.com/path", parsed)
+        self.assertNotIn("*", parsed)
+
+    def test_parse_origins_preserves_localhost_even_with_custom_origins(self):
+        from config.settings import _parse_origins
+
+        parsed = _parse_origins("https://production.example.com")
+        self.assertIn("https://production.example.com", parsed)
+        self.assertIn("http://localhost:3000", parsed)
+        self.assertIn("http://127.0.0.1:3000", parsed)
+
+    def test_production_frontend_is_trusted_by_default(self):
+        self.assertIn("https://zenflowbd.vercel.app", settings.CSRF_TRUSTED_ORIGINS)
+        self.assertIn("https://zenflowbd.vercel.app", settings.CORS_ALLOWED_ORIGINS)
+
+    def test_cors_credentials_and_origins_configuration(self):
+        self.assertTrue(settings.CORS_ALLOW_CREDENTIALS)
+        self.assertFalse(settings.CORS_ALLOW_ALL_ORIGINS)
+        self.assertIn("http://localhost:3000", settings.CORS_ALLOWED_ORIGINS)
+        self.assertIn("http://127.0.0.1:3000", settings.CORS_ALLOWED_ORIGINS)
+
+    def test_csrf_cookie_domain_defaults_to_none_independently(self):
+        self.assertIsNone(settings.CSRF_COOKIE_DOMAIN)
+        self.assertIsNone(settings.JWT_AUTH_COOKIE_DOMAIN)
+
+    @override_settings(CSRF_COOKIE_DOMAIN=".custom-csrf.com", JWT_AUTH_COOKIE_DOMAIN=".custom-jwt.com")
+    def test_explicit_csrf_cookie_domain_handled_independently(self):
+        self.assertEqual(settings.CSRF_COOKIE_DOMAIN, ".custom-csrf.com")
+        self.assertEqual(settings.JWT_AUTH_COOKIE_DOMAIN, ".custom-jwt.com")
