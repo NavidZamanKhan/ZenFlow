@@ -234,6 +234,24 @@ Hosts without a broker can run the equivalent management command from cron inste
 python manage.py fire_due_reminders   # e.g. * * * * *
 ```
 
+### 5. Docker (alternative)
+
+```bash
+docker compose up --build                     # Postgres + Redis + API + Celery worker/beat
+docker compose --profile test run --rm test   # full backend test suite
+```
+
+---
+
+## Running the Tests
+
+```bash
+cd backend
+python manage.py test            # requires a PostgreSQL database (DATABASE_URL or DB_* vars)
+```
+
+The GitHub Actions workflow in `.github/workflows/backend-tests.yml` runs system checks, a migration drift check and the complete suite against a PostgreSQL service on every push/PR touching `backend/`.
+
 ---
 
 ## Production Deployment: Sessions, Cookies & Domains
@@ -291,6 +309,7 @@ All authenticated endpoints require an `Authorization: Bearer <access_token>` he
 
 | Endpoint Prefix | Description |
 | :--- | :--- |
+| `/api/health/` | Liveness/readiness probe (database connectivity) |
 | `/api/auth/` | Registration, OTP verification/resend, login, Google OAuth, profile, and account deletion |
 | `/api/tasks/` | Task CRUD operations with priority tags and deadline timestamps |
 | `/api/events/` | Calendar event management and schedule queries |
