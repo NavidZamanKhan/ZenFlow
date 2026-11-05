@@ -35,6 +35,24 @@ class BaseEmailService(ABC):
     ) -> None:
         """Send an account deletion confirmation email containing the OTP."""
 
+    @abstractmethod
+    def send_password_recovery_email(
+        self, to_email: str, full_name: str, reset_url: str
+    ) -> None:
+        """Send a public password-recovery email containing a one-time reset link."""
+
+
+def _recovery_plain_text(full_name: str, reset_url: str) -> str:
+    return (
+        f"Hi {full_name},\n\n"
+        f"We received a request to reset the password for your ZenFlow account.\n\n"
+        f"Reset your password using this link (valid for a limited time):\n{reset_url}\n\n"
+        f"If you did not request a password reset, you can safely ignore this email - "
+        f"your password will not change.\n\n"
+        f"Best regards,\n"
+        f"The ZenFlow Team"
+    )
+
 
 class SMTPEmailService(BaseEmailService):
     """Concrete email service using Django's built-in SMTP backend."""
@@ -123,52 +141,67 @@ class SMTPEmailService(BaseEmailService):
             logger.exception("Failed to send account deletion email to %s", to_email)
             raise
 
-
-class ResendEmailService(BaseEmailService):
-    """
-    HTTP REST API email service using Resend (https://resend.com).
-    Bypasses cloud host SMTP port restrictions (ports 25, 465, 587)
-    by communicating directly over HTTPS (port 443).
-    """
-
-    def __init__(self, api_key: str | None = None, from_email: str | None = None) -> None:
-        import requests
-        self._requests = requests
-        self.api_key = api_key or getattr(settings, "RESEND_API_KEY", "")
-        self.from_email = from_email or getattr(
-            settings, "RESEND_FROM_EMAIL", "ZenFlow <noreply@zenflow.navidzamankhan.com>"
-        )
-
-    def _send(self, to_email: str, subject: str, html_body: str, plain_text: str) -> None:
-        if not self.api_key:
-            logger.error("RESEND_API_KEY is not configured.")
-            raise ValueError("Email service is not configured (missing RESEND_API_KEY).")
-
-        payload = {
-            "from": self.from_email,
-            "to": [to_email],
-            "subject": subject,
-            "html": html_body,
-            "text": plain_text,
-        }
-
+    def send_password_recovery_email(
+        self, to_email: str, full_name: str, reset_url: str
+    ) -> None:
+        """Send a password-recovery link to a user who is locked out."""
+        subject = "ZenFlow: Reset Your Password"
         try:
-            response = self._requests.post(
-                "https://api.resend.com/emails",
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-                timeout=getattr(settings, "EMAIL_TIMEOUT", 10),
+            send_mail(
+                subject=subject,
+                message=_recovery_plain_text(full_name, reset_url),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[to_email],
+                fail_silently=False,
             )
-            if response.status_code >= 400:
-                logger.error("Resend API error [%s]: %s", response.status_code, response.text)
-                raise RuntimeError(f"Resend error ({response.status_code}): {response.text}")
-            logger.info("Email sent via Resend API to %s", to_email)
+            logger.info("Password recovery email sent to %s", to_email)
         except Exception:
-            logger.exception("Failed to send email via Resend to %s", to_email)
+            logger.exception("Failed to send password recovery email to %s", to_email)
             raise
+
+
+def _render_link_email(
+    title: str,
+    full_name: str,
+    description: str,
+    button_label: str,
+    url: str,
+    footnote: str,
+) -> str:
+    """HTML template for call-to-action emails (e.g. password recovery links)."""
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+</head>
+<body style="margin: 0; padding: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center" style="max-width: 480px; margin: 0 auto;">
+    <tr>
+      <td style="padding: 0 12px;">
+        <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 34px 28px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);">
+          <div style="margin-bottom: 22px;">
+            <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.4px; color: #ffffff;">ZenFlow</span>
+          </div>
+          <p style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; line-height: 1.5; color: #ffffff;">Hi {full_name},</p>
+          <p style="margin: 0 0 22px 0; font-size: 14px; line-height: 1.6; color: #e2e8f0;">{description}</p>
+          <div style="margin: 22px 0; text-align: center;">
+            <a href="{url}" style="display: inline-block; padding: 12px 22px; background-color: #3b82f6; color: #ffffff; font-weight: 700; font-size: 14px; text-decoration: none; border-radius: 10px;">{button_label}</a>
+          </div>
+          <p style="margin: 0 0 8px 0; font-size: 12px; line-height: 1.5; color: #94a3b8; word-break: break-all;">
+            Or paste this link into your browser:<br><a href="{url}" style="color: #38bdf8;">{url}</a>
+          </p>
+          <p style="margin: 16px 0 0 0; font-size: 13px; line-height: 1.5; color: #cbd5e1;">{footnote}</p>
+          <hr style="border: none; border-top: 1px solid #334155; margin: 26px 0 16px 0;">
+          <p style="margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.5;">ZenFlow &middot; Bring clarity to your day</p>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
 
 def _render_otp_email(
     title: str,
@@ -338,6 +371,18 @@ class ResendEmailService(BaseEmailService):
         )
         self._send(to_email, subject, html, plain)
 
+    def send_password_recovery_email(self, to_email: str, full_name: str, reset_url: str) -> None:
+        subject = "ZenFlow: Reset Your Password"
+        html = _render_link_email(
+            title="Reset Your Password",
+            full_name=full_name,
+            description="We received a request to reset the password for your ZenFlow account. Click the button below to choose a new password.",
+            button_label="Reset password",
+            url=reset_url,
+            footnote="This link is valid for a limited time and can only be used once. If you didn't request a reset, you can safely ignore this email.",
+        )
+        self._send(to_email, subject, html, _recovery_plain_text(full_name, reset_url))
+
 
 class BrevoEmailService(BaseEmailService):
     """
@@ -417,6 +462,18 @@ class BrevoEmailService(BaseEmailService):
             warning="Entering this code will permanently delete your ZenFlow account and erase all your tasks, expenses, budgets, and events.",
         )
         self._send(to_email, full_name, subject, html, plain)
+
+    def send_password_recovery_email(self, to_email: str, full_name: str, reset_url: str) -> None:
+        subject = "ZenFlow: Reset Your Password"
+        html = _render_link_email(
+            title="Reset Your Password",
+            full_name=full_name,
+            description="We received a request to reset the password for your ZenFlow account. Click the button below to choose a new password.",
+            button_label="Reset password",
+            url=reset_url,
+            footnote="This link is valid for a limited time and can only be used once. If you didn't request a reset, you can safely ignore this email.",
+        )
+        self._send(to_email, full_name, subject, html, _recovery_plain_text(full_name, reset_url))
 
 
 def get_email_service() -> BaseEmailService:

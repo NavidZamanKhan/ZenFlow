@@ -172,12 +172,49 @@ PASSWORD_HASHERS = [
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # Reads the access token from the httpOnly cookie (browser clients) or
+        # from the Authorization: Bearer header (tests, scripts, native clients).
+        "users.authentication.CookieJWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    "DEFAULT_THROTTLE_RATES": {
+        # Per client IP. Throttle counters live in the default cache - see
+        # CACHES below for why a shared cache matters with several workers.
+        # Public password-recovery endpoints (forgot / validate / confirm).
+        "password_recovery": config("PASSWORD_RECOVERY_THROTTLE", default="20/hour"),
+        # Credential-presenting endpoints (email/password login, Google sign-in).
+        "auth": config("AUTH_THROTTLE", default="30/minute"),
+    },
 }
+
+# ------------------------------------------------------------------------------
+# Cache (DRF throttling)
+# ------------------------------------------------------------------------------
+# With the in-memory default every gunicorn worker keeps its own throttle
+# counters (and loses them on restart), so limits are effectively multiplied
+# by the worker count. Point CACHE_URL (or REDIS_URL, already used by Celery)
+# at Redis in production to share counters across workers. Local development
+# and CI keep working without Redis.
+
+CACHE_URL = config("CACHE_URL", default=config("REDIS_URL", default=""))
+
+if CACHE_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": CACHE_URL,
+            "KEY_PREFIX": "zenflow",
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "zenflow-default",
+        }
+    }
 
 # ------------------------------------------------------------------------------
 # Simple JWT
@@ -191,7 +228,52 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
+    # Opt-in: embed a digest of the password hash in every token so *access*
+    # tokens (not just refresh tokens) stop working the moment the password
+    # changes. Tokens issued before this is switched on carry no digest and are
+    # rejected, i.e. enabling it signs every current user out once.
+    "CHECK_REVOKE_TOKEN": config("JWT_CHECK_REVOKE_TOKEN", default=False, cast=bool),
+    "REVOKE_TOKEN_CLAIM": "hash_password",
 }
+
+# Expired entries in the token blacklist tables are not removed automatically;
+# run `python manage.py flushexpiredtokens` periodically (see README).
+
+# ------------------------------------------------------------------------------
+# JWT cookies
+# ------------------------------------------------------------------------------
+# Access/refresh tokens are issued as httpOnly cookies so they are never
+# reachable from JavaScript (closing the localStorage token-exposure gap).
+# The refresh cookie is path-scoped to the auth endpoints so it is only sent
+# where it is actually needed.
+
+JWT_AUTH_COOKIE = "zf_access"
+JWT_AUTH_REFRESH_COOKIE = "zf_refresh"
+JWT_AUTH_COOKIE_PATH = "/"
+JWT_AUTH_REFRESH_COOKIE_PATH = "/api/auth/"
+JWT_AUTH_COOKIE_DOMAIN = config("JWT_AUTH_COOKIE_DOMAIN", default=None)
+# Secure cookies are mandatory outside of DEBUG. SameSite=None is required when
+# the frontend and API live on different sites (e.g. Netlify + Render); use Lax
+# for same-site deployments.
+JWT_AUTH_COOKIE_SECURE = config("JWT_AUTH_COOKIE_SECURE", default=not DEBUG, cast=bool)
+JWT_AUTH_COOKIE_SAMESITE = config(
+    "JWT_AUTH_COOKIE_SAMESITE", default="Lax" if DEBUG else "None"
+)
+
+# Browsers cannot read the httpOnly cookies, so cookie-authenticated mutating
+# requests must carry an X-CSRFToken header (double-submit pattern). The CSRF
+# cookie therefore needs the same cross-site attributes as the JWT cookies.
+CSRF_COOKIE_SECURE = JWT_AUTH_COOKIE_SECURE
+CSRF_COOKIE_SAMESITE = JWT_AUTH_COOKIE_SAMESITE
+CSRF_COOKIE_HTTPONLY = False
+CSRF_HEADER_NAME = "HTTP_X_CSRFTOKEN"
+
+# Absolute URL of the Next.js app. Used to build password-recovery links.
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000").rstrip("/")
+
+# Password-recovery links expire after this many seconds (Django's token
+# generator enforces it).
+PASSWORD_RESET_TIMEOUT = config("PASSWORD_RESET_TIMEOUT", default=60 * 60, cast=int)
 
 # ------------------------------------------------------------------------------
 # Internationalization
@@ -220,6 +302,12 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = config("CORS_ALLOW_ALL_ORIGINS", default=False, cast=bool)
 
+# The JWT lives in httpOnly cookies, so the browser must be allowed to send
+# credentials cross-origin (frontend and API are on different hosts in prod).
+# Note: CORS_ALLOW_ALL_ORIGINS cannot be combined with credentials by browsers;
+# list the frontend origins explicitly in CORS_ALLOWED_ORIGINS instead.
+CORS_ALLOW_CREDENTIALS = True
+
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in config(
@@ -228,6 +316,14 @@ CSRF_TRUSTED_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
+
+# The frontend must be trusted for CSRF (cookie auth + X-CSRFToken header) and
+# allowed by CORS, so make sure FRONTEND_URL is always included.
+for _origin in (FRONTEND_URL,):
+    if _origin and _origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_origin)
+    if _origin and not CORS_ALLOW_ALL_ORIGINS and _origin not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(_origin)
 
 # ------------------------------------------------------------------------------
 # Static & Media Files

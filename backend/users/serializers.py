@@ -90,21 +90,22 @@ class LoginSerializer(serializers.Serializer):
 
 
 class LogoutSerializer(serializers.Serializer):
-    """Validates logout input - expects the refresh token."""
+    """
+    Validates logout input. The refresh token normally arrives in the httpOnly
+    cookie, so the body field is optional (kept for header-based clients).
+    """
 
-    refresh = serializers.CharField()
+    refresh = serializers.CharField(required=False, allow_blank=True)
 
 
 class GoogleAuthSerializer(serializers.Serializer):
-    """Validates Google OAuth ID token or access token."""
+    """
+    Validates Google sign-in input. Only a Google *ID token* is accepted: its
+    audience can be verified against GOOGLE_CLIENT_ID, which an OAuth access
+    token (previously accepted) cannot.
+    """
 
-    id_token = serializers.CharField(required=False, allow_blank=True)
-    access_token = serializers.CharField(required=False, allow_blank=True)
-
-    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
-        if not data.get("id_token") and not data.get("access_token"):
-            raise serializers.ValidationError("Either id_token or access_token is required.")
-        return data
+    id_token = serializers.CharField(max_length=4096, trim_whitespace=True)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -203,6 +204,39 @@ class ChangePasswordWithOTPSerializer(serializers.Serializer):
         if not value.isdigit():
             raise serializers.ValidationError("Verification code must contain only digits.")
         return value
+
+    def validate_new_password(self, value: str) -> str:
+        return validate_password_strength(value)
+
+    def validate(self, attrs: dict) -> dict:
+        if attrs["new_password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError(
+                {"confirm_password": "Passwords do not match."}
+            )
+        return attrs
+
+
+class PasswordRecoveryRequestSerializer(serializers.Serializer):
+    """Public 'forgot password' request - only needs the account email."""
+
+    email = serializers.EmailField(max_length=254)
+
+    def validate_email(self, value: str) -> str:
+        return value.lower().strip()
+
+
+class PasswordRecoveryTokenSerializer(serializers.Serializer):
+    """Validates the (uid, token) pair embedded in a recovery link."""
+
+    uid = serializers.CharField(max_length=64)
+    token = serializers.CharField(max_length=128)
+
+
+class PasswordRecoveryConfirmSerializer(PasswordRecoveryTokenSerializer):
+    """Completes a public password recovery with a new password."""
+
+    new_password = serializers.CharField(min_length=8, write_only=True)
+    confirm_password = serializers.CharField(min_length=8, write_only=True)
 
     def validate_new_password(self, value: str) -> str:
         return validate_password_strength(value)

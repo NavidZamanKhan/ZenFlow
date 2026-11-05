@@ -30,9 +30,14 @@ export interface User {
   updatedAt: string
 }
 
-export interface AuthTokens {
-  access: string
-  refresh: string
+/**
+ * Returned by login / verify-email / google. The JWT access and refresh
+ * tokens travel in httpOnly cookies set by the response, never in the body.
+ * `csrfToken` must be echoed in the `X-CSRFToken` header of mutating calls.
+ */
+export interface AuthSessionResponse {
+  user: Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified' | 'has_password'>
+  csrfToken: string
 }
 
 // -- Register ---------------------------------------------------------------
@@ -57,11 +62,6 @@ export interface VerifyEmailRequest {
   otp: string
 }
 
-export interface VerifyEmailResponse {
-  tokens: AuthTokens
-  user: Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified' | 'has_password'>
-}
-
 // -- Resend OTP -------------------------------------------------------------
 
 export interface ResendOtpRequest {
@@ -79,16 +79,11 @@ export interface LoginRequest {
   password: string
 }
 
-export interface LoginResponse {
-  tokens: AuthTokens
-  user: Pick<ApiUser, 'id' | 'email' | 'full_name' | 'email_verified' | 'has_password'>
-}
-
 // -- Google Auth ------------------------------------------------------------
 
+/** Only Google ID tokens are accepted - the backend verifies their audience. */
 export interface GoogleAuthRequest {
-  id_token?: string
-  access_token?: string
+  id_token: string
 }
 
 // -- Password Management & Account Deletion ---------------------------------
@@ -109,11 +104,29 @@ export interface DeleteAccountRequest {
   password?: string
 }
 
-// -- Logout -----------------------------------------------------------------
+// -- Password recovery (public "forgot password" flow) ----------------------
 
-export interface LogoutRequest {
-  refresh: string
+export interface ForgotPasswordRequest {
+  email: string
 }
+
+/** `uid` and `token` come from the query string of the emailed reset link. */
+export interface PasswordRecoveryTokenRequest {
+  uid: string
+  token: string
+}
+
+export interface PasswordRecoveryConfirmRequest extends PasswordRecoveryTokenRequest {
+  new_password: string
+  confirm_password: string
+}
+
+export interface PasswordRecoveryValidateResponse {
+  valid: boolean
+  email?: string
+}
+
+// -- Logout -----------------------------------------------------------------
 
 export interface LogoutResponse {
   detail: string

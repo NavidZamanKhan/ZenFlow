@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Lock, Mail } from 'lucide-react'
 import { useForm } from 'react-hook-form'
@@ -67,12 +68,12 @@ export function LoginForm() {
         autoComplete="current-password"
         error={errors.password?.message}
         labelRight={
-          <a
-            href="#"
+          <Link
+            href="/forgot-password"
             className="text-sm text-[var(--zf-accent)] transition-colors duration-150 hover:opacity-80"
           >
             Forgot password?
-          </a>
+          </Link>
         }
         {...register('password')}
       />

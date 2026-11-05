@@ -14,9 +14,10 @@ import {
   apiUpdateProfile,
   apiVerifyEmail,
   ApiError,
-  clearTokens,
-  getStoredTokens,
-  storeTokens,
+  clearSession,
+  hasSessionHint,
+  markSession,
+  setSessionExpiredHandler,
 } from './api'
 import { clientCache } from './client-cache'
 
@@ -34,7 +35,8 @@ interface AuthContextType {
   loading: boolean
 
   login: (email: string, password: string) => Promise<void>
-  loginWithGoogle: (payload: string | { idToken?: string; accessToken?: string }) => Promise<void>
+  /** `idToken` is the Google ID token (`credential`) returned by Google Identity Services. */
+  loginWithGoogle: (idToken: string) => Promise<void>
   signup: (fullName: string, email: string, password: string, confirmPassword: string) => Promise<SignupResult>
   verifyEmail: (pendingRegistrationId: string, otp: string) => Promise<void>
   resendOtp: (pendingRegistrationId: string) => Promise<void>
@@ -72,6 +74,9 @@ function clearUser(): void {
 function clearLegacyAuth(): void {
   localStorage.removeItem('isAuthenticated')
   localStorage.removeItem('user')
+  // Older builds persisted JWTs in localStorage; tokens now live in
+  // httpOnly cookies so anything left behind is dead weight.
+  localStorage.removeItem('zenflow:tokens')
 }
 
 // ---------------------------------------------------------------------------
@@ -84,15 +89,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true)
   const router = useRouter()
 
-  // Hydrate session on mount - check for stored tokens, validate with /me
+  const resetLocalSession = useCallback(() => {
+    clearSession()
+    clearUser()
+    clientCache.clear()
+    setIsAuthenticated(false)
+    setUser(null)
+  }, [])
+
+  // When a silent refresh fails anywhere in the app the session is gone:
+  // drop local state and send the user to the login page.
+  useEffect(() => {
+    setSessionExpiredHandler(() => {
+      resetLocalSession()
+      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard')) {
+        router.push('/login')
+      }
+    })
+    return () => setSessionExpiredHandler(null)
+  }, [resetLocalSession, router])
+
+  // Hydrate session on mount. The JWT cookies are httpOnly (invisible to JS),
+  // so we ask /me whether the browser still holds a valid session. A small
+  // non-sensitive flag lets anonymous visitors skip the round-trip.
   useEffect(() => {
     let cancelled = false
 
     async function hydrate() {
       clearLegacyAuth()
 
-      const tokens = getStoredTokens()
-      if (!tokens) {
+      if (!hasSessionHint()) {
+        clearUser()
         setLoading(false)
         return
       }
@@ -113,8 +140,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         storeUser(freshUser)
       } catch {
         if (cancelled) return
-        // Token is invalid/expired - clear everything
-        clearTokens()
+        // Cookies are invalid/expired - clear everything
+        clearSession()
         clearUser()
         setIsAuthenticated(false)
         setUser(null)
@@ -127,34 +154,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true }
   }, [])
 
+  const establishSession = useCallback((apiUser: Parameters<typeof toUser>[0]) => {
+    markSession()
+    const u = toUser(apiUser)
+    storeUser(u)
+    setUser(u)
+    setIsAuthenticated(true)
+    router.push('/dashboard')
+  }, [router])
+
   // -- Login ----------------------------------------------------------------
 
   const login = useCallback(async (email: string, password: string): Promise<void> => {
     const res = await apiLogin({ email, password })
-    storeTokens(res.tokens.access, res.tokens.refresh)
-    const u = toUser(res.user)
-    storeUser(u)
-    setUser(u)
-    setIsAuthenticated(true)
-    router.push('/dashboard')
-  }, [router])
+    establishSession(res.user)
+  }, [establishSession])
 
   // -- Google Login ---------------------------------------------------------
 
-  const loginWithGoogle = useCallback(async (
-    payload: string | { idToken?: string; accessToken?: string },
-  ): Promise<void> => {
-    const data = typeof payload === 'string'
-      ? { id_token: payload }
-      : { id_token: payload.idToken, access_token: payload.accessToken }
-    const res = await apiGoogleAuth(data)
-    storeTokens(res.tokens.access, res.tokens.refresh)
-    const u = toUser(res.user)
-    storeUser(u)
-    setUser(u)
-    setIsAuthenticated(true)
-    router.push('/dashboard')
-  }, [router])
+  const loginWithGoogle = useCallback(async (idToken: string): Promise<void> => {
+    const res = await apiGoogleAuth({ id_token: idToken })
+    establishSession(res.user)
+  }, [establishSession])
 
   // -- Signup (step 1 - returns pending ID, does NOT authenticate) ----------
 
@@ -193,13 +214,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       pending_registration_id: pendingRegistrationId,
       otp,
     })
-    storeTokens(res.tokens.access, res.tokens.refresh)
-    const u = toUser(res.user)
-    storeUser(u)
-    setUser(u)
-    setIsAuthenticated(true)
-    router.push('/dashboard')
-  }, [router])
+    establishSession(res.user)
+  }, [establishSession])
 
   // -- Resend OTP -----------------------------------------------------------
 
@@ -236,22 +252,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // -- Logout ---------------------------------------------------------------
 
   const logout = useCallback(async (): Promise<void> => {
-    const tokens = getStoredTokens()
-    if (tokens) {
-      try {
-        await apiLogout(tokens.refresh)
-      } catch {
-        // Even if the backend call fails (e.g. token already expired),
-        // we still clear local state and redirect.
-      }
+    try {
+      // Blacklists the refresh token and clears the httpOnly cookies.
+      await apiLogout()
+    } catch {
+      // Even if the backend call fails (e.g. session already expired),
+      // we still clear local state and redirect.
     }
-    clearTokens()
-    clearUser()
-    clientCache.clear()
-    setIsAuthenticated(false)
-    setUser(null)
+    resetLocalSession()
     router.push('/login')
-  }, [router])
+  }, [resetLocalSession, router])
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, loading, login, loginWithGoogle, signup, verifyEmail, resendOtp, refreshUser, updateProfile, logout }}>

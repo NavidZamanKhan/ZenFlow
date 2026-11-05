@@ -6,16 +6,14 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import { ZenFlowLogo } from '@/components/zenflow-logo'
 import { cn } from '@/lib/utils'
-import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google'
+import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google'
 import { toast } from 'sonner'
 import { ApiError } from '@/lib/api'
 import { DashboardPreview } from './DashboardPreview'
 import { LoginForm } from './LoginForm'
 import { SignupForm } from './SignupForm'
 
-const GOOGLE_CLIENT_ID =
-  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-  '680417209345-e220tanmhq34htb6dhs61glak7gc2n87.apps.googleusercontent.com'
+const GOOGLE_CLIENT_ID = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim()
 
 type AuthTab = 'login' | 'signup'
 
@@ -48,71 +46,80 @@ function PillBadge({ children }: { children: React.ReactNode }) {
   )
 }
 
-function GoogleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">
-      <path
-        fill="#4285F4"
-        d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47a5.57 5.57 0 0 1-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82Z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09A11.99 11.99 0 0 0 12 24Z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.27 14.29A7.14 7.14 0 0 1 4.89 12c0-.8.14-1.57.38-2.29V6.62H1.29a11.99 11.99 0 0 0 0 10.76l3.98-3.09Z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.29 6.62l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75Z"
-      />
-    </svg>
-  )
-}
-
+/**
+ * Google sign-in. Uses Google's own button so the browser receives a signed
+ * *ID token* (the `credential`) rather than an OAuth access token: the backend
+ * verifies the ID token's signature, expiry, issuer and - crucially - that it
+ * was issued for ZenFlow's client ID before trusting the email inside it.
+ */
 function GoogleAuthButton() {
   const { loginWithGoogle } = useAuth()
   const [loading, setLoading] = useState(false)
 
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setLoading(true)
-      try {
-        await loginWithGoogle({ accessToken: tokenResponse.access_token })
-        toast.success('Successfully authenticated with Google!')
-      } catch (err) {
-        if (err instanceof ApiError) {
-          toast.error(err.message)
-        } else {
-          toast.error('Google authentication failed. Please try again.')
-        }
-      } finally {
-        setLoading(false)
+  if (!GOOGLE_CLIENT_ID) {
+    return (
+      <div className="flex justify-center">
+        <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          className="zf-tap flex h-11 w-full max-w-[368px] items-center justify-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-400 cursor-not-allowed dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-500"
+          title="Google Sign-In is not configured"
+        >
+          <span>Continue with Google (disabled)</span>
+        </button>
+      </div>
+    )
+  }
+
+  const handleCredential = async (credential: string | undefined) => {
+    if (!credential) {
+      toast.error('Google Sign-In did not return a credential. Please try again.')
+      return
+    }
+    setLoading(true)
+    try {
+      await loginWithGoogle(credential)
+      toast.success('Successfully authenticated with Google!')
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message)
+      } else {
+        toast.error('Google authentication failed. Please try again.')
       }
-    },
-    onError: () => {
-      toast.error('Google Sign-In was cancelled or failed.')
-    },
-  })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <button
-      type="button"
-      disabled={loading}
-      onClick={() => handleGoogleLogin()}
-      className="zf-tap flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] disabled:cursor-not-allowed disabled:opacity-60"
-    >
+    <div className="relative" aria-busy={loading}>
+      <div className={cn('flex justify-center', loading && 'pointer-events-none opacity-60')}>
+        <GoogleLogin
+          onSuccess={(res) => void handleCredential(res.credential)}
+          onError={() => toast.error('Google Sign-In was cancelled or failed.')}
+          useOneTap={false}
+          text="continue_with"
+          shape="pill"
+          size="large"
+          theme="outline"
+          logo_alignment="center"
+          width="368"
+        />
+      </div>
       {loading ? (
         <div
-          className="size-4 animate-spin rounded-full border-2 border-[var(--zf-accent)] border-t-transparent"
-          aria-hidden="true"
-        />
-      ) : (
-        <GoogleIcon />
-      )}
-      <span>{loading ? 'Connecting...' : 'Continue with Google'}</span>
-    </button>
+          className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 rounded-full bg-white/80 text-sm font-semibold text-slate-700 dark:bg-[var(--zf-surface)]/80 dark:text-[var(--zf-text)]"
+          role="status"
+        >
+          <div
+            className="size-4 animate-spin rounded-full border-2 border-[var(--zf-accent)] border-t-transparent"
+            aria-hidden="true"
+          />
+          Connecting...
+        </div>
+      ) : null}
+    </div>
   )
 }
 
@@ -279,6 +286,9 @@ function AuthPageInner({ defaultTab = 'login' }: { defaultTab?: AuthTab }) {
 }
 
 export function AuthPage(props: { defaultTab?: AuthTab }) {
+  if (!GOOGLE_CLIENT_ID) {
+    return <AuthPageInner {...props} />
+  }
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <AuthPageInner {...props} />

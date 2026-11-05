@@ -7,13 +7,20 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.utils import timezone
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import AccountOTP, PendingRegistration
 
-import requests
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 
@@ -23,6 +30,16 @@ from .otp_service import OTP_MAX_FAILED_ATTEMPTS, OTPService
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
+
+GOOGLE_ISSUERS = ("accounts.google.com", "https://accounts.google.com")
+
+
+class GoogleAuthUnavailable(ValidationError):
+    """
+    Google sign-in cannot be performed right now for an operational reason
+    (server misconfiguration or Google unreachable) - as opposed to the caller
+    presenting a bad token. Views map this to 503 instead of 400.
+    """
 
 
 class AuthService:
@@ -168,19 +185,33 @@ class AuthService:
                 f"Invalid verification code. {remaining} attempts remaining."
             )
 
-        # OTP is valid - create the real User
-        user = User.objects.create_user(
-            email=pending.email,
-            full_name=pending.full_name,
-            password=None,  # We'll set the pre-hashed password directly
-            email_verified=True,
-        )
-        # Set the pre-hashed password directly (already Argon2id)
-        user.password = pending.hashed_password
-        user.save(update_fields=["password"])
+        # OTP is valid. The email may have been claimed since the registration
+        # started (e.g. the person signed in with Google in the meantime), so
+        # check before creating and never let a unique-constraint error escape.
+        if User.objects.filter(email=pending.email).exists():
+            pending.delete()
+            raise ValidationError(
+                "An account with this email already exists. Please log in instead."
+            )
 
-        # Delete the PendingRegistration
-        pending.delete()
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    email=pending.email,
+                    full_name=pending.full_name,
+                    password=None,  # We'll set the pre-hashed password directly
+                    email_verified=True,
+                )
+                # Set the pre-hashed password directly (already Argon2id)
+                user.password = pending.hashed_password
+                user.save(update_fields=["password"])
+                pending.delete()
+        except IntegrityError:
+            # Lost a race with a concurrent sign-up for the same email.
+            PendingRegistration.objects.filter(pk=pending.pk).delete()
+            raise ValidationError(
+                "An account with this email already exists. Please log in instead."
+            )
 
         # Issue JWT tokens
         tokens = self._issue_tokens(user)
@@ -272,10 +303,12 @@ class AuthService:
         except User.DoesNotExist:
             raise ValidationError("Invalid email or password.")
 
-        if not user.is_active:
-            raise ValidationError("This account has been deactivated.")
-
-        if not check_password(password, user.password):
+        # Evaluate password even for inactive accounts to prevent timing side-channels,
+        # but always return the generic message to avoid account-status enumeration.
+        password_valid = check_password(password, user.password)
+        if not user.is_active or not password_valid:
+            if not user.is_active and password_valid:
+                logger.warning("Login attempt for deactivated user: %s", user.email)
             raise ValidationError("Invalid email or password.")
 
         # Issue JWT tokens
@@ -298,67 +331,53 @@ class AuthService:
     # Google OAuth
     # ------------------------------------------------------------------
 
-    def google_auth(
-        self,
-        id_token_str: str | None = None,
-        access_token_str: str | None = None,
-    ) -> dict[str, Any]:
+    def google_auth(self, id_token_str: str) -> dict[str, Any]:
         """
-        Verify Google ID token or Access token and log in or register the user.
+        Verify a Google *ID token* and log in or register the user.
+
+        The token is verified with Google's library (signature against Google's
+        published certificates, expiry, issuer) and its audience must be this
+        deployment's ``GOOGLE_CLIENT_ID`` - a token minted for any other OAuth
+        client is refused. Google must also assert ``email_verified``; an
+        unverified address is never used to log in or to link an existing
+        email/password account. Nothing about the identity is taken from the
+        request body.
         """
-        id_info = None
-
-        if id_token_str:
-            try:
-                request = google_requests.Request()
-                id_info = google_id_token.verify_oauth2_token(
-                    id_token_str,
-                    request,
-                    settings.GOOGLE_CLIENT_ID if settings.GOOGLE_CLIENT_ID else None,
-                )
-                if id_info.get("iss") not in ["accounts.google.com", "https://accounts.google.com"]:
-                    raise ValidationError("Invalid Google token issuer.")
-            except Exception as e:
-                logger.warning("Google ID token verification failed: %s", e)
-                raise ValidationError("Invalid Google authentication token.")
-
-        elif access_token_str:
-            try:
-                resp = requests.get(
-                    "https://www.googleapis.com/oauth2/v3/userinfo",
-                    headers={"Authorization": f"Bearer {access_token_str}"},
-                    timeout=10,
-                )
-                if resp.status_code != 200:
-                    raise ValidationError("Failed to verify Google access token.")
-                id_info = resp.json()
-            except Exception as e:
-                logger.warning("Google access token verification failed: %s", e)
-                raise ValidationError("Invalid Google authentication token.")
-
-        if not id_info:
-            raise ValidationError("Google authentication payload missing.")
+        id_info = self._verify_google_id_token(id_token_str)
 
         email = id_info.get("email")
         if not email:
             raise ValidationError("Google account did not provide an email address.")
+        if id_info.get("email_verified") not in (True, "true"):
+            logger.warning("Google sign-in refused: email not verified by Google.")
+            raise ValidationError(
+                "Your Google account's email address is not verified. "
+                "Verify it with Google or sign in with your password."
+            )
 
         email = email.lower().strip()
-        full_name = id_info.get("name") or id_info.get("given_name") or email.split("@")[0]
+        full_name = (id_info.get("name") or id_info.get("given_name") or email.split("@")[0])[:150]
 
-        # Look up user or create new user
-        user, created = User.objects.get_or_create(
-            email=email,
-            defaults={
-                "full_name": full_name,
-                "email_verified": True,
-                "is_active": True,
-            },
-        )
+        # Verified Google identity + matching email -> log in (and thereby
+        # link) the existing account; otherwise create a password-less user.
+        try:
+            with transaction.atomic():
+                user, created = User.objects.get_or_create(
+                    email=email,
+                    defaults={
+                        "full_name": full_name,
+                        "email_verified": True,
+                        "is_active": True,
+                    },
+                )
+                if created:
+                    user.set_unusable_password()
+                    user.save(update_fields=["password"])
+        except IntegrityError:
+            # Lost a race with a concurrent sign-up for the same email.
+            user, created = User.objects.get(email=email), False
 
         if created:
-            user.set_unusable_password()
-            user.save()
             logger.info("New user registered via Google: %s", user.email)
         else:
             if not user.is_active:
@@ -451,9 +470,15 @@ class AuthService:
         logger.info("Password reset OTP sent to %s", user.email)
         return {"message": "Verification code sent to your email."}
 
-    def change_password_with_otp(self, user: Any, otp: str, new_password: str) -> dict[str, str]:
+    def change_password_with_otp(self, user: Any, otp: str, new_password: str) -> dict[str, Any]:
         """
         Verify the OTP and update the user's password.
+
+        Every outstanding refresh token (all devices, including rotated ones)
+        is blacklisted so a stolen session does not survive the new password;
+        the caller gets a brand-new token pair so *this* browser stays signed in.
+        Tokens are issued after the revocation inside the same transaction so
+        they can never be caught by it.
         """
         record = AccountOTP.objects.filter(
             user=user, purpose=AccountOTP.PURPOSE_PASSWORD_RESET
@@ -473,17 +498,21 @@ class AuthService:
         if not self.otp_service.verify_otp(otp, record.otp_hash):
             record.failed_attempts += 1
             record.save(update_fields=["failed_attempts"])
-            remaining = 3 - record.failed_attempts
+            remaining = OTP_MAX_FAILED_ATTEMPTS - record.failed_attempts
             if remaining <= 0:
                 record.delete()
                 raise ValidationError("Too many failed attempts. Please request a new code.")
             raise ValidationError(f"Invalid verification code. {remaining} attempt(s) remaining.")
 
-        user.set_password(new_password)
-        user.save(update_fields=["password", "updated_at"])
-        record.delete()
-        logger.info("Password updated successfully for: %s", user.email)
-        return {"message": "Password updated successfully."}
+        with transaction.atomic():
+            user.set_password(new_password)
+            user.save(update_fields=["password", "updated_at"])
+            record.delete()
+            self._revoke_all_sessions(user)
+            tokens = self._issue_tokens(user)
+
+        logger.info("Password updated and other sessions revoked for user %s", user.pk)
+        return {"message": "Password updated successfully.", "tokens": tokens}
 
     def send_delete_account_otp(self, user: Any) -> dict[str, str]:
         """
@@ -565,8 +594,133 @@ class AuthService:
         return {"message": "Your account has been permanently deleted."}
 
     # ------------------------------------------------------------------
+    # Public Password Recovery (logged-out users)
+    # ------------------------------------------------------------------
+
+    RECOVERY_GENERIC_MESSAGE = (
+        "If an account exists for that email, a password reset link has been sent."
+    )
+
+    def request_password_recovery(self, email: str) -> dict[str, str]:
+        """
+        Email a one-time password reset link to the account owner.
+
+        Always returns the same generic message - for unknown and deactivated
+        accounts *and* when the mail transport fails - so neither the response
+        body, the status code nor an outage can be used to enumerate registered
+        emails. Delivery problems are logged for operators only.
+        """
+        email = email.lower().strip()
+        user = User.objects.filter(email=email, is_active=True).first()
+        if user is None:
+            logger.debug("Password recovery requested for an unknown or inactive account.")
+            return {"message": self.RECOVERY_GENERIC_MESSAGE}
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        reset_url = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
+
+        if settings.DEBUG:
+            # Development convenience only: the link (which embeds the reset
+            # token) must never reach production logs.
+            print(f"[ZenFlow] password-reset url={reset_url} email={email}", flush=True)
+
+        try:
+            self.email_service.send_password_recovery_email(
+                to_email=user.email,
+                full_name=user.full_name,
+                reset_url=reset_url,
+            )
+        except Exception:  # noqa: BLE001 - any transport/provider failure
+            # The token itself is not logged; `exception` records the provider error.
+            logger.exception("Failed to send password recovery email for user %s", user.pk)
+            return {"message": self.RECOVERY_GENERIC_MESSAGE}
+
+        logger.info("Password recovery email sent for user %s", user.pk)
+        return {"message": self.RECOVERY_GENERIC_MESSAGE}
+
+    def _resolve_recovery_user(self, uid: str, token: str) -> User:
+        try:
+            user_pk = force_str(urlsafe_base64_decode(uid))
+            user = User.objects.get(pk=user_pk, is_active=True)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist, ValidationError):
+            raise ValidationError("This password reset link is invalid or has expired.")
+
+        if not default_token_generator.check_token(user, token):
+            raise ValidationError("This password reset link is invalid or has expired.")
+        return user
+
+    def validate_password_recovery_token(self, uid: str, token: str) -> dict[str, Any]:
+        """Let the frontend check a link before showing the new-password form."""
+        user = self._resolve_recovery_user(uid, token)
+        return {"valid": True, "email": user.email}
+
+    def confirm_password_recovery(self, uid: str, token: str, new_password: str) -> dict[str, str]:
+        """
+        Verify the recovery link and set the new password. Every outstanding
+        refresh token for the account is blacklisted so stolen sessions die
+        with the old password.
+        """
+        user = self._resolve_recovery_user(uid, token)
+
+        try:
+            validate_password(new_password, user=user)
+        except ValidationError as e:
+            raise ValidationError(e.messages)
+
+        with transaction.atomic():
+            # Changing the hash also invalidates this (and any other
+            # outstanding) recovery link, since the hash is part of the token.
+            user.set_password(new_password)
+            user.save(update_fields=["password", "updated_at"])
+            self._revoke_all_sessions(user)
+
+        logger.info("Password recovered via email link for user %s", user.pk)
+        return {"message": "Your password has been reset. You can now log in."}
+
+    # ------------------------------------------------------------------
     # Private Helpers
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _verify_google_id_token(id_token_str: str) -> dict[str, Any]:
+        """
+        Validate an ID token with google-auth. Fails closed when the client ID
+        is not configured (there is nothing to check the audience against).
+        """
+        client_id = (getattr(settings, "GOOGLE_CLIENT_ID", "") or "").strip()
+        if not client_id:
+            logger.error("GOOGLE_CLIENT_ID is not configured; refusing Google sign-in.")
+            raise GoogleAuthUnavailable("Google sign-in is not available right now.")
+
+        try:
+            id_info = google_id_token.verify_oauth2_token(
+                id_token_str,
+                google_requests.Request(),
+                audience=client_id,
+            )
+        except ValueError as e:
+            # Bad signature, expired, wrong audience or issuer: the caller's token is invalid.
+            logger.warning("Google ID token rejected: %s", e)
+            raise ValidationError("Invalid Google authentication token.")
+        except Exception as e:  # noqa: BLE001 - transport/cert fetch failures
+            logger.error("Google ID token verification unavailable: %s", e)
+            raise GoogleAuthUnavailable(
+                "Could not verify your Google sign-in right now. Please try again."
+            )
+
+        # google-auth already checks this; keep the explicit guard so the
+        # contract does not depend on library internals.
+        if id_info.get("iss") not in GOOGLE_ISSUERS:
+            logger.warning("Google ID token rejected: unexpected issuer.")
+            raise ValidationError("Invalid Google authentication token.")
+        return id_info
+
+    @staticmethod
+    def _revoke_all_sessions(user: Any) -> None:
+        """Blacklist every outstanding refresh token belonging to the user."""
+        for outstanding in OutstandingToken.objects.filter(user=user):
+            BlacklistedToken.objects.get_or_create(token=outstanding)
 
     @staticmethod
     def _issue_tokens(user: Any) -> dict[str, str]:

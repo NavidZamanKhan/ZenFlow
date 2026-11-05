@@ -1,8 +1,9 @@
 from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from datetime import timedelta
 from rest_framework import status
@@ -11,6 +12,22 @@ from rest_framework.test import APIClient
 from users.models import PendingRegistration
 
 User = get_user_model()
+
+
+def assert_session_cookies(testcase, response):
+    """Assert a response established the httpOnly JWT cookie session."""
+    access = response.cookies.get(settings.JWT_AUTH_COOKIE)
+    refresh = response.cookies.get(settings.JWT_AUTH_REFRESH_COOKIE)
+    testcase.assertIsNotNone(access, "access cookie missing")
+    testcase.assertIsNotNone(refresh, "refresh cookie missing")
+    testcase.assertTrue(access.value)
+    testcase.assertTrue(refresh.value)
+    testcase.assertTrue(access["httponly"])
+    testcase.assertTrue(refresh["httponly"])
+    testcase.assertEqual(refresh["path"], settings.JWT_AUTH_REFRESH_COOKIE_PATH)
+    # Tokens must never be echoed in the body.
+    testcase.assertNotIn("tokens", response.data)
+    testcase.assertIn("csrfToken", response.data)
 
 
 class RegisterViewTests(TestCase):
@@ -115,7 +132,7 @@ class VerifyEmailViewTests(TestCase):
         )
 
     def test_verify_email_success(self):
-        """Test successful verification returns 200 with tokens."""
+        """Test successful verification returns 200, sets JWT cookies, and returns the user."""
         pending = self._create_pending(otp="123456")
 
         response = self.client.post(
@@ -128,7 +145,7 @@ class VerifyEmailViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("tokens", response.data)
+        assert_session_cookies(self, response)
         self.assertIn("user", response.data)
 
     def test_verify_email_wrong_otp(self):
@@ -145,6 +162,38 @@ class VerifyEmailViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @override_settings(GOOGLE_CLIENT_ID="test-client-id.apps.googleusercontent.com")
+    @patch("users.services.auth_service.google_id_token.verify_oauth2_token")
+    def test_verify_email_after_google_signup_with_same_email_is_a_clean_400(self, mock_verify):
+        """
+        Regression: start an email registration, sign in with Google for the
+        same address, then complete the OTP. Previously the second User insert
+        hit the unique constraint and surfaced as a 500.
+        """
+        pending = self._create_pending(otp="123456")
+        mock_verify.return_value = {
+            "iss": "accounts.google.com",
+            "email": "test@example.com",
+            "email_verified": True,
+            "name": "Test User",
+        }
+        google = APIClient().post("/api/auth/google/", {"id_token": "t"}, format="json")
+        self.assertEqual(google.status_code, status.HTTP_200_OK)
+
+        response = self.client.post(
+            self.url,
+            {"pending_registration_id": str(pending.id), "otp": "123456"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("already exists", str(response.data))
+        self.assertNotIn(settings.JWT_AUTH_COOKIE, response.cookies)
+        self.assertFalse(PendingRegistration.objects.filter(pk=pending.pk).exists())
+        # Exactly one account, still the Google-created one.
+        self.assertEqual(User.objects.filter(email="test@example.com").count(), 1)
+        self.assertFalse(User.objects.get(email="test@example.com").has_usable_password())
 
     def test_verify_email_non_numeric_otp(self):
         """Test non-numeric OTP returns 400."""
@@ -175,7 +224,7 @@ class LoginViewTests(TestCase):
         )
 
     def test_login_success(self):
-        """Test successful login returns 200 with tokens."""
+        """Test successful login returns 200, sets JWT cookies, and returns the user."""
         response = self.client.post(
             self.url,
             {
@@ -186,8 +235,9 @@ class LoginViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("tokens", response.data)
+        assert_session_cookies(self, response)
         self.assertIn("user", response.data)
+        self.assertEqual(response.data["user"]["email"], "test@example.com")
 
     def test_login_wrong_password(self):
         """Test login with wrong password returns 401."""
@@ -215,6 +265,24 @@ class LoginViewTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_deactivated_account_login_returns_generic_error(self):
+        """Test login with deactivated account returns generic 401 to prevent account enumeration."""
+        self.user.is_active = False
+        self.user.save(update_fields=["is_active"])
+
+        response = self.client.post(
+            self.url,
+            {
+                "email": "test@example.com",
+                "password": "TestPass1!",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn("Invalid email or password.", str(response.data))
+        self.assertNotIn("deactivated", str(response.data).lower())
+
 
 class LogoutViewTests(TestCase):
     """Tests for POST /api/auth/logout/."""
@@ -229,27 +297,28 @@ class LogoutViewTests(TestCase):
         )
 
     def test_logout_success(self):
-        """Test successful logout blacklists the refresh token."""
-        # Login first
+        """Test logout via cookies blacklists the refresh token and expires both cookies."""
+        # Login first - the test client keeps the cookies the server set.
         login_response = self.client.post(
             "/api/auth/login/",
             {"email": "test@example.com", "password": "TestPass1!"},
             format="json",
         )
-        tokens = login_response.data["tokens"]
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+        refresh_value = login_response.cookies[settings.JWT_AUTH_REFRESH_COOKIE].value
 
-        # Set auth header
-        self.client.credentials(
-            HTTP_AUTHORIZATION=f"Bearer {tokens['access']}"
-        )
-
-        response = self.client.post(
-            self.url,
-            {"refresh": tokens["refresh"]},
-            format="json",
-        )
+        response = self.client.post(self.url, {}, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Both cookies are expired on the client.
+        self.assertEqual(response.cookies[settings.JWT_AUTH_COOKIE].value, "")
+        self.assertEqual(response.cookies[settings.JWT_AUTH_REFRESH_COOKIE].value, "")
+
+        # The old refresh token can no longer be used.
+        refresh_response = APIClient().post(
+            "/api/auth/refresh/", {"refresh": refresh_value}, format="json"
+        )
+        self.assertEqual(refresh_response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_logout_unauthenticated(self):
         """Test logout without authentication returns 401."""
@@ -275,19 +344,15 @@ class MeViewTests(TestCase):
         )
 
     def test_me_authenticated(self):
-        """Test /me returns current user when authenticated."""
-        # Login
+        """Test /me returns current user when authenticated via the access cookie."""
         login_response = self.client.post(
             "/api/auth/login/",
             {"email": "test@example.com", "password": "TestPass1!"},
             format="json",
         )
-        access_token = login_response.data["tokens"]["access"]
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
 
-        self.client.credentials(
-            HTTP_AUTHORIZATION=f"Bearer {access_token}"
-        )
-
+        # No Authorization header - the httpOnly cookie alone authenticates.
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -341,8 +406,9 @@ class MeViewTests(TestCase):
         self.assertIsNotNone(response.data["avatar_url"])
 
 
+@override_settings(GOOGLE_CLIENT_ID="test-client-id.apps.googleusercontent.com")
 class GoogleAuthViewTests(TestCase):
-    """Tests for POST /api/auth/google/."""
+    """Tests for POST /api/auth/google/ (detailed security cases live in test_google_auth.py)."""
 
     def setUp(self):
         self.client = APIClient()
@@ -354,6 +420,7 @@ class GoogleAuthViewTests(TestCase):
         mock_verify.return_value = {
             "iss": "https://accounts.google.com",
             "email": "newgoogle@example.com",
+            "email_verified": True,
             "name": "Google User",
         }
 
@@ -364,9 +431,7 @@ class GoogleAuthViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("tokens", response.data)
-        self.assertIn("access", response.data["tokens"])
-        self.assertIn("refresh", response.data["tokens"])
+        assert_session_cookies(self, response)
         self.assertEqual(response.data["user"]["email"], "newgoogle@example.com")
         self.assertEqual(response.data["user"]["full_name"], "Google User")
         self.assertTrue(response.data["user"]["email_verified"])
@@ -387,6 +452,7 @@ class GoogleAuthViewTests(TestCase):
         mock_verify.return_value = {
             "iss": "accounts.google.com",
             "email": "existing@example.com",
+            "email_verified": True,
             "name": "Existing User",
         }
 
@@ -397,7 +463,7 @@ class GoogleAuthViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("tokens", response.data)
+        assert_session_cookies(self, response)
         self.assertEqual(response.data["user"]["email"], "existing@example.com")
 
         user = User.objects.get(email="existing@example.com")

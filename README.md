@@ -90,7 +90,9 @@ The platform employs a decoupled full-stack architecture where the Next.js clien
 * Notification Bell: Merges server-side reminder notifications (read state persisted per user) with derived task, event and budget alerts.
 
 ### Security, Theming & Identity
-* Comprehensive Authentication: Email and password registration with 6-digit email OTP verification, native Google OAuth 2.0, and JWT token management.
+* Comprehensive Authentication: Email and password registration with 6-digit email OTP verification, native Google OAuth 2.0, and SimpleJWT sessions.
+* Cookie Sessions: Access and refresh tokens are issued as `httpOnly`, `Secure` cookies (never exposed to JavaScript) with CSRF double-submit protection and refresh-token rotation/blacklisting.
+* Password Recovery: Public "forgot password" flow that emails a single-use, time-limited reset link and revokes all existing sessions on reset.
 * Account Security: Password change workflows and account deletion safeguarded by OTP verification.
 * Curated Theming: System, Light, and Dark modes with four selectable accent palettes (ZenFlow Blue, Soft Teal, Violet, Coral).
 
@@ -231,6 +233,55 @@ Hosts without a broker can run the equivalent management command from cron inste
 ```bash
 python manage.py fire_due_reminders   # e.g. * * * * *
 ```
+
+---
+
+## Production Deployment: Sessions, Cookies & Domains
+
+Sessions are `httpOnly` cookies set by the API, so **where the API lives relative to the frontend decides whether browsers will store them at all**.
+
+### Recommended topology: same site
+
+Serve both apps under one registrable domain, e.g.
+
+| Role | Host | Notes |
+| :--- | :--- | :--- |
+| Frontend (Next.js) | `app.example.com` | Netlify/Vercel custom domain |
+| API (Django) | `api.example.com` | Render custom domain |
+
+With this layout the cookies are first-party, so set on the API:
+
+```env
+FRONTEND_URL=https://app.example.com
+CORS_ALLOWED_ORIGINS=https://app.example.com
+CSRF_TRUSTED_ORIGINS=https://app.example.com
+JWT_AUTH_COOKIE_SAMESITE=Lax      # same-site: no cross-site cookie needed
+JWT_AUTH_COOKIE_SECURE=True
+DEBUG=False
+```
+
+and on the frontend `NEXT_PUBLIC_API_URL=https://api.example.com`.
+
+### Alternative without a custom domain: same-origin proxy
+
+If the frontend must stay on `*.netlify.app` / `*.vercel.app` and the API on `*.onrender.com`, those are **different sites**. The API's cookies are then *third-party* cookies: Safari (ITP) and Brave drop them by default, Firefox partitions them and Chrome is phasing them out, so login appears to succeed but the next request is unauthenticated. `SameSite=None; Secure` (the default when `DEBUG=False`) is required for the browsers that still allow them, but does not help where they are blocked.
+
+The portable fix is to route API calls through the frontend's own origin. `frontend/next.config.ts` adds an opt-in rewrite: build the frontend with
+
+```env
+API_PROXY_TARGET=https://zenflow-xxxx.onrender.com   # build-time, server side
+NEXT_PUBLIC_API_URL=/                                 # "/" = same origin
+```
+
+and every `/api/*` request is proxied by Next.js (supported by Netlify's Next runtime and by Vercel), so cookies are first-party and the API can use `JWT_AUTH_COOKIE_SAMESITE=Lax`. `FRONTEND_URL` / `CSRF_TRUSTED_ORIGINS` / `CORS_ALLOWED_ORIGINS` must still name the frontend origin exactly; never use wildcard origins with credentialed requests, and do not add Netlify deploy-preview hosts (`deploy-preview-*--site.netlify.app`) to the trusted lists - previews should use their own API instance or stay logged-out.
+
+### Operational checklist
+
+* `GOOGLE_CLIENT_ID` **must** be set; Google sign-in refuses to run without it (the token audience cannot be verified otherwise). Only Google **ID tokens** are accepted by `POST /api/auth/google/`.
+* `DEBUG=False` in production. In `DEBUG=True` the password-reset link (which embeds the token) is printed to the console for local development.
+* Set `CACHE_URL` (or reuse `REDIS_URL`) so DRF throttle counters are shared across gunicorn workers; without it each worker keeps its own in-memory counters.
+* Run `python manage.py flushexpiredtokens` periodically (e.g. daily cron / Render cron job) to prune expired entries from the SimpleJWT outstanding/blacklist tables; nothing else deletes them.
+* Optional: `JWT_CHECK_REVOKE_TOKEN=True` makes *access* tokens stop working the moment a password changes (not just refresh tokens). Tokens issued before the switch carry no digest and are rejected, so enabling it signs every active user out once.
 
 ---
 

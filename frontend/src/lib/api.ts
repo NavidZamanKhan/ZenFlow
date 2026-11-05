@@ -1,16 +1,24 @@
 // ---------------------------------------------------------------------------
-// Typed API client for Django backend auth endpoints.
-// Uses native fetch - no new dependencies.
+// Typed API client for the Django backend.
+//
+// Authentication is cookie based: the backend sets httpOnly, Secure JWT
+// access/refresh cookies, so the browser attaches them automatically
+// (`credentials: 'include'`). JavaScript never sees the tokens. Mutating
+// requests carry an `X-CSRFToken` header (double-submit pattern); the token
+// is returned by the auth endpoints and kept in memory only.
 // ---------------------------------------------------------------------------
 
 import type {
   ApiUser,
+  AuthSessionResponse,
   DeleteAccountRequest,
+  ForgotPasswordRequest,
   GoogleAuthRequest,
   LoginRequest,
-  LoginResponse,
-  LogoutRequest,
   LogoutResponse,
+  PasswordRecoveryConfirmRequest,
+  PasswordRecoveryTokenRequest,
+  PasswordRecoveryValidateResponse,
   RegisterRequest,
   RegisterResponse,
   ResendOtpRequest,
@@ -18,7 +26,6 @@ import type {
   ResetPasswordWithOtpRequest,
   SetPasswordRequest,
   VerifyEmailRequest,
-  VerifyEmailResponse,
 } from '@/types/auth'
 import type { Task, TaskInput } from '@/types/task'
 import type { Expense, ExpenseInput } from '@/types/expense'
@@ -31,26 +38,86 @@ const API_BASE = (
   process.env.NEXT_PUBLIC_API_URL || 'https://zenflow-5u3r.onrender.com'
 ).replace(/\/$/, '')
 
-// -- Token persistence (localStorage) ---------------------------------------
+// -- Session hint -----------------------------------------------------------
+// The auth cookies are httpOnly, so the client cannot inspect them. A tiny
+// non-sensitive flag records that a session was established so the app can
+// skip the /me round-trip for anonymous visitors. It holds no credentials.
 
-const TOKEN_KEY = 'zenflow:tokens'
+const SESSION_HINT_KEY = 'zenflow:session'
+const LEGACY_TOKEN_KEY = 'zenflow:tokens'
 
-export function getStoredTokens(): { access: string; refresh: string } | null {
+export function hasSessionHint(): boolean {
   try {
-    const raw = localStorage.getItem(TOKEN_KEY)
-    if (!raw) return null
-    return JSON.parse(raw)
+    return localStorage.getItem(SESSION_HINT_KEY) === '1'
   } catch {
-    return null
+    return false
   }
 }
 
-export function storeTokens(access: string, refresh: string): void {
-  localStorage.setItem(TOKEN_KEY, JSON.stringify({ access, refresh }))
+export function markSession(): void {
+  try {
+    localStorage.setItem(SESSION_HINT_KEY, '1')
+  } catch {
+    // Storage unavailable (private mode) - the app still works, it only
+    // loses the fast-path on reload.
+  }
 }
 
-export function clearTokens(): void {
-  localStorage.removeItem(TOKEN_KEY)
+export function clearSession(): void {
+  csrfToken = null
+  try {
+    localStorage.removeItem(SESSION_HINT_KEY)
+    localStorage.removeItem(REFRESHED_AT_KEY)
+    // Remove tokens persisted by older builds of the app.
+    localStorage.removeItem(LEGACY_TOKEN_KEY)
+  } catch {
+    // ignore
+  }
+}
+
+// -- CSRF token (memory only) -----------------------------------------------
+
+let csrfToken: string | null = null
+let csrfPromise: Promise<string | null> | null = null
+
+export function setCsrfToken(token: string | null | undefined): void {
+  if (token) csrfToken = token
+}
+
+/** Fetch a CSRF token from the backend if we don't already hold one. */
+async function ensureCsrfToken(): Promise<string | null> {
+  if (csrfToken) return csrfToken
+  if (!csrfPromise) {
+    csrfPromise = (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/csrf/`, {
+          credentials: 'include',
+        })
+        if (!res.ok) return null
+        const data = (await res.json()) as { csrfToken?: string }
+        setCsrfToken(data.csrfToken)
+        return csrfToken
+      } catch {
+        return null
+      } finally {
+        csrfPromise = null
+      }
+    })()
+  }
+  return csrfPromise
+}
+
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS', 'TRACE'])
+
+// -- Session-expired hook ---------------------------------------------------
+// Registered by the AuthProvider so a failed silent refresh can reset the UI
+// (clear user, redirect to /login) from anywhere in the app.
+
+type SessionExpiredHandler = () => void
+let sessionExpiredHandler: SessionExpiredHandler | null = null
+
+export function setSessionExpiredHandler(handler: SessionExpiredHandler | null): void {
+  sessionExpiredHandler = handler
 }
 
 // -- Helpers ----------------------------------------------------------------
@@ -88,16 +155,23 @@ async function request<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const { headers, ...rest } = options
+  const method = (rest.method ?? 'GET').toUpperCase()
 
   const isFormData = typeof FormData !== 'undefined' && rest.body instanceof FormData
   const defaultHeaders: Record<string, string> = isFormData
     ? {}
     : { 'Content-Type': 'application/json' }
 
+  if (!SAFE_METHODS.has(method)) {
+    const token = await ensureCsrfToken()
+    if (token) defaultHeaders['X-CSRFToken'] = token
+  }
+
   let res: Response
   try {
     res = await fetch(`${API_BASE}${path}`, {
       ...rest,
+      credentials: 'include',
       headers: {
         ...defaultHeaders,
         ...headers,
@@ -124,9 +198,20 @@ async function request<T>(
     }
   }
 
+  // Auth endpoints rotate the CSRF token alongside the session cookies.
+  if (body && typeof body === 'object' && 'csrfToken' in body) {
+    setCsrfToken((body as { csrfToken?: string }).csrfToken)
+  }
+
   if (!res.ok) {
     const record =
       body && typeof body === 'object' ? (body as Record<string, unknown>) : null
+
+    // A CSRF rejection means our in-memory token no longer matches the
+    // cookie; forget it so the next unsafe request fetches a fresh one.
+    if (res.status === 403 && typeof record?.detail === 'string' && record.detail.startsWith('CSRF')) {
+      csrfToken = null
+    }
 
     let errors: string[] | Record<string, string[]>
     if (record && Array.isArray(record.errors)) {
@@ -148,85 +233,134 @@ async function request<T>(
   return body as T
 }
 
-// Single-flight token refresh promise to prevent duplicate concurrent refresh requests
-let refreshPromise: Promise<string | null> | null = null
+// -- Silent refresh ---------------------------------------------------------
+// The refresh token rotates on every use and the previous one is blacklisted,
+// so two refreshes with the same token must never race: the loser gets a 401
+// and the server expires the cookies the winner just received. Two layers
+// prevent that:
+//   1. `refreshPromise` - single flight within this tab;
+//   2. a Web Lock (`navigator.locks`) - single flight across tabs. Tabs queue
+//      on the lock; a tab that acquires it after another tab has just
+//      refreshed skips the network call (the browser's cookie jar is shared,
+//      so it already holds the new cookies) and simply retries its request.
+// Browsers without Web Locks fall back to the timestamp check alone, which
+// narrows the window but cannot fully close it.
 
-export async function silentRefreshToken(): Promise<string | null> {
-  const tokens = getStoredTokens()
-  if (!tokens?.refresh) {
-    return null
+const REFRESH_LOCK_NAME = 'zenflow:session-refresh'
+const REFRESHED_AT_KEY = 'zenflow:session-refreshed-at'
+/** How long after another tab's refresh we treat the cookies as fresh. */
+const REFRESH_REUSE_WINDOW_MS = 15_000
+
+let refreshPromise: Promise<boolean> | null = null
+
+function lastRefreshAt(): number {
+  try {
+    const raw = localStorage.getItem(REFRESHED_AT_KEY)
+    const at = raw ? Number(raw) : 0
+    return Number.isFinite(at) ? at : 0
+  } catch {
+    return 0
   }
+}
 
+function recordRefresh(): void {
+  try {
+    localStorage.setItem(REFRESHED_AT_KEY, String(Date.now()))
+  } catch {
+    // Storage unavailable - other tabs simply cannot benefit from this refresh.
+  }
+}
+
+/** True when another tab refreshed after `since` and recently enough to trust. */
+function refreshedSince(since: number): boolean {
+  const at = lastRefreshAt()
+  return at > since && Date.now() - at < REFRESH_REUSE_WINDOW_MS
+}
+
+async function callRefreshEndpoint(): Promise<void> {
+  const refresh = () =>
+    request<{ detail: string; csrfToken: string }>('/api/auth/refresh/', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    })
+  try {
+    await refresh()
+  } catch (err) {
+    // The refresh endpoint is CSRF-protected. A stale in-memory CSRF token
+    // (e.g. the cookie was reissued by another tab) is recoverable: fetch a
+    // fresh one and try once more. Anything else propagates.
+    if (err instanceof ApiError && err.status === 403) {
+      csrfToken = null
+      await refresh()
+      return
+    }
+    throw err
+  }
+}
+
+async function performRefresh(startedAt: number): Promise<boolean> {
+  if (refreshedSince(startedAt)) return true
+  try {
+    await callRefreshEndpoint()
+    recordRefresh()
+    markSession()
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function withCrossTabLock(fn: () => Promise<boolean>): Promise<boolean> {
+  const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined
+  if (locks && typeof locks.request === 'function') {
+    const result: unknown = await locks.request(REFRESH_LOCK_NAME, fn)
+    return result === true
+  }
+  return fn()
+}
+
+export async function silentRefreshSession(): Promise<boolean> {
   if (!refreshPromise) {
-    refreshPromise = (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/refresh/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refresh: tokens.refresh }),
-        })
-        if (!res.ok) {
-          clearTokens()
-          return null
-        }
-        const data = (await res.json()) as { access: string; refresh?: string }
-        const newAccess = data.access
-        const newRefresh = data.refresh || tokens.refresh
-        storeTokens(newAccess, newRefresh)
-        return newAccess
-      } catch {
-        return null
-      } finally {
-        refreshPromise = null
-      }
-    })()
+    // Captured before waiting for the lock so a refresh completed by another
+    // tab *while we waited* counts as ours.
+    const startedAt = Date.now()
+    refreshPromise = withCrossTabLock(() => performRefresh(startedAt)).finally(() => {
+      refreshPromise = null
+    })
   }
-
   return refreshPromise
 }
 
 /**
- * Wrapper around request() that attaches the stored access token.
- * If the request returns 401 (token expired), it transparently attempts
- * a silent token refresh using the 30-day refresh token and automatically
- * retries the request without interrupting the user.
+ * Wrapper around request() for endpoints that require a session.
+ * On 401 (access cookie expired) it transparently refreshes the session via
+ * the httpOnly refresh cookie and retries once. If the refresh fails the
+ * session is considered gone and the registered handler logs the user out.
  */
 async function authRequest<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  let tokens = getStoredTokens()
-  if (!tokens) {
-    throw new ApiError(401, ['Not authenticated.'])
-  }
-
   try {
-    return await request<T>(path, {
-      ...options,
-      headers: {
-        ...options.headers,
-        Authorization: `Bearer ${tokens.access}`,
-      },
-    })
+    return await request<T>(path, options)
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      const newAccess = await silentRefreshToken()
-      if (newAccess) {
-        return await request<T>(path, {
-          ...options,
-          headers: {
-            ...options.headers,
-            Authorization: `Bearer ${newAccess}`,
-          },
-        })
+      const refreshed = await silentRefreshSession()
+      if (refreshed) {
+        return await request<T>(path, options)
       }
-      clearTokens()
+      clearSession()
+      sessionExpiredHandler?.()
     }
     throw err
   }
 }
 
 // -- Public endpoints (no auth required) ------------------------------------
+
+export function apiCsrf(): Promise<{ csrfToken: string }> {
+  return request<{ csrfToken: string }>('/api/auth/csrf/')
+}
 
 export function apiRegister(data: RegisterRequest): Promise<RegisterResponse> {
   return request<RegisterResponse>('/api/auth/register/', {
@@ -235,8 +369,8 @@ export function apiRegister(data: RegisterRequest): Promise<RegisterResponse> {
   })
 }
 
-export function apiVerifyEmail(data: VerifyEmailRequest): Promise<VerifyEmailResponse> {
-  return request<VerifyEmailResponse>('/api/auth/verify-email/', {
+export function apiVerifyEmail(data: VerifyEmailRequest): Promise<AuthSessionResponse> {
+  return request<AuthSessionResponse>('/api/auth/verify-email/', {
     method: 'POST',
     body: JSON.stringify(data),
   })
@@ -249,15 +383,42 @@ export function apiResendOtp(data: ResendOtpRequest): Promise<ResendOtpResponse>
   })
 }
 
-export function apiLogin(data: LoginRequest): Promise<LoginResponse> {
-  return request<LoginResponse>('/api/auth/login/', {
+export function apiLogin(data: LoginRequest): Promise<AuthSessionResponse> {
+  return request<AuthSessionResponse>('/api/auth/login/', {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
 
-export function apiGoogleAuth(data: GoogleAuthRequest): Promise<LoginResponse> {
-  return request<LoginResponse>('/api/auth/google/', {
+export function apiGoogleAuth(data: GoogleAuthRequest): Promise<AuthSessionResponse> {
+  return request<AuthSessionResponse>('/api/auth/google/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+// -- Password recovery (public, email link) ---------------------------------
+
+export function apiForgotPassword(data: ForgotPasswordRequest): Promise<{ message: string }> {
+  return request<{ message: string }>('/api/auth/password/forgot/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function apiValidateRecoveryToken(
+  data: PasswordRecoveryTokenRequest,
+): Promise<PasswordRecoveryValidateResponse> {
+  return request<PasswordRecoveryValidateResponse>('/api/auth/password/forgot/validate/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function apiConfirmPasswordRecovery(
+  data: PasswordRecoveryConfirmRequest,
+): Promise<{ message: string }> {
+  return request<{ message: string }>('/api/auth/password/forgot/confirm/', {
     method: 'POST',
     body: JSON.stringify(data),
   })
@@ -265,10 +426,10 @@ export function apiGoogleAuth(data: GoogleAuthRequest): Promise<LoginResponse> {
 
 // -- Protected endpoints (auth required) ------------------------------------
 
-export function apiLogout(refresh: string): Promise<LogoutResponse> {
+export function apiLogout(): Promise<LogoutResponse> {
   return authRequest<LogoutResponse>('/api/auth/logout/', {
     method: 'POST',
-    body: JSON.stringify({ refresh } satisfies LogoutRequest),
+    body: JSON.stringify({}),
   })
 }
 
