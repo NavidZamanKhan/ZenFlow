@@ -108,8 +108,8 @@ The platform employs a decoupled full-stack architecture where the Next.js clien
 └───────────────────────────────┘                                     └──────────────────────────────┘
 ```
 
-* **Frontend Architecture:** Next.js App Router, Domain-driven Custom React Hooks (`use-tasks`, `use-expenses`, `use-budget`, `use-events`, `use-reminders`, `use-analytics-summary`), and centralized AuthContext for session hydration.
-* **Backend Architecture:** Django REST Framework with strict layered separation: `Views -> Serializers -> Services -> Models` with SimpleJWT, Argon2 password hashing, and Celery for background jobs.
+* **Frontend Architecture:** Next.js App Router, Domain-driven Custom React Hooks (`use-tasks`, `use-expenses`, `use-budget`, `use-events`, `use-reminders`, `use-analytics-summary`), and centralized AuthContext for session hydration via httpOnly cookies.
+* **Backend Architecture:** Django REST Framework with strict layered separation: `Views -> Serializers -> Services -> Models` with SimpleJWT (cookie transport), Argon2 password hashing, and Celery for background jobs.
 
 ---
 
@@ -130,14 +130,18 @@ ZenFlow/
 │       ├── lib/              # API client, authentication, currency conversion
 │       └── types/            # TypeScript schemas and data interfaces
 ├── backend/                  # Django REST API service
-│   ├── config/               # Settings, root URLs, Celery app, and WSGI/ASGI configuration
-│   ├── users/                # Authentication, user profile, OTP, and Google OAuth
+│   ├── config/               # Settings, root URLs, Celery app, health check, WSGI/ASGI
+│   ├── users/                # Authentication, cookie JWT, password recovery, OTP, Google OAuth
 │   ├── tasks/                # Task CRUD and deadline logic
 │   ├── events/               # Calendar events and scheduling (range-filtered)
 │   ├── expenses/             # Expense transactions and multi-currency models
 │   ├── budget/               # Monthly and category budget limits + alert thresholds
 │   ├── analytics/            # Server-side expense aggregation endpoint
-│   └── reminders/            # Reminder model, CRUD API, Celery Beat dispatcher
+│   ├── reminders/            # Reminder model, CRUD API, Celery Beat dispatcher
+│   ├── Dockerfile            # Backend container image (API / worker / beat / tests)
+│   └── requirements.txt      # Pinned Python dependencies
+├── .github/workflows/        # CI: full Django test suite against PostgreSQL
+├── docker-compose.yml        # Local stack: Postgres, Redis, API, Celery worker + beat
 ├── netlify.toml              # Frontend deployment configuration
 └── README.md                 # Project documentation
 ```
@@ -156,13 +160,13 @@ ZenFlow/
 * Authentication: `@react-oauth/google`
 
 ### Backend & Infrastructure
-* Framework: Django 6.0, Django REST Framework
+* Framework: Django 6.0, Django REST Framework (versions pinned in `backend/requirements.txt`)
 * Database: PostgreSQL (via `psycopg` and `dj-database-url`)
-* Authentication: `djangorestframework-simplejwt`, Argon2
+* Authentication: `djangorestframework-simplejwt` (httpOnly cookies + token blacklist), Argon2
 * Background Jobs: Celery 5 + Redis (Celery Beat schedules the reminder dispatcher)
 * CORS & Headers: `django-cors-headers`
 * Production Serving: Gunicorn, Whitenoise
-* Deployment: Netlify (Frontend), Render (Backend), Supabase (Database)
+* Deployment: Netlify (Frontend), Render (Backend), Supabase (Database); Docker image + Compose stack included
 
 ---
 
@@ -307,12 +311,13 @@ and every `/api/*` request is proxied by Next.js (supported by Netlify's Next ru
 
 ## API Route Summary
 
-All authenticated endpoints require an `Authorization: Bearer <access_token>` header.
+Authentication uses `httpOnly` JWT cookies set by the login/verify/Google endpoints. Browsers must send credentials (`credentials: 'include'`) and include the `X-CSRFToken` header (returned as `csrfToken` by the auth endpoints or `GET /api/auth/csrf/`) on mutating requests. An `Authorization: Bearer <access_token>` header is still accepted for non-browser clients.
 
 | Endpoint Prefix | Description |
 | :--- | :--- |
 | `/api/health/` | Liveness/readiness probe (database connectivity) |
-| `/api/auth/` | Registration, OTP verification/resend, login, Google OAuth, profile, and account deletion |
+| `/api/auth/` | Registration, OTP verification/resend, login, Google OAuth, cookie refresh/logout, CSRF token, profile, account deletion |
+| `/api/auth/password/forgot/` | Public password recovery: request link, validate token, confirm new password |
 | `/api/tasks/` | Task CRUD operations with priority tags and deadline timestamps |
 | `/api/events/` | Calendar event management; supports `?start=&end=` range filters (used by every frontend view) |
 | `/api/expenses/` | Expense transaction logging, filtering, and currency conversion |
