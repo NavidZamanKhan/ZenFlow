@@ -81,8 +81,9 @@ The platform employs a decoupled full-stack architecture where the Next.js clien
 ### Personal Finance & Multi-Currency Engine
 * Expense Management: Multi-currency expense entry supporting category tagging, payment method tracking, and full-text search.
 * Budget Controls: Configurable monthly spending limits with category-specific allocations and real-time visual progress gauges.
+* Configurable Budget Alerts: User-defined warning thresholds (e.g. 50/75/90/100%) evaluated in the display currency after converting every expense and limit, surfaced in the notification bell.
 * Multi-Currency Engine: Display currency configuration with automatic conversion and precision rounding heuristics.
-* Visual Insights: Spending analytics powered by Recharts, including category donut distributions, payment method breakdowns, and daily spending wave charts.
+* Visual Insights: Spending analytics powered by Recharts and a server-side aggregation endpoint (`/api/analytics/summary/`) that returns per-category, per-month, per-day and per-payment-method totals.
 
 ### Reminders & Notifications
 * Scheduled Reminders: Create reminders with an in-app, email, or combined delivery channel; optionally link them to a task or calendar event.
@@ -107,7 +108,7 @@ The platform employs a decoupled full-stack architecture where the Next.js clien
 └───────────────────────────────┘                                     └──────────────────────────────┘
 ```
 
-* **Frontend Architecture:** Next.js App Router, Domain-driven Custom React Hooks (`use-tasks`, `use-expenses`, `use-budget`, `use-events`, `use-reminders`), and centralized AuthContext for session hydration.
+* **Frontend Architecture:** Next.js App Router, Domain-driven Custom React Hooks (`use-tasks`, `use-expenses`, `use-budget`, `use-events`, `use-reminders`, `use-analytics-summary`), and centralized AuthContext for session hydration.
 * **Backend Architecture:** Django REST Framework with strict layered separation: `Views -> Serializers -> Services -> Models` with SimpleJWT, Argon2 password hashing, and Celery for background jobs.
 
 ---
@@ -132,9 +133,10 @@ ZenFlow/
 │   ├── config/               # Settings, root URLs, Celery app, and WSGI/ASGI configuration
 │   ├── users/                # Authentication, user profile, OTP, and Google OAuth
 │   ├── tasks/                # Task CRUD and deadline logic
-│   ├── events/               # Calendar events and scheduling
+│   ├── events/               # Calendar events and scheduling (range-filtered)
 │   ├── expenses/             # Expense transactions and multi-currency models
-│   ├── budget/               # Monthly and category budget limit models
+│   ├── budget/               # Monthly and category budget limits + alert thresholds
+│   ├── analytics/            # Server-side expense aggregation endpoint
 │   └── reminders/            # Reminder model, CRUD API, Celery Beat dispatcher
 ├── netlify.toml              # Frontend deployment configuration
 └── README.md                 # Project documentation
@@ -312,9 +314,10 @@ All authenticated endpoints require an `Authorization: Bearer <access_token>` he
 | `/api/health/` | Liveness/readiness probe (database connectivity) |
 | `/api/auth/` | Registration, OTP verification/resend, login, Google OAuth, profile, and account deletion |
 | `/api/tasks/` | Task CRUD operations with priority tags and deadline timestamps |
-| `/api/events/` | Calendar event management and schedule queries |
+| `/api/events/` | Calendar event management; supports `?start=&end=` range filters (used by every frontend view) |
 | `/api/expenses/` | Expense transaction logging, filtering, and currency conversion |
-| `/api/budget/` | Monthly budget limits and category allocation endpoints |
+| `/api/budget/` | Monthly budget limits, category allocations and `warningThresholds` |
+| `/api/analytics/summary/` | Aggregated expense totals per category / month / day / payment method (optional `?start=&end=`) |
 | `/api/reminders/` | Reminder CRUD, `POST {id}/snooze/`, and `notifications/` (list, `read`, `read-all`) |
 
 ---

@@ -677,8 +677,20 @@ function toApiEventInput(input: CalendarEventInput | Partial<CalendarEventInput>
   return payload
 }
 
-export async function apiGetEvents(): Promise<CalendarEvent[]> {
-  const records = await authRequest<ApiCalendarEvent[]>('/api/events/')
+export interface EventRange {
+  /** ISO-8601 datetime; events ending at/after this instant are included. */
+  start: string
+  /** ISO-8601 datetime; events starting at/before this instant are included. */
+  end: string
+}
+
+/**
+ * Fetch events overlapping a window using the API's `?start=&end=` filters.
+ * Callers should always pass a range - the full list is never needed by the UI.
+ */
+export async function apiGetEvents(range?: EventRange): Promise<CalendarEvent[]> {
+  const query = range ? buildQuery({ start: range.start, end: range.end }) : ''
+  const records = await authRequest<ApiCalendarEvent[]>(`/api/events/${query}`)
   return records.map(fromApiEvent)
 }
 
@@ -703,5 +715,3 @@ export function apiDeleteEvent(id: string): Promise<void> {
     method: 'DELETE',
   })
 }
-
-

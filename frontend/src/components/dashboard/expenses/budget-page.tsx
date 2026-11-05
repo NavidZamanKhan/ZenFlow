@@ -1,15 +1,16 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, PiggyBank, Save, WalletCards } from 'lucide-react'
+import { AlertTriangle, BellRing, PiggyBank, Save, WalletCards, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { useBudget } from '@/hooks/use-budget'
+import { normalizeThresholds, THRESHOLD_MAX, THRESHOLD_MIN, useBudget } from '@/hooks/use-budget'
 import { useExpenses } from '@/hooks/use-expenses'
 import { todayISODate } from '@/lib/dates'
 import { EXPENSE_CATEGORY_META } from '@/lib/expense-meta'
 import { spendingByCategory, sumAmounts } from '@/lib/expense-stats'
 import { useCurrency } from '@/lib/currency-context'
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from '@/types/expense'
+import { DEFAULT_BUDGET_THRESHOLDS } from '@/types/budget'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState } from '@/components/shared/state-blocks'
@@ -58,6 +59,7 @@ export function BudgetPage() {
     reload: reloadBudget,
     setMonthlyTotal,
     setCategoryBudget,
+    setWarningThresholds,
     recordThresholdAlerts,
   } = useBudget()
   const {
@@ -216,6 +218,35 @@ export function BudgetPage() {
         />
       </section>
 
+      <section className={`${CARD_CLASS} mb-6 p-4 sm:p-6`} aria-labelledby="alert-thresholds-heading">
+        <div className="mb-4">
+          <div className="flex items-center gap-2">
+            <BellRing size={18} className="text-[var(--zf-accent)]" aria-hidden="true" />
+            <h2
+              id="alert-thresholds-heading"
+              className="text-base font-bold text-slate-800 dark:text-[var(--zf-text)]"
+            >
+              Alert thresholds
+            </h2>
+          </div>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Get a notification when spending reaches these percentages of a limit. Amounts are compared in{' '}
+            {meta.code}, converting any expense paid in another currency.
+          </p>
+        </div>
+        <ThresholdsEditor
+          key={budget.warningThresholds.join(',')}
+          thresholds={budget.warningThresholds}
+          onSave={async (next) => {
+            const saved = await setWarningThresholds(next)
+            toast[saved ? 'success' : 'error'](
+              saved ? 'Alert thresholds updated' : 'Could not update alert thresholds.',
+            )
+            return saved
+          }}
+        />
+      </section>
+
       <section aria-labelledby="category-budgets-heading">
         <div className="mb-4">
           <h2
@@ -330,6 +361,134 @@ const MonthlyBudgetForm = function MonthlyBudgetForm({
         <Save size={15} aria-hidden="true" />
         {submitLabel}
       </button>
+    </form>
+  )
+}
+
+type ThresholdsEditorProps = {
+  thresholds: number[]
+  onSave: (thresholds: number[]) => Promise<boolean>
+}
+
+function ThresholdsEditor({ thresholds, onSave }: ThresholdsEditorProps) {
+  const [draft, setDraft] = useState<number[]>(() => normalizeThresholds(thresholds))
+  const [input, setInput] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const saved = normalizeThresholds(thresholds)
+  const dirty = draft.length !== saved.length || draft.some((value, index) => value !== saved[index])
+
+  const add = () => {
+    const value = Math.round(Number(input))
+    if (!Number.isFinite(value) || value < THRESHOLD_MIN || value > THRESHOLD_MAX) {
+      toast.error(`Enter a whole number between ${THRESHOLD_MIN} and ${THRESHOLD_MAX}.`)
+      return
+    }
+    if (draft.includes(value)) {
+      toast.error(`${value}% is already in the list.`)
+      return
+    }
+    setDraft(normalizeThresholds([...draft, value]))
+    setInput('')
+  }
+
+  const remove = (value: number) => setDraft(draft.filter((item) => item !== value))
+
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (draft.length === 0) {
+      toast.error('Keep at least one alert threshold.')
+      return
+    }
+    setSaving(true)
+    await onSave(draft)
+    setSaving(false)
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <ul className="flex flex-wrap gap-2" aria-label="Configured alert thresholds">
+        {draft.length === 0 ? (
+          <li className="text-xs text-slate-500 dark:text-slate-400">No thresholds - add at least one.</li>
+        ) : null}
+        {draft.map((value) => (
+          <li key={value}>
+            <span
+              className={`inline-flex items-center gap-1 rounded-full py-1 pl-3 pr-1 text-xs font-semibold ${
+                value >= 100
+                  ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400'
+                  : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400'
+              }`}
+            >
+              {value}%
+              <button
+                type="button"
+                onClick={() => remove(value)}
+                aria-label={`Remove ${value}% threshold`}
+                className="zf-tap rounded-full p-0.5 transition-colors hover:bg-black/10 dark:hover:bg-white/10"
+              >
+                <X size={12} aria-hidden="true" />
+              </button>
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="relative sm:w-40">
+          <label htmlFor="new-threshold" className="sr-only">
+            New threshold percentage
+          </label>
+          <input
+            id="new-threshold"
+            type="number"
+            inputMode="numeric"
+            min={THRESHOLD_MIN}
+            max={THRESHOLD_MAX}
+            step={1}
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                add()
+              }
+            }}
+            placeholder="e.g. 85"
+            className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-3 pr-8 text-sm text-slate-700 outline-none transition focus:border-transparent focus:ring-2 focus:ring-[color-mix(in_srgb,var(--zf-accent)_30%,transparent)] dark:border-[var(--zf-border)] dark:bg-[var(--zf-surface)] dark:text-slate-100"
+          />
+          <span
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500 dark:text-slate-400"
+            aria-hidden="true"
+          >
+            %
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={add}
+          className="h-9 rounded-xl bg-slate-50 px-3 text-xs font-semibold text-slate-600 transition-colors hover:bg-[var(--zf-accent-soft)] hover:text-[var(--zf-accent)] dark:bg-slate-800 dark:text-slate-200"
+        >
+          Add threshold
+        </button>
+        <div className="flex gap-2 sm:ml-auto">
+          <button
+            type="button"
+            onClick={() => setDraft([...DEFAULT_BUDGET_THRESHOLDS])}
+            className="h-9 rounded-xl px-3 text-xs font-semibold text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+          >
+            Reset to defaults
+          </button>
+          <button
+            type="submit"
+            disabled={saving || !dirty}
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[var(--zf-accent)] px-4 text-xs font-semibold text-white transition-colors hover:bg-[var(--zf-accent-hover)] disabled:pointer-events-none disabled:opacity-60"
+          >
+            <Save size={14} aria-hidden="true" />
+            Save thresholds
+          </button>
+        </div>
+      </div>
     </form>
   )
 }

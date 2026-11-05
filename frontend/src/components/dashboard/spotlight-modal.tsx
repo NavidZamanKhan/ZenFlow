@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import { useTasks } from '@/hooks/use-tasks'
 import { useExpenses } from '@/hooks/use-expenses'
-import { useEvents } from '@/hooks/use-events'
+import { useDayRange, useEvents } from '@/hooks/use-events'
 import {
   groupSearchResults,
   searchZenFlow,
@@ -57,7 +57,9 @@ export function SpotlightModal() {
 
   const { tasks } = useTasks()
   const { expenses } = useExpenses()
-  const { events } = useEvents()
+  // Search covers the recent past and the year ahead instead of the full history.
+  const searchRange = useDayRange(-90, 365)
+  const { events } = useEvents(searchRange)
 
   // Listen for global keyboard shortcuts: `/` and `Cmd+K` / `Ctrl+K` and custom event
   useEffect(() => {

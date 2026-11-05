@@ -44,6 +44,17 @@ function nonNegativeNumber(value: unknown, fallback = 0): number {
     : fallback
 }
 
+export const THRESHOLD_MIN = 1
+export const THRESHOLD_MAX = 200
+
+/** Integer percentages in [1, 200], de-duplicated and sorted ascending. */
+export function normalizeThresholds(values: number[]): number[] {
+  const cleaned = values
+    .map((value) => Math.round(Number(value)))
+    .filter((value) => Number.isFinite(value) && value >= THRESHOLD_MIN && value <= THRESHOLD_MAX)
+  return Array.from(new Set(cleaned)).sort((a, b) => a - b)
+}
+
 /**
  * User-scoped budget persistence boundary connected to ZenFlow backend API with in-memory SWR caching.
  */
@@ -197,6 +208,40 @@ export function useBudget() {
     [cacheKey],
   )
 
+  const setWarningThresholds = useCallback(
+    async (thresholds: number[]): Promise<boolean> => {
+      const normalized = normalizeThresholds(thresholds)
+      if (normalized.length === 0) return false
+
+      const originalBudget = budgetRef.current
+      const optimisticBudget: Budget = {
+        ...originalBudget,
+        warningThresholds: normalized,
+        updatedAt: new Date().toISOString(),
+      }
+
+      // Optimistic 0ms update
+      clientCache.set(cacheKey, optimisticBudget)
+      budgetRef.current = optimisticBudget
+      setBudget(optimisticBudget)
+
+      try {
+        const updated = await apiUpdateBudget({ warningThresholds: normalized })
+        clientCache.set(cacheKey, updated)
+        budgetRef.current = updated
+        setBudget(updated)
+        return true
+      } catch {
+        // Rollback
+        clientCache.set(cacheKey, originalBudget)
+        budgetRef.current = originalBudget
+        setBudget(originalBudget)
+        return false
+      }
+    },
+    [cacheKey],
+  )
+
   const recordThresholdAlerts = useCallback(
     async (
       month: string,
@@ -256,6 +301,7 @@ export function useBudget() {
     reload,
     setMonthlyTotal,
     setCategoryBudget,
+    setWarningThresholds,
     recordThresholdAlerts,
   }
 }

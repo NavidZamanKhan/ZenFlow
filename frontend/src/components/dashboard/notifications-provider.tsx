@@ -13,7 +13,7 @@ import { deriveNotifications } from '@/lib/notifications'
 import { useTasks } from '@/hooks/use-tasks'
 import { useExpenses } from '@/hooks/use-expenses'
 import { useBudget } from '@/hooks/use-budget'
-import { useEvents } from '@/hooks/use-events'
+import { useDayRange, useEvents } from '@/hooks/use-events'
 import {
   fromReminderNotificationId,
   toNotification,
@@ -67,8 +67,10 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { tasks } = useTasks()
   const { expenses } = useExpenses()
   const { budget } = useBudget()
-  const { events } = useEvents()
-  const { currency } = useCurrency()
+  // Derived event reminders only look at today and tomorrow.
+  const eventRange = useDayRange(0, 2)
+  const { events } = useEvents(eventRange)
+  const { currency, convert } = useCurrency()
   const {
     items: reminderItems,
     markRead: markReminderRead,
@@ -83,6 +85,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Derived (client-side) notifications: tasks, events, budget thresholds.
+  // Budget alerts honour the user's configurable `warningThresholds` and are
+  // evaluated after converting every amount into the display currency.
   const derived = useMemo(() => {
     return deriveNotifications({
       tasks,
@@ -91,8 +95,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       events,
       readIds,
       currency,
+      convert,
     })
-  }, [tasks, expenses, budget, events, readIds, currency])
+  }, [tasks, expenses, budget, events, readIds, currency, convert])
 
   // Server-side reminder notifications (fired by the scheduler).
   const reminderNotifications = useMemo(

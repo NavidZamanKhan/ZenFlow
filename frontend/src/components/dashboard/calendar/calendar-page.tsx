@@ -10,7 +10,7 @@ import type { DatesSetArg, EventClickArg, EventDropArg, EventInput } from '@full
 import type { EventResizeDoneArg } from '@fullcalendar/interaction'
 import { CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { toast } from 'sonner'
-import { useEvents } from '@/hooks/use-events'
+import { useEvents, type EventRange } from '@/hooks/use-events'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { useTasks } from '@/hooks/use-tasks'
 import { toISODate, toISODateTimeLocal } from '@/lib/dates'
@@ -43,8 +43,19 @@ function needsMinWidth(view: ViewId): boolean {
   return view === 'dayGridMonth' || view === 'timeGridWeek' || view === 'timeGridDay'
 }
 
+/** Window covering any initial view (6-week month grid or current week) before FullCalendar reports its own. */
+function initialVisibleRange(now = new Date()): EventRange {
+  const start = new Date(now.getFullYear(), now.getMonth(), 1)
+  start.setDate(start.getDate() - 7)
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+  end.setDate(end.getDate() + 14)
+  return { start: start.toISOString(), end: end.toISOString() }
+}
+
 export function CalendarPage() {
   const isMd = useMediaQuery('(min-width: 768px)')
+  // Only the visible window is requested from the API (?start=&end=).
+  const [visibleRange, setVisibleRange] = useState<EventRange>(() => initialVisibleRange())
   const {
     events,
     loading: eventsLoading,
@@ -53,7 +64,7 @@ export function CalendarPage() {
     createEvent,
     updateEvent,
     deleteEvent,
-  } = useEvents()
+  } = useEvents(visibleRange)
   const {
     tasks,
     loading: tasksLoading,
@@ -122,6 +133,9 @@ export function CalendarPage() {
   const onDatesSet = (arg: DatesSetArg) => {
     setTitle(arg.view.title)
     setActiveView(arg.view.type as ViewId)
+    // arg.end is exclusive; the store merges windows so revisiting a month is instant.
+    const next = { start: arg.start.toISOString(), end: arg.end.toISOString() }
+    setVisibleRange((prev) => (prev.start === next.start && prev.end === next.end ? prev : next))
   }
 
   const onDateClick = (arg: DateClickArg) => {

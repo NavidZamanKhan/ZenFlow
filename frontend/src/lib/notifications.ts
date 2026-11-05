@@ -19,13 +19,39 @@ export function currentYearMonth(): string {
   return `${y}-${m}`
 }
 
+/** Converts an amount from `fromCurrency` into the user's display currency. */
+export type ConvertFn = (amount: number, fromCurrency?: CurrencyCode) => number
+
 export type DeriveNotificationsParams = {
   tasks: Task[]
   expenses: Expense[]
   budget: Budget
   events: CalendarEvent[]
   readIds: Set<string>
+  /** Display currency every budget figure is evaluated and formatted in. */
   currency?: CurrencyCode
+  /**
+   * Currency converter. Expenses are stored in the currency they were paid
+   * in and the budget in its own currency, so both sides are converted to the
+   * display currency before any threshold is compared.
+   */
+  convert?: ConvertFn
+}
+
+/**
+ * Highest configured threshold that `percentage` has reached, or null.
+ * Thresholds are the user's `budget.warningThresholds` (percent of limit).
+ */
+export function crossedThreshold(percentage: number, thresholds: number[]): number | null {
+  let crossed: number | null = null
+  for (const raw of thresholds) {
+    const threshold = Number(raw)
+    if (!Number.isFinite(threshold) || threshold <= 0) continue
+    if (percentage >= threshold && (crossed === null || threshold > crossed)) {
+      crossed = threshold
+    }
+  }
+  return crossed
 }
 
 /**
@@ -38,6 +64,7 @@ export function deriveNotifications({
   events,
   readIds,
   currency = 'BDT',
+  convert = (amount) => amount,
 }: DeriveNotificationsParams): Notification[] {
   const today = todayISODate()
   const tomorrow = tomorrowISODate()
@@ -128,50 +155,39 @@ export function deriveNotifications({
   // ---------------------------------------------------------------------------
   // 3. Budget & Expense Alerts (Current Month)
   // ---------------------------------------------------------------------------
-  const currentMonthExpenses = expenses.filter((e) => e.date?.startsWith(currentMonth))
-  const totalSpent = currentMonthExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0)
+  // Everything below is evaluated in the display currency: each expense is
+  // converted from the currency it was paid in, and every limit from the
+  // budget's currency, so a 90% alert means 90% regardless of mixed currencies.
+  const thresholds = budget.warningThresholds?.length ? budget.warningThresholds : [50, 75, 90, 100]
+  const budgetCurrency = budget.currency || currency
+  const toBase = (amount: number, from?: CurrencyCode) => convert(Number(amount) || 0, from)
 
+  const currentMonthExpenses = expenses.filter((e) => e.date?.startsWith(currentMonth))
+  let totalSpent = 0
   const categorySpent: Record<string, number> = {}
   for (const exp of currentMonthExpenses) {
-    const cat = exp.category
-    categorySpent[cat] = (categorySpent[cat] || 0) + (Number(exp.amount) || 0)
+    const amount = toBase(exp.amount, exp.currency)
+    totalSpent += amount
+    categorySpent[exp.category] = (categorySpent[exp.category] || 0) + amount
   }
 
   // Overall Monthly Total Alert
-  if (budget.monthlyTotal > 0) {
-    const ratio = totalSpent / budget.monthlyTotal
-    const formattedSpent = formatMoney(totalSpent, currency)
-    const formattedBudget = formatMoney(budget.monthlyTotal, currency)
-
-    if (ratio >= 1.0) {
-      const id = `notif-budget-total-100-${currentMonth}`
+  const monthlyLimit = toBase(budget.monthlyTotal, budgetCurrency)
+  if (monthlyLimit > 0) {
+    const percentage = (totalSpent / monthlyLimit) * 100
+    const threshold = crossedThreshold(percentage, thresholds)
+    if (threshold !== null) {
+      const formattedSpent = formatMoney(totalSpent, currency)
+      const formattedBudget = formatMoney(monthlyLimit, currency)
+      const id = `notif-budget-total-${threshold}-${currentMonth}`
       list.push({
         id,
         type: 'budget',
-        title: 'Monthly budget exceeded',
-        description: `You've spent ${formattedSpent} of your ${formattedBudget} total budget.`,
-        read: readIds.has(id),
-        timestamp: new Date().toISOString(),
-        href: '/dashboard/expenses/budget',
-      })
-    } else if (ratio >= 0.9) {
-      const id = `notif-budget-total-90-${currentMonth}`
-      list.push({
-        id,
-        type: 'budget',
-        title: 'Monthly budget at 90%',
-        description: `You've used ${formattedSpent} (${Math.round(ratio * 100)}%) of your ${formattedBudget} limit.`,
-        read: readIds.has(id),
-        timestamp: new Date().toISOString(),
-        href: '/dashboard/expenses/budget',
-      })
-    } else if (ratio >= 0.8) {
-      const id = `notif-budget-total-80-${currentMonth}`
-      list.push({
-        id,
-        type: 'budget',
-        title: 'Monthly budget at 80%',
-        description: `You've used ${formattedSpent} (${Math.round(ratio * 100)}%) of your ${formattedBudget} limit.`,
+        title: threshold >= 100 ? 'Monthly budget exceeded' : `Monthly budget at ${threshold}%`,
+        description:
+          threshold >= 100
+            ? `You've spent ${formattedSpent} of your ${formattedBudget} total budget.`
+            : `You've used ${formattedSpent} (${Math.round(percentage)}%) of your ${formattedBudget} limit.`,
         read: readIds.has(id),
         timestamp: new Date().toISOString(),
         href: '/dashboard/expenses/budget',
@@ -182,48 +198,29 @@ export function deriveNotifications({
   // Category Budget Alerts
   if (budget.categoryBudgets) {
     for (const [catName, limit] of Object.entries(budget.categoryBudgets)) {
-      const catBudget = Number(limit) || 0
+      const catBudget = toBase(Number(limit) || 0, budgetCurrency)
       if (catBudget <= 0) continue
 
       const spent = categorySpent[catName] || 0
-      const ratio = spent / catBudget
+      const percentage = (spent / catBudget) * 100
+      const threshold = crossedThreshold(percentage, thresholds)
+      if (threshold === null) continue
+
       const formattedCategorySpent = formatMoney(spent, currency)
       const formattedCategoryBudget = formatMoney(catBudget, currency)
-
-      if (ratio >= 1.0) {
-        const id = `notif-budget-cat-100-${catName}-${currentMonth}`
-        list.push({
-          id,
-          type: 'budget',
-          title: `Budget exceeded: ${catName}`,
-          description: `You've spent ${formattedCategorySpent} of your ${formattedCategoryBudget} ${catName} budget.`,
-          read: readIds.has(id),
-          timestamp: new Date().toISOString(),
-          href: '/dashboard/expenses/budget',
-        })
-      } else if (ratio >= 0.9) {
-        const id = `notif-budget-cat-90-${catName}-${currentMonth}`
-        list.push({
-          id,
-          type: 'budget',
-          title: `Budget alert: ${catName} at 90%`,
-          description: `You've used ${formattedCategorySpent} of your ${formattedCategoryBudget} ${catName} budget this month.`,
-          read: readIds.has(id),
-          timestamp: new Date().toISOString(),
-          href: '/dashboard/expenses/budget',
-        })
-      } else if (ratio >= 0.8) {
-        const id = `notif-budget-cat-80-${catName}-${currentMonth}`
-        list.push({
-          id,
-          type: 'budget',
-          title: `Budget alert: ${catName} at 80%`,
-          description: `You've used ${formattedCategorySpent} of your ${formattedCategoryBudget} ${catName} budget this month.`,
-          read: readIds.has(id),
-          timestamp: new Date().toISOString(),
-          href: '/dashboard/expenses/budget',
-        })
-      }
+      const id = `notif-budget-cat-${threshold}-${catName}-${currentMonth}`
+      list.push({
+        id,
+        type: 'budget',
+        title: threshold >= 100 ? `Budget exceeded: ${catName}` : `Budget alert: ${catName} at ${threshold}%`,
+        description:
+          threshold >= 100
+            ? `You've spent ${formattedCategorySpent} of your ${formattedCategoryBudget} ${catName} budget.`
+            : `You've used ${formattedCategorySpent} of your ${formattedCategoryBudget} ${catName} budget this month.`,
+        read: readIds.has(id),
+        timestamp: new Date().toISOString(),
+        href: '/dashboard/expenses/budget',
+      })
     }
   }
 

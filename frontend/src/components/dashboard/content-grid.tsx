@@ -8,7 +8,7 @@ import { RemindersCard } from './cards/reminders-card'
 import { ExpensesCard } from './cards/expenses-card'
 import { ErrorState } from '@/components/shared/state-blocks'
 import { useTasks } from '@/hooks/use-tasks'
-import { useEvents } from '@/hooks/use-events'
+import { useDayRange, useEvents } from '@/hooks/use-events'
 import { useExpenses } from '@/hooks/use-expenses'
 import { useBudget } from '@/hooks/use-budget'
 import { useReminders } from '@/hooks/use-reminders'
@@ -36,13 +36,15 @@ export function ContentGrid() {
     updateTask,
     toggleTask,
   } = useTasks()
+  // The reminders card looks 7 days ahead; fetch just that window.
+  const upcomingRange = useDayRange(0, 8)
   const {
     events,
     loading: eventsLoading,
     error: eventsError,
     reload: reloadEvents,
     updateEvent,
-  } = useEvents()
+  } = useEvents(upcomingRange)
   const {
     expenses,
     loading: expensesLoading,
