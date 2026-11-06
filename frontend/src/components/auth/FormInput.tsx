@@ -57,7 +57,7 @@ export function FormInput({
             type="button"
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
-            className="zf-tap absolute top-1/2 right-3 -translate-y-1/2 rounded p-1 text-slate-500 transition-colors duration-150 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]"
+            className="zf-tap absolute right-3 top-1/2 z-10 -translate-y-1/2 flex items-center justify-center rounded p-1 text-slate-500 transition-colors duration-150 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-slate-400 dark:hover:text-slate-200"
           >
             {showPassword ? (
               <EyeOff className="size-4" aria-hidden="true" />

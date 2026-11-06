@@ -101,14 +101,15 @@ function SetPasswordModal({
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Minimum 8 characters"
-              className={SETTINGS_INPUT_CLASS}
+              className={`${SETTINGS_INPUT_CLASS} pr-10`}
               autoComplete="new-password"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-[var(--zf-text-muted)] dark:hover:text-[var(--zf-text)]"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="zf-tap absolute right-3 top-1/2 z-10 -translate-y-1/2 flex items-center justify-center rounded p-1 text-slate-400 hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:text-[var(--zf-text)]"
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -119,15 +120,25 @@ function SetPasswordModal({
           <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)]">
             Confirm new password
           </label>
-          <input
-            type={showPassword ? 'text' : 'password'}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Re-type new password"
-            className={SETTINGS_INPUT_CLASS}
-            autoComplete="new-password"
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Re-type new password"
+              className={`${SETTINGS_INPUT_CLASS} pr-10`}
+              autoComplete="new-password"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="zf-tap absolute right-3 top-1/2 z-10 -translate-y-1/2 flex items-center justify-center rounded p-1 text-slate-400 hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:text-[var(--zf-text)]"
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
         </div>
 
         <div className="rounded-xl bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-500 dark:bg-[var(--zf-soft-fill)] dark:text-[var(--zf-text-muted)]">
@@ -303,14 +314,15 @@ function ChangePasswordModal({
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Minimum 8 characters"
-                  className={SETTINGS_INPUT_CLASS}
+                  className={`${SETTINGS_INPUT_CLASS} pr-10`}
                   autoComplete="new-password"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-[var(--zf-text-muted)] dark:hover:text-[var(--zf-text)]"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="zf-tap absolute right-3 top-1/2 z-10 -translate-y-1/2 flex items-center justify-center rounded p-1 text-slate-400 hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:text-[var(--zf-text)]"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -321,15 +333,25 @@ function ChangePasswordModal({
               <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-[var(--zf-text)]">
                 Confirm new password
               </label>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-type new password"
-                className={SETTINGS_INPUT_CLASS}
-                autoComplete="new-password"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-type new password"
+                  className={`${SETTINGS_INPUT_CLASS} pr-10`}
+                  autoComplete="new-password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="zf-tap absolute right-3 top-1/2 z-10 -translate-y-1/2 flex items-center justify-center rounded p-1 text-slate-400 hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:text-[var(--zf-text)]"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -596,14 +618,15 @@ function DeleteAccountModal({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter current password"
-                  className={SETTINGS_INPUT_CLASS}
+                  className={`${SETTINGS_INPUT_CLASS} pr-10`}
                   autoComplete="current-password"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-[var(--zf-text-muted)] dark:hover:text-[var(--zf-text)]"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="zf-tap absolute right-3 top-1/2 z-10 -translate-y-1/2 flex items-center justify-center rounded p-1 text-slate-400 hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)] dark:text-[var(--zf-text-muted)] dark:hover:text-[var(--zf-text)]"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>

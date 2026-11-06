@@ -287,6 +287,15 @@
   position: relative;
 }
 
+.zf-tap.absolute,
+.zf-tap.\!absolute {
+  position: absolute;
+}
+
+.zf-tap.fixed {
+  position: fixed;
+}
+
 @media (pointer: coarse) {
   .zf-tap::after {
     content: '';
@@ -297,6 +306,12 @@
     height: max(100%, 44px);
     transform: translate(-50%, -50%);
   }
+}
+
+/* Hide native browser password reveal icons (Edge / IE) to avoid duplicate toggle icons */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
 }
 
 /* Phase 2 motion layer - all gated behind prefers-reduced-motion. */
