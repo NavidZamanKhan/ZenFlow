@@ -77,12 +77,53 @@ async function runIntegrationTests() {
         return
       }
 
+      // Endpoint: GET /api/health/
+      if (req.method === 'GET' && req.url === '/api/health/') {
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ status: 'ok', database: 'ok' }))
+        return
+      }
+
+      // Endpoint: GET /api/reminders/?unread=1&limit=5 (Query string test)
+      if (req.method === 'GET' && req.url === '/api/reminders/?unread=1&limit=5') {
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ results: [] }))
+        return
+      }
+
+      // Endpoint: GET /media/avatars/user.png (Media proxy test)
+      if (req.method === 'GET' && req.url === '/media/avatars/user.png') {
+        res.writeHead(200, { 'Content-Type': 'image/png' })
+        res.end('FAKE_PNG_BINARY_DATA')
+        return
+      }
+
+      // Endpoint: GET /api/redirect-test/ (Upstream internal redirect simulation)
+      if (req.method === 'GET' && req.url === '/api/redirect-test/') {
+        const port = mockServer.address().port
+        res.writeHead(302, {
+          Location: `http://127.0.0.1:${port}/api/tasks/`,
+        })
+        res.end()
+        return
+      }
+
       // Endpoint: POST /api/tasks/ (Error simulation)
       if (req.method === 'POST' && req.url === '/api/tasks/') {
         res.writeHead(400, {
           'Content-Type': 'application/json',
         })
         res.end(JSON.stringify({ title: ['This field is required.'] }))
+        return
+      }
+
+      // If upstream ever receives a non-trailing-slash API request, Django issues 301.
+      // We simulate this to prove that the proxy avoids triggering Django's APPEND_SLASH 301.
+      if (req.url === '/api/auth/csrf' || req.url === '/api/health' || req.url === '/api/tasks') {
+        res.writeHead(301, {
+          Location: `${req.url}/`,
+        })
+        res.end()
         return
       }
 
@@ -257,13 +298,176 @@ async function runIntegrationTests() {
       )
       console.log('✓ Integration Test 6 passed: Safe 502 response on unreachable backend')
     }
+
+    // Restore mock upstream target for regression tests
+    process.env.API_PROXY_TARGET = mockBaseUrl
+
+    // -------------------------------------------------------------------------
+    // Test 7: API request WITHOUT trailing slash is normalized to trailing slash
+    // -------------------------------------------------------------------------
+    {
+      const req = new NextRequest('http://localhost:3000/api/auth/csrf', {
+        method: 'GET',
+        headers: {
+          Host: 'localhost:3000',
+          Origin: 'http://localhost:3000',
+        },
+      })
+
+      const res = await proxyRequest(req, '/api', {
+        params: Promise.resolve({ path: ['auth', 'csrf'] }),
+      })
+
+      assert.equal(res.status, 200, 'CSRF without trailing slash must return 200 directly')
+      assert.ok(lastUpstreamRequest, 'Upstream must have received request')
+      assert.equal(
+        lastUpstreamRequest.url,
+        '/api/auth/csrf/',
+        'Upstream request URL MUST be normalized to canonical trailing slash'
+      )
+      console.log('✓ Integration Test 7 passed: Request without trailing slash normalized to /api/auth/csrf/')
+    }
+
+    // -------------------------------------------------------------------------
+    // Test 8: API request WITH trailing slash preserves trailing slash on upstream
+    // -------------------------------------------------------------------------
+    {
+      const req = new NextRequest('http://localhost:3000/api/auth/csrf/', {
+        method: 'GET',
+        headers: {
+          Host: 'localhost:3000',
+          Origin: 'http://localhost:3000',
+        },
+      })
+
+      const res = await proxyRequest(req, '/api', {
+        params: Promise.resolve({ path: ['auth', 'csrf'] }),
+      })
+
+      assert.equal(res.status, 200, 'CSRF with trailing slash must return 200')
+      assert.equal(lastUpstreamRequest.url, '/api/auth/csrf/', 'Upstream request URL must preserve trailing slash')
+      console.log('✓ Integration Test 8 passed: Request with trailing slash sent as /api/auth/csrf/')
+    }
+
+    // -------------------------------------------------------------------------
+    // Test 9: GET request without trailing slash on /api/health
+    // -------------------------------------------------------------------------
+    {
+      const req = new NextRequest('http://localhost:3000/api/health', {
+        method: 'GET',
+      })
+
+      const res = await proxyRequest(req, '/api', {
+        params: Promise.resolve({ path: ['health'] }),
+      })
+
+      assert.equal(res.status, 200, 'Health endpoint must return 200')
+      assert.equal(lastUpstreamRequest.method, 'GET')
+      assert.equal(lastUpstreamRequest.url, '/api/health/', 'Health upstream URL must have trailing slash')
+      const data = await res.json()
+      assert.equal(data.status, 'ok')
+      console.log('✓ Integration Test 9 passed: GET /api/health normalized to /api/health/')
+    }
+
+    // -------------------------------------------------------------------------
+    // Test 10: POST request with body WITHOUT trailing slash preserves method & body
+    // -------------------------------------------------------------------------
+    {
+      const payload = JSON.stringify({ email: 'test@example.com', password: 'password123' })
+      const req = new NextRequest('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          Host: 'localhost:3000',
+          'Content-Type': 'application/json',
+          Cookie: 'csrftoken=csrf_token_12345',
+          'X-CSRFToken': 'csrf_token_12345',
+        },
+        body: payload,
+      })
+
+      const res = await proxyRequest(req, '/api', {
+        params: Promise.resolve({ path: ['auth', 'login'] }),
+      })
+
+      assert.equal(res.status, 200, 'POST /api/auth/login without slash must succeed with 200')
+      assert.equal(lastUpstreamRequest.method, 'POST', 'POST method must be preserved')
+      assert.equal(lastUpstreamRequest.url, '/api/auth/login/', 'POST upstream URL must be normalized to trailing slash')
+      assert.equal(lastUpstreamRequest.body, payload, 'POST request body must be forwarded intact')
+      assert.equal(lastUpstreamRequest.headers['x-csrftoken'], 'csrf_token_12345', 'CSRF header forwarded')
+      console.log('✓ Integration Test 10 passed: POST /api/auth/login normalized with body & headers preserved')
+    }
+
+    // -------------------------------------------------------------------------
+    // Test 11: Query string preservation on non-trailing slash request
+    // -------------------------------------------------------------------------
+    {
+      const req = new NextRequest('http://localhost:3000/api/reminders?unread=1&limit=5', {
+        method: 'GET',
+      })
+
+      const res = await proxyRequest(req, '/api', {
+        params: Promise.resolve({ path: ['reminders'] }),
+      })
+
+      assert.equal(res.status, 200, 'Query request must return 200')
+      assert.equal(
+        lastUpstreamRequest.url,
+        '/api/reminders/?unread=1&limit=5',
+        'Upstream URL must normalize slash before query string'
+      )
+      console.log('✓ Integration Test 11 passed: Query string preserved with normalized slash')
+    }
+
+    // -------------------------------------------------------------------------
+    // Test 12: Media proxy preserves file extension without appending trailing slash
+    // -------------------------------------------------------------------------
+    {
+      const req = new NextRequest('http://localhost:3000/media/avatars/user.png', {
+        method: 'GET',
+      })
+
+      const res = await proxyRequest(req, '/media', {
+        params: Promise.resolve({ path: ['avatars', 'user.png'] }),
+      })
+
+      assert.equal(res.status, 200, 'Media request must return 200')
+      assert.equal(
+        lastUpstreamRequest.url,
+        '/media/avatars/user.png',
+        'Media file URL must strictly NOT have a trailing slash appended'
+      )
+      assert.equal(res.headers.get('content-type'), 'image/png')
+      console.log('✓ Integration Test 12 passed: Media proxy preserves file extensions')
+    }
+
+    // -------------------------------------------------------------------------
+    // Test 13: Upstream redirect rewriting & prevention of infinite redirect loops
+    // -------------------------------------------------------------------------
+    {
+      const req = new NextRequest('http://localhost:3000/api/redirect-test', {
+        method: 'GET',
+      })
+
+      const res = await proxyRequest(req, '/api', {
+        params: Promise.resolve({ path: ['redirect-test'] }),
+      })
+
+      assert.equal(res.status, 302, 'Upstream 302 redirect status preserved')
+      assert.equal(
+        res.headers.get('location'),
+        '/api/tasks/',
+        'Upstream internal redirect location rewritten to safe relative path'
+      )
+      assert.equal(lastUpstreamRequest.url, '/api/redirect-test/', 'Upstream requested with canonical slash')
+      console.log('✓ Integration Test 13 passed: Upstream redirect rewritten & infinite loop prevented')
+    }
   } finally {
     await new Promise((resolve) => mockServer.close(resolve))
     delete process.env.API_PROXY_TARGET
   }
 
   console.log('\n========================================')
-  console.log('All 6 End-to-End Proxy Integration Tests Passed!')
+  console.log('All 13 End-to-End Proxy Integration Tests Passed!')
   console.log('========================================\n')
 }
 

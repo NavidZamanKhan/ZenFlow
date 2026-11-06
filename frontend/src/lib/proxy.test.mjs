@@ -129,32 +129,59 @@ function testUrlConstructionAndPathTraversalSanitization() {
   const url1 = buildUpstreamUrl('/api', ['auth', 'login'], '', '/api/auth/login/')
   assert.ok(url1.endsWith('/api/auth/login/'), `Trailing slash must be preserved: ${url1}`)
 
-  // Test 2: Endpoint with query string
+  // Test 1b: API endpoint WITHOUT trailing slash must be normalized to canonical trailing slash for Django
+  const url1b = buildUpstreamUrl('/api', ['auth', 'login'], '', '/api/auth/login')
+  assert.ok(url1b.endsWith('/api/auth/login/'), `Non-trailing-slash API request must be normalized to trailing slash: ${url1b}`)
+
+  // Test 1c: CSRF endpoint with and without trailing slash must both resolve to canonical /api/auth/csrf/
+  const urlCsrfWithSlash = buildUpstreamUrl('/api', ['auth', 'csrf'], '', '/api/auth/csrf/')
+  const urlCsrfNoSlash = buildUpstreamUrl('/api', ['auth', 'csrf'], '', '/api/auth/csrf')
+  assert.ok(urlCsrfWithSlash.endsWith('/api/auth/csrf/'), `CSRF with slash: ${urlCsrfWithSlash}`)
+  assert.ok(urlCsrfNoSlash.endsWith('/api/auth/csrf/'), `CSRF without slash normalized: ${urlCsrfNoSlash}`)
+  assert.equal(urlCsrfWithSlash, urlCsrfNoSlash, 'Both CSRF variants must construct identical canonical upstream URLs')
+
+  // Test 1d: Health endpoint with and without trailing slash
+  const urlHealthWithSlash = buildUpstreamUrl('/api', ['health'], '', '/api/health/')
+  const urlHealthNoSlash = buildUpstreamUrl('/api', ['health'], '', '/api/health')
+  assert.ok(urlHealthWithSlash.endsWith('/api/health/'), `Health with slash: ${urlHealthWithSlash}`)
+  assert.ok(urlHealthNoSlash.endsWith('/api/health/'), `Health without slash normalized: ${urlHealthNoSlash}`)
+  assert.equal(urlHealthWithSlash, urlHealthNoSlash, 'Both Health variants must construct identical canonical upstream URLs')
+
+  // Test 2: Endpoint with query string (with trailing slash)
   const url2 = buildUpstreamUrl('/api', ['reminders', 'notifications'], '?unread=1&limit=10', '/api/reminders/notifications/')
   assert.ok(url2.endsWith('/api/reminders/notifications/?unread=1&limit=10'), `Query string preserved: ${url2}`)
+
+  // Test 2b: Endpoint with query string (WITHOUT trailing slash in request)
+  const url2b = buildUpstreamUrl('/api', ['reminders', 'notifications'], '?unread=1&limit=10', '/api/reminders/notifications')
+  assert.ok(url2b.endsWith('/api/reminders/notifications/?unread=1&limit=10'), `Query string preserved with normalized slash: ${url2b}`)
 
   // Test 3: Root /api call
   const url3 = buildUpstreamUrl('/api', undefined, '', '/api')
   assert.ok(url3.endsWith('/api/'), `Root /api must resolve to /api/: ${url3}`)
 
-  // Test 4: Media endpoint with file extension
+  // Test 4: Media endpoint with file extension must NOT force trailing slash
   const url4 = buildUpstreamUrl('/media', ['avatars', 'user.png'], '', '/media/avatars/user.png')
-  assert.ok(url4.endsWith('/media/avatars/user.png'), `Media file path preserved: ${url4}`)
+  assert.ok(url4.endsWith('/media/avatars/user.png'), `Media file path preserved without trailing slash: ${url4}`)
+  assert.ok(!url4.endsWith('/media/avatars/user.png/'), 'Media file path must never append trailing slash')
+
+  // Test 4b: Media directory request with trailing slash preserves it
+  const url4b = buildUpstreamUrl('/media', ['uploads', 'folder'], '', '/media/uploads/folder/')
+  assert.ok(url4b.endsWith('/media/uploads/folder/'), `Media directory trailing slash preserved: ${url4b}`)
 
   // Test 5: Plain path traversal ('..')
   const url5 = buildUpstreamUrl('/api', ['..', '..', 'admin'], '', '/api/../../admin')
   assert.ok(!url5.includes('..'), `Path traversal must be stripped: ${url5}`)
-  assert.ok(url5.endsWith('/api/admin'), `Sanitized path must be safe: ${url5}`)
+  assert.ok(url5.endsWith('/api/admin/'), `Sanitized path must be canonical: ${url5}`)
 
   // Test 6: URL-encoded traversal (%2e%2e, %2f, %5c)
   const url6 = buildUpstreamUrl('/api', ['%2e%2e', '%2e%2e', 'admin'], '', '/api/%2e%2e/%2e%2e/admin')
   assert.ok(!url6.includes('..'), `Encoded traversal must be stripped: ${url6}`)
-  assert.ok(url6.endsWith('/api/admin'), `Encoded traversal sanitized: ${url6}`)
+  assert.ok(url6.endsWith('/api/admin/'), `Encoded traversal sanitized: ${url6}`)
 
   // Test 7: Double-encoded traversal (%252e%252e)
   const url7 = buildUpstreamUrl('/api', ['%252e%252e', 'secret'], '', '/api/%252e%252e/secret')
   assert.ok(!url7.includes('..'), `Double-encoded traversal stripped: ${url7}`)
-  assert.ok(url7.endsWith('/api/secret'), `Double-encoded traversal sanitized: ${url7}`)
+  assert.ok(url7.endsWith('/api/secret/'), `Double-encoded traversal sanitized: ${url7}`)
 
   // Test 8: Backslash path injection (%5c or \\)
   const url8 = buildUpstreamUrl('/api', ['auth\\..\\admin'], '', '/api/auth\\..\\admin')
@@ -164,6 +191,7 @@ function testUrlConstructionAndPathTraversalSanitization() {
   const url9 = buildUpstreamUrl('/api', ['tasks'], '?status=pending#fragment', '/api/tasks')
   assert.ok(!url9.includes('#'), `Fragments must be stripped: ${url9}`)
   assert.ok(url9.includes('?status=pending'), `Valid query preserved: ${url9}`)
+  assert.ok(url9.includes('/api/tasks/?status=pending'), `Normalized path with query preserved: ${url9}`)
 
   console.log('✓ URL construction and path traversal sanitization tests passed')
 }

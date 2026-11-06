@@ -211,11 +211,17 @@ export function buildUpstreamUrl(
     }
   }
 
-  // 3. Preserve trailing slash if the original incoming request had one
+  // 3. Construct canonical subpath
+  // Django's API router (/api/*) strictly requires trailing slashes on all endpoints (APPEND_SLASH=True).
+  // When clients or edge routers (such as Vercel) strip trailing slashes, forwarding requests without a
+  // trailing slash causes Django to issue a 301 redirect back to the slashed URL, triggering an edge
+  // redirect loop (Vercel 308 <-> Django 301).
+  // Therefore, all /api/* upstream paths are normalized to end with a trailing slash.
+  // For /media/* static file routes, the original extension / trailing slash state is preserved.
   const cleanPathname = pathname.split('?')[0].split('#')[0]
-  const trailingSlash = cleanPathname.endsWith('/') ? '/' : ''
+  const trailingSlash = cleanBasePath === '/api' || cleanPathname.endsWith('/') ? '/' : ''
 
-  const subpath = safeSegments.length > 0 ? safeSegments.join('/') + trailingSlash : ''
+  const subpath = safeSegments.length > 0 ? `${safeSegments.join('/')}${trailingSlash}` : ''
   const finalPath = subpath ? `${cleanBasePath}/${subpath}` : `${cleanBasePath}/`
 
   // 4. Construct URL using WHATWG URL constructor to guarantee protocol, host, port cannot be altered
