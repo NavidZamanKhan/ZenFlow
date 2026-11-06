@@ -47,7 +47,7 @@ export function UserMenu({ className }: UserMenuProps) {
       <DropdownMenuTrigger
         aria-label="User menu"
         className={cn(
-          'zf-tap flex h-8.5 w-8.5 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]',
+          'zf-tap relative flex h-8.5 w-8.5 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--zf-accent)]',
           className,
         )}
       >

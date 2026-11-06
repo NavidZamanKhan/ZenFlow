@@ -221,7 +221,7 @@ export function RemindersCard({
             onClick={() => setComposerOpen((open) => !open)}
             aria-expanded={composerOpen}
             aria-controls="reminder-composer"
-            className="zf-tap inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[var(--zf-accent)] transition-colors hover:bg-[var(--zf-accent-soft)]"
+            className="zf-tap relative inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[var(--zf-accent)] transition-colors hover:bg-[var(--zf-accent-soft)]"
           >
             <BellPlus size={14} aria-hidden="true" />
             {composerOpen ? 'Close' : 'New reminder'}
