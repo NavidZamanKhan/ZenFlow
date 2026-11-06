@@ -34,9 +34,47 @@ import type { CalendarEvent, CalendarEventInput } from '@/types/event'
 import type { AnalyticsSummary, AnalyticsSummaryParams } from '@/types/analytics'
 import type { Reminder, ReminderInput, ReminderNotification } from '@/types/reminder'
 
-const API_BASE = (
-  process.env.NEXT_PUBLIC_API_URL || 'https://zenflow-5u3r.onrender.com'
-).replace(/\/$/, '')
+function getApiBase(): string {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim()
+
+  // In the browser:
+  if (typeof window !== 'undefined') {
+    // If explicitly set to same-origin ("/" or empty)
+    if (!envUrl || envUrl === '/' || envUrl === '') {
+      return ''
+    }
+
+    // In local development on localhost/127.0.0.1
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return envUrl.replace(/\/$/, '')
+    }
+
+    // In production on a public domain (e.g. zenflowbd.vercel.app):
+    // If envUrl is on a different origin than the current page, using it directly
+    // makes requests cross-site, which Safari blocks under ITP (causing CSRF cookie failures).
+    // Instead, route through the same-origin proxy ('') unless explicitly disabled.
+    if (process.env.NEXT_PUBLIC_DISABLE_API_PROXY !== 'true') {
+      try {
+        const parsed = new URL(envUrl, window.location.origin)
+        if (parsed.origin !== window.location.origin) {
+          return ''
+        }
+      } catch {
+        return ''
+      }
+    }
+
+    return envUrl.replace(/\/$/, '')
+  }
+
+  // Server-side (SSR / build time) fallback
+  if (!envUrl || envUrl === '/') {
+    return (process.env.API_PROXY_TARGET || 'https://zenflow-5u3r.onrender.com').replace(/\/$/, '')
+  }
+  return envUrl.replace(/\/$/, '')
+}
+
+export const API_BASE = getApiBase()
 
 // -- Session hint -----------------------------------------------------------
 // The auth cookies are httpOnly, so the client cannot inspect them. A tiny

@@ -27,6 +27,7 @@ db.sqlite3
 __pycache__/
 *.pyc
 media/
+!frontend/src/app/media/
 
 # Debug / local artifacts
 zf-debug/

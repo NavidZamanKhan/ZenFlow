@@ -215,6 +215,18 @@ class SessionEstablishingCsrfTests(TestCase):
         self.assertIn("CSRF", str(response.data))
         self.assertNotIn(settings.JWT_AUTH_COOKIE, response.cookies)
 
+    def test_login_without_csrf_cookie_is_refused(self):
+        """When Safari drops cross-site cookies, X-CSRFToken arrives but csrftoken cookie is missing."""
+        response = self.client.post(
+            LOGIN_URL,
+            self.credentials,
+            format="json",
+            HTTP_X_CSRFTOKEN="a" * 64,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("CSRF cookie not set", str(response.data))
+        self.assertNotIn(settings.JWT_AUTH_COOKIE, response.cookies)
+
     def test_login_with_invalid_csrf_token_is_refused(self):
         self._csrf()
         response = self.client.post(
@@ -259,6 +271,19 @@ class SessionEstablishingCsrfTests(TestCase):
         self.assertNotIn(settings.JWT_AUTH_COOKIE, response.cookies)
         self.assertNotIn(settings.JWT_AUTH_REFRESH_COOKIE, response.cookies)
 
+    def test_verify_email_without_csrf_cookie_is_refused(self):
+        pending = self._create_pending()
+        payload = {"pending_registration_id": str(pending.id), "otp": "123456"}
+        response = self.client.post(
+            VERIFY_EMAIL_URL,
+            payload,
+            format="json",
+            HTTP_X_CSRFTOKEN="a" * 64,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("CSRF cookie not set", str(response.data))
+        self.assertNotIn(settings.JWT_AUTH_COOKIE, response.cookies)
+
     def test_verify_email_with_invalid_csrf_token_is_refused(self):
         pending = self._create_pending()
         self._csrf()
@@ -297,6 +322,18 @@ class SessionEstablishingCsrfTests(TestCase):
 
         ok = self.client.post(GOOGLE_URL, {"id_token": "t"}, format="json", HTTP_X_CSRFTOKEN=self._csrf())
         self.assertEqual(ok.status_code, status.HTTP_200_OK)
+
+    @patch(VERIFY_GOOGLE)
+    def test_google_without_csrf_cookie_is_refused(self, mock_verify):
+        response = self.client.post(
+            GOOGLE_URL,
+            {"id_token": "t"},
+            format="json",
+            HTTP_X_CSRFTOKEN="a" * 64,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("CSRF cookie not set", str(response.data))
+        mock_verify.assert_not_called()
 
     # -- origin checking ----------------------------------------------
 
