@@ -1,4 +1,5 @@
 from datetime import timedelta
+import logging
 
 from django.db import transaction
 from django.utils import timezone
@@ -12,6 +13,9 @@ from .serializers import (
     ReminderSerializer,
     ReminderSnoozeSerializer,
 )
+from .services import dispatch_due_reminders
+
+logger = logging.getLogger(__name__)
 
 
 class ReminderViewSet(viewsets.ModelViewSet):
@@ -98,6 +102,15 @@ class ReminderNotificationViewSet(
         if self.request.query_params.get('unread') in ('1', 'true'):
             queryset = queryset.filter(read_at__isnull=True)
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        user = getattr(request, 'user', None)
+        if user and user.is_authenticated:
+            try:
+                dispatch_due_reminders(user=user)
+            except Exception:
+                logger.exception("Request-time reminder dispatch failed for notifications list")
+        return super().list(request, *args, **kwargs)
 
     @action(detail=True, methods=['post'])
     def read(self, request, pk=None):

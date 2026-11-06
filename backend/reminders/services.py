@@ -118,11 +118,14 @@ def _truncate(text: str) -> str:
 # -- Phase 1: claim ------------------------------------------------------------
 
 
-def due_reminders_queryset(now):
+def due_reminders_queryset(now, user=None):
     """Scheduled reminders that are due and not currently leased by another tick."""
-    return Reminder.objects.filter(status=Reminder.Status.SCHEDULED, remind_at__lte=now).filter(
+    qs = Reminder.objects.filter(status=Reminder.Status.SCHEDULED, remind_at__lte=now).filter(
         Q(next_attempt_at__isnull=True) | Q(next_attempt_at__lte=now)
     )
+    if user is not None:
+        qs = qs.filter(user=user)
+    return qs
 
 
 def _claim(reminder: Reminder, now) -> _Claim:
@@ -173,11 +176,11 @@ def _claim(reminder: Reminder, now) -> _Claim:
     return claim
 
 
-def _claim_due_reminders(now, batch_size: int, result: DispatchResult) -> list[_Claim]:
+def _claim_due_reminders(now, batch_size: int, result: DispatchResult, user=None) -> list[_Claim]:
     claims: list[_Claim] = []
     with transaction.atomic():
         due = list(
-            due_reminders_queryset(now)
+            due_reminders_queryset(now, user=user)
             .select_for_update(skip_locked=True, of=("self",))
             .select_related("user")
             .order_by("remind_at")[:batch_size]
@@ -307,13 +310,13 @@ def _deliver_emails(claims: list[_Claim], email_service, result: DispatchResult)
 
 
 def dispatch_due_reminders(
-    now=None, batch_size: int = DEFAULT_BATCH_SIZE, email_service=None
+    now=None, batch_size: int = DEFAULT_BATCH_SIZE, email_service=None, user=None
 ) -> DispatchResult:
     """Fire every scheduled reminder whose ``remind_at`` has passed (see module docs)."""
     now = now or timezone.now()
     result = DispatchResult()
 
-    claims = _claim_due_reminders(now, batch_size, result)
+    claims = _claim_due_reminders(now, batch_size, result, user=user)
     _emit_fired(claims)
     _deliver_emails(claims, email_service, result)
 

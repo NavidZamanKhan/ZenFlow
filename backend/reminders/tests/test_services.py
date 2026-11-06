@@ -108,6 +108,45 @@ class DispatchDueRemindersTests(TestCase):
         mock_service.send_reminder_email.assert_called_once()
 
     @patch("reminders.services.get_email_service")
+    def test_dispatch_twice_does_not_duplicate_notifications_or_emails(self, mock_factory):
+        mock_service = mock_factory.return_value
+        self._reminder("Both Duplicate Check", minutes=-1, channel=Reminder.Channel.BOTH)
+
+        first = dispatch_due_reminders(now=self.now)
+        second = dispatch_due_reminders(now=self.now)
+
+        self.assertEqual(first.notifications_created, 1)
+        self.assertEqual(first.emails_sent, 1)
+        self.assertEqual(second.notifications_created, 0)
+        self.assertEqual(second.emails_sent, 0)
+        self.assertEqual(second.dispatched, 0)
+        self.assertEqual(ReminderNotification.objects.count(), 1)
+        self.assertEqual(mock_service.send_reminder_email.call_count, 1)
+
+    def test_dispatch_filtered_by_user(self):
+        user_b = User.objects.create_user(
+            email="userb_dispatch@example.com", password="Password123!", full_name="User B"
+        )
+        reminder_a = self._reminder("User A due", minutes=-2)
+        reminder_b = Reminder.objects.create(
+            user=user_b,
+            title="User B due",
+            remind_at=self.now - timedelta(minutes=2),
+            channel=Reminder.Channel.IN_APP,
+        )
+
+        result = dispatch_due_reminders(now=self.now, user=self.user)
+
+        self.assertEqual(result.dispatched, 1)
+        self.assertEqual(result.notifications_created, 1)
+        reminder_a.refresh_from_db()
+        reminder_b.refresh_from_db()
+        self.assertEqual(reminder_a.status, Reminder.Status.SENT)
+        self.assertEqual(reminder_b.status, Reminder.Status.SCHEDULED)
+        self.assertEqual(ReminderNotification.objects.filter(user=self.user).count(), 1)
+        self.assertEqual(ReminderNotification.objects.filter(user=user_b).count(), 0)
+
+    @patch("reminders.services.get_email_service")
     def test_email_failure_keeps_reminder_pending_and_records_error(self, mock_factory):
         """A failed email must not be reported as delivered: the in-app leg
         completes, the reminder stays scheduled with a retry deadline."""

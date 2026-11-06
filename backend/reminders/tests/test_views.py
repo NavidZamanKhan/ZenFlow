@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -400,3 +401,72 @@ class ReminderNotificationViewSetTests(APITestCase):
 
     def test_unauthenticated_returns_401(self):
         self.assertEqual(APIClient().get(NOTIFICATIONS_URL).status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_notifications_list_dispatches_due_reminders_for_authenticated_user(self):
+        past = timezone.now() - timedelta(minutes=5)
+        reminder_a = Reminder.objects.create(
+            user=self.user_a,
+            title="Due for A",
+            remind_at=past,
+            channel=Reminder.Channel.IN_APP,
+        )
+        reminder_b = Reminder.objects.create(
+            user=self.user_b,
+            title="Due for B",
+            remind_at=past,
+            channel=Reminder.Channel.IN_APP,
+        )
+
+        response = self.client.get(NOTIFICATIONS_URL)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        reminder_a.refresh_from_db()
+        reminder_b.refresh_from_db()
+        self.assertEqual(reminder_a.status, Reminder.Status.SENT)
+        self.assertEqual(reminder_b.status, Reminder.Status.SCHEDULED)
+
+        titles = [n["title"] for n in response.data]
+        self.assertIn("Due for A", titles)
+        self.assertNotIn("Due for B", titles)
+
+    @patch("reminders.services.get_email_service")
+    def test_notifications_list_dispatches_due_both_reminder_and_sends_email(self, mock_factory):
+        mock_service = mock_factory.return_value
+        past = timezone.now() - timedelta(minutes=5)
+        reminder = Reminder.objects.create(
+            user=self.user_a,
+            title="Both Due for A",
+            remind_at=past,
+            channel=Reminder.Channel.BOTH,
+        )
+
+        response = self.client.get(NOTIFICATIONS_URL)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        reminder.refresh_from_db()
+        self.assertEqual(reminder.status, Reminder.Status.SENT)
+        mock_service.send_reminder_email.assert_called_once()
+        titles = [n["title"] for n in response.data]
+        self.assertIn("Both Due for A", titles)
+
+    @patch("reminders.views.dispatch_due_reminders", side_effect=RuntimeError("dispatch error"))
+    def test_notifications_list_gracefully_handles_dispatch_error(self, mock_dispatch):
+        response = self.client.get(NOTIFICATIONS_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_notifications_list_does_not_dispatch_future_reminders(self):
+        future = timezone.now() + timedelta(hours=1)
+        reminder = Reminder.objects.create(
+            user=self.user_a,
+            title="Future Reminder",
+            remind_at=future,
+            channel=Reminder.Channel.BOTH,
+        )
+
+        response = self.client.get(NOTIFICATIONS_URL)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        reminder.refresh_from_db()
+        self.assertEqual(reminder.status, Reminder.Status.SCHEDULED)
+        titles = [n["title"] for n in response.data]
+        self.assertNotIn("Future Reminder", titles)
