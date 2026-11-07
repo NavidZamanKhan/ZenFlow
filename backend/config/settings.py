@@ -409,8 +409,9 @@ def _normalize_origin(origin: str) -> str | None:
 
 
 # Absolute URL of the Next.js app. Used to build password-recovery links.
-_raw_frontend_url = config("FRONTEND_URL", default="http://localhost:3000")
-FRONTEND_URL = _normalize_origin(_raw_frontend_url) or "http://localhost:3000"
+DEFAULT_FRONTEND_URL = "http://localhost:3000" if DEBUG else "https://zenflowbd.vercel.app"
+_raw_frontend_url = config("FRONTEND_URL", default=DEFAULT_FRONTEND_URL)
+FRONTEND_URL = _normalize_origin(_raw_frontend_url) or DEFAULT_FRONTEND_URL
 
 # Password-recovery links expire after this many seconds (Django's token
 # generator enforces it).

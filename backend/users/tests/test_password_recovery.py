@@ -7,6 +7,7 @@ POST /api/auth/password/forgot/confirm/    -> set a new password
 
 from datetime import datetime, timedelta
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlsplit
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -20,6 +21,7 @@ from rest_framework.test import APIClient
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from config.settings import _normalize_origin
 from users.services.auth_service import AuthService
 
 User = get_user_model()
@@ -355,3 +357,120 @@ class PasswordRecoveryHardeningTests(TestCase):
 
         self.assertEqual(device_a.post("/api/auth/refresh/", {}, format="json").status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(device_b.post("/api/auth/refresh/", {}, format="json").status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PasswordRecoveryUrlConfigurationTests(TestCase):
+    """
+    Verifies that password reset links point to the correct frontend host in
+    both production and development, and that trailing slashes and query
+    parameters are properly handled.
+    """
+
+    def setUp(self):
+        cache.clear()
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="reset-url@example.com",
+            full_name="Reset URL User",
+            password="InitialPass1!",
+        )
+
+    def test_normalize_origin_handles_dev_and_prod_urls(self):
+        self.assertEqual(
+            _normalize_origin("https://zenflowbd.vercel.app"),
+            "https://zenflowbd.vercel.app",
+        )
+        self.assertEqual(
+            _normalize_origin("https://zenflowbd.vercel.app/"),
+            "https://zenflowbd.vercel.app",
+        )
+        self.assertEqual(
+            _normalize_origin("http://localhost:3000"),
+            "http://localhost:3000",
+        )
+        self.assertEqual(
+            _normalize_origin("http://localhost:3000/"),
+            "http://localhost:3000",
+        )
+        self.assertIsNone(_normalize_origin("ftp://example.com"))
+        self.assertIsNone(_normalize_origin("https://example.com/path"))
+        self.assertIsNone(_normalize_origin("https://user:pass@example.com"))
+
+    @override_settings(FRONTEND_URL="https://zenflowbd.vercel.app", DEBUG=False)
+    @patch("users.services.auth_service.get_email_service")
+    def test_production_frontend_url_used_in_reset_email(self, mock_factory):
+        mock_service = mock_factory.return_value
+        response = self.client.post(FORGOT_URL, {"email": self.user.email}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        mock_service.send_password_recovery_email.assert_called_once()
+        kwargs = mock_service.send_password_recovery_email.call_args.kwargs
+        reset_url = kwargs["reset_url"]
+
+        self.assertTrue(
+            reset_url.startswith("https://zenflowbd.vercel.app/reset-password?"),
+            f"Reset URL did not start with production frontend: {reset_url}",
+        )
+        parsed = urlsplit(reset_url)
+        self.assertEqual(parsed.scheme, "https")
+        self.assertEqual(parsed.netloc, "zenflowbd.vercel.app")
+        self.assertEqual(parsed.path, "/reset-password")
+
+        qs = parse_qs(parsed.query)
+        self.assertIn("uid", qs)
+        self.assertIn("token", qs)
+        uid = qs["uid"][0]
+        token = qs["token"][0]
+
+        # Verify link works with validate and confirm endpoints
+        val_res = self.client.post(VALIDATE_URL, {"uid": uid, "token": token}, format="json")
+        self.assertEqual(val_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(val_res.data["valid"])
+
+        conf_res = self.client.post(
+            CONFIRM_URL,
+            {
+                "uid": uid,
+                "token": token,
+                "new_password": "NewSecretPass1!",
+                "confirm_password": "NewSecretPass1!",
+            },
+            format="json",
+        )
+        self.assertEqual(conf_res.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("NewSecretPass1!"))
+
+    @override_settings(FRONTEND_URL="https://zenflowbd.vercel.app/", DEBUG=False)
+    @patch("users.services.auth_service.get_email_service")
+    def test_trailing_slash_in_frontend_url_is_stripped_cleanly(self, mock_factory):
+        mock_service = mock_factory.return_value
+        response = self.client.post(FORGOT_URL, {"email": self.user.email}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        kwargs = mock_service.send_password_recovery_email.call_args.kwargs
+        reset_url = kwargs["reset_url"]
+        self.assertTrue(
+            reset_url.startswith("https://zenflowbd.vercel.app/reset-password?"),
+            f"Reset URL contains malformed path: {reset_url}",
+        )
+        self.assertNotIn("//reset-password", reset_url)
+
+    @override_settings(FRONTEND_URL="http://localhost:3000", DEBUG=True)
+    @patch("users.services.auth_service.get_email_service")
+    def test_development_frontend_url_used_when_configured(self, mock_factory):
+        mock_service = mock_factory.return_value
+        response = self.client.post(FORGOT_URL, {"email": self.user.email}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        kwargs = mock_service.send_password_recovery_email.call_args.kwargs
+        reset_url = kwargs["reset_url"]
+        self.assertTrue(
+            reset_url.startswith("http://localhost:3000/reset-password?"),
+            f"Reset URL did not start with dev frontend: {reset_url}",
+        )
+        parsed = urlsplit(reset_url)
+        self.assertEqual(parsed.scheme, "http")
+        self.assertEqual(parsed.netloc, "localhost:3000")
+        self.assertEqual(parsed.path, "/reset-password")
+

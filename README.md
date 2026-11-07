@@ -303,6 +303,7 @@ and every `/api/*` request is proxied by Next.js (supported by Netlify's Next ru
 
 * `GOOGLE_CLIENT_ID` **must** be set; Google sign-in refuses to run without it (the token audience cannot be verified otherwise). Only Google **ID tokens** are accepted by `POST /api/auth/google/`.
 * `DEBUG=False` in production. In `DEBUG=True` the password-reset link (which embeds the token) is printed to the console for local development.
+* Set `FRONTEND_URL=https://zenflowbd.vercel.app` in Render environment variables so password recovery emails point directly to the production frontend (also defaults safely to `https://zenflowbd.vercel.app` when `DEBUG=False`).
 * Set `CACHE_URL` (or reuse `REDIS_URL`) so DRF throttle counters are shared across gunicorn workers; without it each worker keeps its own in-memory counters.
 * Run `python manage.py flushexpiredtokens` periodically (e.g. daily cron / Render cron job) to prune expired entries from the SimpleJWT outstanding/blacklist tables; nothing else deletes them.
 * Optional: `JWT_CHECK_REVOKE_TOKEN=True` makes *access* tokens stop working the moment a password changes (not just refresh tokens). Tokens issued before the switch carry no digest and are rejected, so enabling it signs every active user out once.

@@ -618,7 +618,8 @@ class AuthService:
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-        reset_url = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
+        frontend_base = (getattr(settings, "FRONTEND_URL", "") or "https://zenflowbd.vercel.app").rstrip("/")
+        reset_url = f"{frontend_base}/reset-password?uid={uid}&token={token}"
 
         if settings.DEBUG:
             # Development convenience only: the link (which embeds the reset
