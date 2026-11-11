@@ -354,7 +354,7 @@ Authentication uses `httpOnly` JWT cookies set by the login/verify/Google endpoi
 
 ## Ecosystem Repositories
 
-* Web Application (Full-Stack): [ZenFlow](https://github.com/NavidZamanKhan/ZenFlow)
+* Web Application (Full-Stack): [ZenFlow](https://github.com/ak1bhasan/ZenFlow)
 * Mobile Application (iOS & Android): [ZenFlow-Flutter](https://github.com/NavidZamanKhan/ZenFlow-Flutter)
 
 ---
