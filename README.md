@@ -14,59 +14,51 @@ The platform employs a decoupled full-stack architecture where the Next.js clien
 
 ---
 
-## User Interface Showcase
+## Application Screenshots
 
-### 1. Public Portal & Workspace Overview
+Captured from a local development build at a 1440px desktop viewport using a seeded demo workspace (no real user data).
 
-<table>
-  <thead>
-    <tr>
-      <th width="50%" align="center">Landing Page & Public Portal</th>
-      <th width="50%" align="center">Central Overview Dashboard</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center" valign="top">
-        <img src="Screenshots/Landing%20Page.png" width="100%" alt="ZenFlow Landing Page" />
-      </td>
-      <td align="center" valign="top">
-        <img src="Screenshots/Dashboard.png" width="100%" alt="ZenFlow Dashboard Overview" />
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="top">Public marketing interface showcasing platform capabilities, workflow highlights, security standards, and authentication entry points.</td>
-      <td align="center" valign="top">Personalized workspace displaying today's tasks, weekly productivity velocity curves, scheduled reminders, and monthly financial summaries.</td>
-    </tr>
-  </tbody>
-</table>
+### Dashboard
 
----
+![ZenFlow Dashboard](Asset/dashboard.png)
 
-### 2. Financial Management & Analytics
+The Overview workspace greets the user with today's focus: open tasks with due dates and categories, a weekly productivity score with a completion curve, upcoming reminders that merge task deadlines, calendar events and scheduled reminders, and a monthly spending summary against the configured budget.
 
-<table>
-  <thead>
-    <tr>
-      <th width="50%" align="center">Expense Tracking & Budgeting</th>
-      <th width="50%" align="center">Spending Analytics & Visualizations</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center" valign="top">
-        <img src="Screenshots/Expense.png" width="100%" alt="ZenFlow Expenses Tracker" />
-      </td>
-      <td align="center" valign="top">
-        <img src="Screenshots/Insights.png" width="100%" alt="ZenFlow Insights Analytics" />
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="top">Multi-currency financial logging with category filters, payment method tagging, search, and interactive monthly budget gauges.</td>
-      <td align="center" valign="top">Analytical intelligence suite featuring category distribution donut charts, daily spending wave curves, and transaction volume trends.</td>
-    </tr>
-  </tbody>
-</table>
+### Analytics Dashboard
+
+![ZenFlow Analytics](Asset/analytics.png)
+
+The Insights page aggregates expenses server-side and renders them with Recharts: monthly spending trend, all-time category mix, the last seven days of spending, a day-by-day curve for the current month, and a breakdown by payment method.
+
+### Expense Management
+
+![ZenFlow Expenses](Asset/expenses.png)
+
+Expense tracking with headline totals (all-time, today, this month, remaining budget), full-text search, and filters for category, payment method, currency, sort order, date range and amount. Each row shows the category tag, payment method and amount in the display currency.
+
+### Budget Management
+
+![ZenFlow Budgets](Asset/budgets.png)
+
+Monthly budget limit with a live usage gauge, configurable alert thresholds (50/75/90/100% by default), and per-category allocations. Each category card shows spent vs. remaining for the current calendar month and flags categories that have crossed a threshold or gone over budget.
+
+### Reminders
+
+![ZenFlow Reminders](Asset/reminders.png)
+
+The Reminders card on the Overview combines task due dates (blue), calendar events (teal) and scheduled reminders (amber) for the next seven days. The inline composer schedules a new reminder with an in-app, email, or combined delivery channel; items can be completed, snoozed by a day, or cancelled in place.
+
+### Notifications
+
+![ZenFlow Notifications](Asset/notifications.png)
+
+The notification bell merges server-side reminder notifications with alerts derived from tasks due today or tomorrow, upcoming calendar events and budget thresholds. Unread items are highlighted with a badge count and can be marked read individually or all at once.
+
+### Login / Signup
+
+![ZenFlow Login](Asset/login.png)
+
+The authentication portal offers email/password login, Google sign-in, and a password-recovery link, with a tabbed switch to the signup flow (email OTP verification). The right-hand panel previews the workspace for new visitors.
 
 ---
 
@@ -82,7 +74,7 @@ The platform employs a decoupled full-stack architecture where the Next.js clien
 * Expense Management: Multi-currency expense entry supporting category tagging, payment method tracking, and full-text search.
 * Budget Controls: Configurable monthly spending limits with category-specific allocations and real-time visual progress gauges.
 * Configurable Budget Alerts: User-defined warning thresholds (e.g. 50/75/90/100%) evaluated in the display currency after converting every expense and limit, surfaced in the notification bell.
-* Multi-Currency Engine: Display currency configuration with automatic conversion and precision rounding heuristics.
+* Multi-Currency Engine: Expenses are stored in their original currency; the client converts them into the user's display currency using live exchange rates (cached locally, with built-in fallback rates) and precision-aware rounding.
 * Visual Insights: Spending analytics powered by Recharts and a server-side aggregation endpoint (`/api/analytics/summary/`) that returns per-category, per-month, per-day and per-payment-method totals.
 
 ### Reminders & Notifications
@@ -109,7 +101,7 @@ The platform employs a decoupled full-stack architecture where the Next.js clien
 ```
 
 * **Frontend Architecture:** Next.js App Router, Domain-driven Custom React Hooks (`use-tasks`, `use-expenses`, `use-budget`, `use-events`, `use-reminders`, `use-analytics-summary`), and centralized AuthContext for session hydration via httpOnly cookies.
-* **Backend Architecture:** Django REST Framework with strict layered separation: `Views -> Serializers -> Services -> Models` with SimpleJWT (cookie transport), Argon2 password hashing, and Celery for background jobs.
+* **Backend Architecture:** Django REST Framework organised as `Views -> Serializers -> Services -> Models` (dedicated service modules in `users`, `analytics` and `reminders`), with SimpleJWT (cookie transport), Argon2 password hashing, and Celery for background jobs.
 
 ---
 
@@ -117,18 +109,23 @@ The platform employs a decoupled full-stack architecture where the Next.js clien
 
 ```text
 ZenFlow/
-├── Screenshots/              # Product screenshots for documentation
-│   ├── Landing Page.png      # Marketing portal screenshot
-│   ├── Dashboard.png         # Overview workspace screenshot
-│   ├── Expense.png           # Multi-currency expense screenshot
-│   └── Insights.png          # Visual analytics screenshot
+├── Asset/                    # Application screenshots used in this README
+│   ├── dashboard.png         # Overview workspace
+│   ├── analytics.png         # Insights / spending analytics
+│   ├── expenses.png          # Expense management
+│   ├── budgets.png           # Budget management
+│   ├── reminders.png         # Reminders card with composer
+│   ├── notifications.png     # Notification bell popover
+│   └── login.png             # Login / signup portal
 ├── frontend/                 # Next.js web application
-│   └── src/
-│       ├── app/              # App Router pages and route handlers
-│       ├── components/       # Landing, dashboard, auth, and shared UI primitives
-│       ├── hooks/            # Domain-specific data and state management hooks
-│       ├── lib/              # API client, authentication, currency conversion
-│       └── types/            # TypeScript schemas and data interfaces
+│   ├── src/
+│   │   ├── app/              # App Router pages + same-origin proxy route handlers (api/, media/)
+│   │   ├── components/       # Landing, dashboard, auth, and shared UI primitives
+│   │   ├── hooks/            # Domain-specific data and state management hooks
+│   │   ├── lib/              # API client, authentication, currency conversion, proxy utilities
+│   │   └── types/            # TypeScript schemas and data interfaces
+│   ├── public/               # Static assets
+│   └── .env.example          # Frontend environment template
 ├── backend/                  # Django REST API service
 │   ├── config/               # Settings, root URLs, Celery app, health check, WSGI/ASGI
 │   ├── users/                # Authentication, cookie JWT, password recovery, OTP, Google OAuth
@@ -139,6 +136,8 @@ ZenFlow/
 │   ├── analytics/            # Server-side expense aggregation endpoint
 │   ├── reminders/            # Reminder model, CRUD API, Celery Beat dispatcher
 │   ├── Dockerfile            # Backend container image (API / worker / beat / tests)
+│   ├── Procfile, build.sh    # Render process types and build script
+│   ├── .env.example          # Backend environment template
 │   └── requirements.txt      # Pinned Python dependencies
 ├── .github/workflows/        # CI: full Django test suite against PostgreSQL
 ├── docker-compose.yml        # Local stack: Postgres, Redis, API, Celery worker + beat
@@ -153,20 +152,20 @@ ZenFlow/
 ### Frontend
 * Framework: Next.js 16 (App Router), React 19, TypeScript
 * Styling: Tailwind CSS v4, Lucide Icons
-* Component Primitives: Radix UI / shadcn/ui
+* Component Primitives: shadcn/ui components built on Base UI (`@base-ui/react`)
 * Animations: Framer Motion
 * Data Visualization: Recharts, FullCalendar
 * Forms & Validation: React Hook Form, Zod
 * Authentication: `@react-oauth/google`
 
 ### Backend & Infrastructure
-* Framework: Django 6.0, Django REST Framework (versions pinned in `backend/requirements.txt`)
+* Framework: Django 6.0, Django REST Framework 3.17 (all versions pinned in `backend/requirements.txt`; Python 3.13)
 * Database: PostgreSQL (via `psycopg` and `dj-database-url`)
-* Authentication: `djangorestframework-simplejwt` (httpOnly cookies + token blacklist), Argon2
+* Authentication: `djangorestframework-simplejwt` (httpOnly cookies + token blacklist), Argon2, `google-auth` for ID-token verification
 * Background Jobs: Celery 5 + Redis (Celery Beat schedules the reminder dispatcher)
 * CORS & Headers: `django-cors-headers`
 * Production Serving: Gunicorn, Whitenoise
-* Deployment: Netlify (Frontend), Render (Backend), Supabase (Database); Docker image + Compose stack included
+* Deployment: Vercel (frontend; a `netlify.toml` is also included for Netlify), Render (backend, via `Procfile` / `build.sh`), Supabase (database); Docker image + Compose stack included
 
 ---
 
@@ -174,9 +173,10 @@ ZenFlow/
 
 ### Prerequisites
 
-* Node.js 18+ and npm
-* Python 3.12+
+* Node.js 20.9+ and npm (required by Next.js 16)
+* Python 3.13 (the interpreter used by the Dockerfile and CI)
 * PostgreSQL 14+
+* Redis (optional; only needed for the Celery-based reminder scheduler)
 
 ### 1. Clone the Repository
 
@@ -200,7 +200,20 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Configure `backend/.env` based on `backend/.env.example`, then execute migrations:
+Configure `backend/.env` based on `backend/.env.example`. The most important variables are:
+
+| Variable | Purpose |
+| :--- | :--- |
+| `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS` | Standard Django settings |
+| `DATABASE_URL` *or* `DB_NAME` / `DB_USER` / `DB_PASSWORD` / `DB_HOST` / `DB_PORT` | PostgreSQL connection |
+| `FRONTEND_URL`, `CORS_ALLOWED_ORIGINS`, `CSRF_TRUSTED_ORIGINS` | Frontend origin(s) for CORS, CSRF and password-recovery links |
+| `JWT_AUTH_COOKIE_SECURE`, `JWT_AUTH_COOKIE_SAMESITE`, `JWT_AUTH_COOKIE_DOMAIN` | Session-cookie attributes (see Production Deployment) |
+| `GOOGLE_CLIENT_ID` | Required for Google sign-in; must match the frontend's `NEXT_PUBLIC_GOOGLE_CLIENT_ID` |
+| `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` | SMTP for OTP, reminder and recovery emails (printed to the console when unset) |
+| `CELERY_BROKER_URL`, `REDIS_URL`, `CACHE_URL` | Redis broker for Celery and shared throttle cache |
+| `REMINDER_DISPATCH_INTERVAL_SECONDS`, `REMINDER_EMAIL_MAX_ATTEMPTS` | Reminder scheduler cadence and email retry limit |
+
+Then execute migrations and start the server:
 
 ```bash
 python manage.py migrate
@@ -216,7 +229,15 @@ cd ../frontend
 npm install
 ```
 
-Configure `frontend/.env.local` based on `frontend/.env.example`, then run the development server:
+Configure `frontend/.env.local` based on `frontend/.env.example`:
+
+| Variable | Purpose |
+| :--- | :--- |
+| `NEXT_PUBLIC_API_URL` | API base URL for browser requests (`http://localhost:8000` locally; empty or `/` in production to use the same-origin proxy) |
+| `API_PROXY_TARGET` | Server-side upstream for the same-origin proxy (defaults to `http://127.0.0.1:8000` in development) |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth client ID; must equal the backend's `GOOGLE_CLIENT_ID` |
+
+Then run the development server:
 
 ```bash
 npm run dev
@@ -254,6 +275,9 @@ docker compose --profile test run --rm test   # full backend test suite
 ```bash
 cd backend
 python manage.py test            # requires a PostgreSQL database (DATABASE_URL or DB_* vars)
+
+cd ../frontend
+npm test                         # unit + integration tests for the same-origin API proxy
 ```
 
 The GitHub Actions workflow in `.github/workflows/backend-tests.yml` runs system checks, a migration drift check and the complete suite against a PostgreSQL service on every push/PR touching `backend/`.
@@ -290,14 +314,14 @@ and on the frontend `NEXT_PUBLIC_API_URL=https://api.example.com`.
 
 If the frontend must stay on `*.netlify.app` / `*.vercel.app` and the API on `*.onrender.com`, those are **different sites**. The API's cookies are then *third-party* cookies: Safari (ITP) and Brave drop them by default, Firefox partitions them and Chrome is phasing them out, so login appears to succeed but the next request is unauthenticated. `SameSite=None; Secure` (the default when `DEBUG=False`) is required for the browsers that still allow them, but does not help where they are blocked.
 
-The portable fix is to route API calls through the frontend's own origin. `frontend/next.config.ts` adds an opt-in rewrite: build the frontend with
+The portable fix is to route API calls through the frontend's own origin. The App Router route handlers in `frontend/src/app/api/[[...path]]/route.ts` and `frontend/src/app/media/[[...path]]/route.ts` forward `/api/*` and `/media/*` to the Django upstream and rewrite the `Set-Cookie` domain/SameSite attributes on the way back. Configure the frontend with
 
 ```env
-API_PROXY_TARGET=https://zenflow-xxxx.onrender.com   # build-time, server side
-NEXT_PUBLIC_API_URL=/                                 # "/" = same origin
+API_PROXY_TARGET=https://zenflow-xxxx.onrender.com   # server side; BACKEND_API_URL is accepted as an alias
+NEXT_PUBLIC_API_URL=/                                 # "/" (or empty) = same origin
 ```
 
-and every `/api/*` request is proxied by Next.js (supported by Netlify's Next runtime and by Vercel), so cookies are first-party and the API can use `JWT_AUTH_COOKIE_SAMESITE=Lax`. `FRONTEND_URL` / `CSRF_TRUSTED_ORIGINS` / `CORS_ALLOWED_ORIGINS` must still name the frontend origin exactly; never use wildcard origins with credentialed requests, and do not add Netlify deploy-preview hosts (`deploy-preview-*--site.netlify.app`) to the trusted lists - previews should use their own API instance or stay logged-out.
+and every browser request is proxied by Next.js (works on Vercel and on Netlify's Next runtime), so cookies are first-party and the API can use `JWT_AUTH_COOKIE_SAMESITE=Lax`. `FRONTEND_URL` / `CSRF_TRUSTED_ORIGINS` / `CORS_ALLOWED_ORIGINS` must still name the frontend origin exactly; never use wildcard origins with credentialed requests, and do not add Netlify deploy-preview hosts (`deploy-preview-*--site.netlify.app`) to the trusted lists - previews should use their own API instance or stay logged-out.
 
 ### Operational checklist
 
@@ -317,11 +341,11 @@ Authentication uses `httpOnly` JWT cookies set by the login/verify/Google endpoi
 | Endpoint Prefix | Description |
 | :--- | :--- |
 | `/api/health/` | Liveness/readiness probe (database connectivity) |
-| `/api/auth/` | Registration, OTP verification/resend, login, Google OAuth, cookie refresh/logout, CSRF token, profile, account deletion |
+| `/api/auth/` | Registration, OTP verification/resend, login, Google OAuth, cookie refresh/logout, CSRF token, profile (`me/`), OTP-verified password change and account deletion |
 | `/api/auth/password/forgot/` | Public password recovery: request link, validate token, confirm new password |
 | `/api/tasks/` | Task CRUD operations with priority tags and deadline timestamps |
 | `/api/events/` | Calendar event management; supports `?start=&end=` range filters (used by every frontend view) |
-| `/api/expenses/` | Expense transaction logging, filtering, and currency conversion |
+| `/api/expenses/` | Expense transaction CRUD; amounts are stored with their original currency (conversion happens client-side) |
 | `/api/budget/` | Monthly budget limits, category allocations and `warningThresholds` |
 | `/api/analytics/summary/` | Aggregated expense totals per category / month / day / payment method (optional `?start=&end=`) |
 | `/api/reminders/` | Reminder CRUD, `POST {id}/snooze/`, and `notifications/` (list, `read`, `read-all`) |
